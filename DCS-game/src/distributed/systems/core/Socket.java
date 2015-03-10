@@ -3,9 +3,6 @@ package distributed.systems.core;
 import distributed.systems.das.BattleField;
 import distributed.systems.das.units.Unit;
 
-/**
- * Created by mashenjun on 3-3-15.
- */
 public class Socket {
 
 	public void register(String serverid) {
