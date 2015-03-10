@@ -143,8 +143,8 @@ public class BattleField implements IMessageReceivedHandler {
 	 * Move the specified unit a certain number of steps.
 	 * 
 	 * @param unit is the unit being moved.
-	 * @param deltax is the delta in the x position.
-	 * @param deltay is the delta in the y position.
+	 * @param newX is the delta in the x position.
+	 * @param newY is the delta in the y position.
 	 * 
 	 * @return true on success.
 	 */
