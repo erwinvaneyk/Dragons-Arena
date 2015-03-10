@@ -3,31 +3,16 @@ package distributed.systems.core;
 import distributed.systems.das.BattleField;
 import distributed.systems.das.units.Unit;
 
-public class Socket {
+public interface Socket {
 
-	public void register(String serverid) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void register(String serverid);
 
-	public void addMessageReceivedHandler(BattleField battleField) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void addMessageReceivedHandler(BattleField battleField);
 
-	public void addMessageReceivedHandler(Unit unit) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void addMessageReceivedHandler(Unit unit);
 
-	public void sendMessage(Message reply, String origin) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void sendMessage(Message reply, String origin);
 
-	public void unRegister() {
-		// TODO Auto-generated method stub
-		
-	}
+	public void unRegister();
 
 }
