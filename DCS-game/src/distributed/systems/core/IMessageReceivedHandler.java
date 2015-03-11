@@ -1,7 +1,8 @@
 package distributed.systems.core;
 
-/**
- * Created by mashenjun on 3-3-15.
- */
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
 public interface IMessageReceivedHandler {
+    public void onMessageReceived(Message message);
 }

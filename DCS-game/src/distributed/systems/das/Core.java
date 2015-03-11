@@ -19,7 +19,7 @@ public class Core {
 	public static final int DRAGON_COUNT = 20;
 	public static final int TIME_BETWEEN_PLAYER_LOGIN = 5000; // In milliseconds
 	
-	public static BattleField battlefield; 
+	public static BattleField battlefield;
 	public static int playerCount;
 
 	public static void main(String[] args) {
@@ -96,7 +96,9 @@ public class Core {
 		/* Spawn a new battlefield viewer */
 		new Thread(new Runnable() {
 			public void run() {
+
 				new BattleFieldViewer();
+
 			}
 		}).start();
 		

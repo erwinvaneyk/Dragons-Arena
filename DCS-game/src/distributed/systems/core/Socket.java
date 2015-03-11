@@ -3,34 +3,20 @@ package distributed.systems.core;
 import distributed.systems.das.BattleField;
 import distributed.systems.das.units.Unit;
 
-/**
- * Created by mashenjun on 3-3-15.
- */
-public class Socket {
+import java.rmi.AlreadyBoundException;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
 
-	public void register(String serverid) {
-		// TODO Auto-generated method stub
-		
-	}
+public interface Socket extends Remote {
 
-	public void addMessageReceivedHandler(BattleField battleField) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void register(String serverid) throws RemoteException;
 
-	public void addMessageReceivedHandler(Unit unit) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void addMessageReceivedHandler(BattleField battleField) throws RemoteException;
 
-	public void sendMessage(Message reply, String origin) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void addMessageReceivedHandler(Unit unit) throws RemoteException;
 
-	public void unRegister() {
-		// TODO Auto-generated method stub
-		
-	}
+	public void sendMessage(Message reply, String origin) throws RemoteException;
+
+	public void unRegister() throws RemoteException;
 
 }

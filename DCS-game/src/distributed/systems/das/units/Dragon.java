@@ -70,7 +70,6 @@ public class Dragon extends Unit implements Runnable, Serializable {
 		ArrayList <Direction> adjacentPlayers = new ArrayList<Direction> ();
 		
 		this.running = true;
-
 		while(GameState.getRunningState() && this.running) {
 			try {
 				/* Sleep while the dragon is considering its next move */

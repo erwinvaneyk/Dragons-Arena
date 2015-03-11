@@ -1,5 +1,7 @@
 package distributed.systems.das;
 
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 
 import distributed.systems.das.units.Dragon;
@@ -48,8 +50,9 @@ public class BattleField implements IMessageReceivedHandler {
 	 * @param width of the battlefield
 	 * @param height of the battlefield
 	 */
-	private BattleField(int width, int height) {
-		Socket local = new LocalSocket();
+	private BattleField(int width, int height)  {
+
+        Socket local = new LocalSocket();
 		
 		synchronized (this) {
 			map = new Unit[width][height];
@@ -57,6 +60,7 @@ public class BattleField implements IMessageReceivedHandler {
 			serverSocket = new SynchronizedSocket(local);
 			serverSocket.addMessageReceivedHandler(this);
 			units = new ArrayList<Unit>();
+
 		}
 		
 	}
@@ -143,8 +147,8 @@ public class BattleField implements IMessageReceivedHandler {
 	 * Move the specified unit a certain number of steps.
 	 * 
 	 * @param unit is the unit being moved.
-	 * @param deltax is the delta in the x position.
-	 * @param deltay is the delta in the y position.
+	 * @param newX is the delta in the x position.
+	 * @param newY is the delta in the y position.
 	 * 
 	 * @return true on success.
 	 */

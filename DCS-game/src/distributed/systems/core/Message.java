@@ -9,12 +9,18 @@ import distributed.systems.das.MessageRequest;
  * Created by mashenjun on 3-3-15.
  */
 public class Message implements Serializable{
-	
+    /**
+     * use a HashMap here.
+     */
 	private HashMap<String, Serializable> content;
 
-	public void put(String string, Serializable serializable) {
+    public Message() {
+        this.content = new HashMap<String, Serializable>();
+    }
+
+    public void put(String string, Serializable serializable) {
 		// TODO Auto-generated method stub
-		
+        this.content.put(string,serializable);
 	}
 
 	public void put(String string, int x) {
