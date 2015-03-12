@@ -5,9 +5,13 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.ArrayList;
+import java.util.Arrays;
 
+import distributed.systems.core.IMessageProxyHandler;
 import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.Message;
+import distributed.systems.core.MessageProxy;
 import distributed.systems.core.Socket;
 import distributed.systems.core.exception.AlreadyAssignedIDException;
 import distributed.systems.das.BattleField;
@@ -37,7 +41,8 @@ public class LocalSocket implements Socket {
 	@Override
 	public void addMessageReceivedHandler(BattleField battleField) {
 		try {
-			registry.bind(id, battleField);
+			System.out.println(Arrays.toString(registry.list()));
+			registry.bind(id, new MessageProxy(battleField));
 		}
 		catch (AlreadyBoundException e) {
 			throw new AlreadyAssignedIDException();
@@ -50,7 +55,7 @@ public class LocalSocket implements Socket {
 	@Override
 	public void addMessageReceivedHandler(Unit unit) {
 		try {
-			registry.bind(id, unit);
+			registry.bind(id, new MessageProxy(unit));
 		}
 		catch (AlreadyBoundException e) {
 			throw new AlreadyAssignedIDException();
@@ -67,7 +72,7 @@ public class LocalSocket implements Socket {
 
 		try {
 			message.put("origin", PROTOCOL + this.id);
-			IMessageReceivedHandler handler = (IMessageReceivedHandler) registry.lookup(destination.substring(PROTOCOL.length()));
+			IMessageProxyHandler handler = (IMessageProxyHandler) registry.lookup(destination.substring(PROTOCOL.length()));
 			handler.onMessageReceived(message);
 		}
 		catch (NotBoundException e) {

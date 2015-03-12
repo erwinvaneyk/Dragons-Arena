@@ -7,7 +7,7 @@ import distributed.systems.das.MessageRequest;
 
 public class Message implements Serializable {
 	
-	private HashMap<String, Serializable> content;
+	private HashMap<String, Serializable> content = new HashMap<String, Serializable>();
 
 	public void put(String key, Serializable value) {
 		content.put(key, value);

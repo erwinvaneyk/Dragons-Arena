@@ -1,8 +1,6 @@
 package distributed.systems.core;
 
-import java.rmi.Remote;
-
-public interface IMessageReceivedHandler extends Remote {
+public interface IMessageReceivedHandler {
 
 	void onMessageReceived(Message message);
 }
