@@ -1,5 +1,6 @@
 package distributed.systems.example;
 
+import java.io.Serializable;
 import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -17,7 +18,7 @@ import distributed.systems.core.exception.AlreadyAssignedIDException;
 import distributed.systems.das.BattleField;
 import distributed.systems.das.units.Unit;
 
-public class LocalSocket implements Socket {
+public class LocalSocket implements Socket,Serializable {
 
 	private String id;
 
@@ -41,7 +42,7 @@ public class LocalSocket implements Socket {
 	@Override
 	public void addMessageReceivedHandler(BattleField battleField) {
 		try {
-			System.out.println(Arrays.toString(registry.list()));
+			System.out.println("the list is "+Arrays.toString(registry.list()));
 			registry.bind(id, new MessageProxy(battleField));
 		}
 		catch (AlreadyBoundException e) {
@@ -68,7 +69,7 @@ public class LocalSocket implements Socket {
 
 	@Override
 	public void sendMessage(Message message, String destination) {
-		System.out.println(message);
+		System.out.println("the message is "+message);
 
 		try {
 			message.put("origin", PROTOCOL + this.id);

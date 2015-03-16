@@ -3,7 +3,10 @@ package distributed.systems.core;
 import distributed.systems.das.BattleField;
 import distributed.systems.das.units.Unit;
 
-public class SynchronizedSocket implements Socket {
+import javax.naming.directory.SearchResult;
+import java.io.Serializable;
+
+public class SynchronizedSocket implements Socket,Serializable{
 
 	private final Socket local;
 
