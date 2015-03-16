@@ -46,6 +46,12 @@ public class Player extends Unit implements Runnable, Serializable {
 
 		if (!spawn(x, y))
 			return; // We could not spawn on the battlefield
+        /**
+         * update the local position
+         * @author Ma
+         */
+        this.x = x;
+        this.y = y;
 
 		/* Create a new player thread */
 		//new Thread(this).start();
