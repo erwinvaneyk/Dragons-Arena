@@ -349,6 +349,13 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 				return;
 		}
 
+        /**
+         * update the location
+         * @author MA
+         */
+        this.x = x;
+        this.y = y;
+
 		// Remove the result from the messageList
 		messageList.put(id, null);
 	}
