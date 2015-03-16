@@ -54,7 +54,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	 * We need to remember this thread to make sure that Java exits cleanly.
 	 * (See stopRunnerThread())
 	 */
-	protected Thread runnerThread;
+	protected transient Thread runnerThread;
 
 	public enum Direction {
 		up, right, down, left
