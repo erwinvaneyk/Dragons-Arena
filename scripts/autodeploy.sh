@@ -9,14 +9,15 @@ do
 	CHANGEDMASTER=TE
 	echo $CHANGEDMASTER
 	if [ ! -z "$CHANGEDMASTER" ]; then
-		echo "server needs to be update"
+		echo "server needs to be updated!"
 		git checkout master
 		git reset master --hard
 		git pull
 		echo "killing old server"
 		sudo stop IN4391-server
 		echo "Building new server"
-		mvn install
+		pwd
+		mvn clean install
 		echo "Starting new server"
 		sudo start IN4391-server
 	else

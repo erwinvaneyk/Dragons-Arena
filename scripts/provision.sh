@@ -4,9 +4,9 @@
 
 sudo bash -c "'StrictHostKeyChecking no' >> /etc/ssh/ssh_config"
 # eval "$(ssh-agent -s)"
+# ssh-add /vagrant/config/IN4391_rsa
 cp /vagrant/config/IN4391_rsa ~/.ssh/id_rsa
 cp /vagrant/config/IN4391_rsa.pub ~/.ssh/id_rsa.pub
-# ssh-add /vagrant/config/IN4391_rsa
 
 echo "Setting up service for IN4391-server"
 sudo cp /vagrant/scripts/IN4391-server.conf /etc/init/IN4391-server.conf
@@ -17,7 +17,6 @@ pwd
 # git clone git@github.com:erwinvaneyk/IN4391.git
 cd /opt/IN4391/
 echo "Building server from source..."
-pwd
 mvn install
 echo "Starting IN4391-server service..."
 sudo start IN4391-server
