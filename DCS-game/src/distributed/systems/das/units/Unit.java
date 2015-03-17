@@ -54,7 +54,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	 * We need to remember this thread to make sure that Java exits cleanly.
 	 * (See stopRunnerThread())
 	 */
-	protected Thread runnerThread;
+	protected transient Thread runnerThread;
 
 	public enum Direction {
 		up, right, down, left
@@ -348,6 +348,13 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 			if (!GameState.getRunningState())
 				return;
 		}
+
+        /**
+         * update the location
+         * @author MA
+         */
+        this.x = x;
+        this.y = y;
 
 		// Remove the result from the messageList
 		messageList.put(id, null);
