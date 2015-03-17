@@ -1,0 +1,15 @@
+# location of file on Linux-server (with upstart enabled): /var/init/in4391-server.conf
+# Reference: http://stackoverflow.com/questions/12102270/run-java-jar-file-on-a-server-as-background-process
+description "A server node for the IN4391 course"  
+author "Erwin van Eyk"  
+
+start on runlevel [3]  
+stop on shutdown  
+
+expect fork  
+
+script     
+    cd ~/IN4391/target/
+    java -jar IN4391-server.jar > /var/log/IN4391/IN4391-server.log 2>&1  
+    emit in4391-server_running  
+end script

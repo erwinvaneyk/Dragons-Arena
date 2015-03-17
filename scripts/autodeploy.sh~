@@ -1,0 +1,22 @@
+#!/bin/sh
+
+while [ true ]
+do
+	cd ~/IN4391/
+	echo "Checking repository for updates.."
+	git fetch origin
+	local CHANGEDMASTER = git log HEAD..origin/master --oneline
+	if [ -z "$CHANGEDMASTER" ]; then
+		echo "server needs to be update"
+		git checkout master				
+		git pull
+		echo "killing old server"
+		sudo service in4931-server stop
+		echo "Building and starting new server"
+		mvn install
+		sudo service in4931-server start
+	else
+		echo "server up-to-date"
+	fi
+	sleep 30
+done
