@@ -6,11 +6,9 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import distributed.systems.core.IMessageProxyHandler;
-import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.Message;
 import distributed.systems.core.MessageProxy;
 import distributed.systems.core.Socket;
@@ -67,6 +65,7 @@ public class LocalSocket implements Socket,Serializable {
 
 	}
 
+	@SuppressWarnings("TryWithIdenticalCatches")
 	@Override
 	public void sendMessage(Message message, String destination) {
 		System.out.println("the message is "+message);
@@ -89,10 +88,7 @@ public class LocalSocket implements Socket,Serializable {
 		try {
 			registry.unbind(id);
 		}
-		catch (RemoteException e) {
-			e.printStackTrace();
-		}
-		catch (NotBoundException e) {
+		catch (RemoteException | NotBoundException e) {
 			e.printStackTrace();
 		}
 	}

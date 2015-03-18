@@ -3,11 +3,10 @@ package distributed.systems.core;
 import java.io.Serializable;
 import java.util.HashMap;
 
-import distributed.systems.das.MessageRequest;
 
 public class Message implements Serializable {
 	
-	private HashMap<String, Serializable> content = new HashMap<String, Serializable>();
+	private HashMap<String, Serializable> content = new HashMap<>();
 
 	public void put(String key, Serializable value) {
 		content.put(key, value);

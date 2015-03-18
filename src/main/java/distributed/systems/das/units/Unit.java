@@ -58,11 +58,11 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
 	public enum Direction {
 		up, right, down, left
-	};
-	
+	}
+
 	public enum UnitType {
 		player, dragon, undefined,
-	};
+	}
 
 	/**
 	 * Create a new unit and specify the 
@@ -75,7 +75,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	public Unit(int maxHealth, int attackPoints) throws AlreadyAssignedIDException {
 		Socket localSocket = new LocalSocket();
 
-		messageList = new HashMap<Integer, Message>();
+		messageList = new HashMap<>();
 
 		// Initialize the max health and health
 		hitPoints = maxHitPoints = maxHealth;

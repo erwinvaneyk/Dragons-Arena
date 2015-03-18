@@ -56,7 +56,7 @@ public class BattleField implements IMessageReceivedHandler {
 			local.register(BattleField.serverID);
 			serverSocket = new SynchronizedSocket(local);
 			serverSocket.addMessageReceivedHandler(this);
-			units = new ArrayList<Unit>();
+			units = new ArrayList<>();
 		}
 		
 	}
