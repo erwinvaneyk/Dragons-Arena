@@ -26,7 +26,7 @@ public class LocalSocket implements Socket,Serializable {
 
 	public LocalSocket() {
 		try {
-			registry = LocateRegistry.getRegistry("127.0.0.1", RegistryHandler.PORT);
+			registry = LocateRegistry.getRegistry("127.0.0.1", RegistryNode.PORT);
 		} catch (RemoteException e) {
 			throw new RuntimeException("Mweh!");
 		}
@@ -65,7 +65,19 @@ public class LocalSocket implements Socket,Serializable {
 
 	}
 
-	@SuppressWarnings("TryWithIdenticalCatches")
+	@Override
+	public void addLoggingReceivedHandler(LogHandler logger) {
+		try {
+			registry.bind(id, logger);
+		}
+		catch (AlreadyBoundException e) {
+			throw new AlreadyAssignedIDException();
+		}
+		catch (RemoteException e) {
+			e.printStackTrace();
+		}
+	}
+
 	@Override
 	public void sendMessage(Message message, String destination) {
 		System.out.println("the message is "+message);
@@ -75,10 +87,7 @@ public class LocalSocket implements Socket,Serializable {
 			IMessageProxyHandler handler = (IMessageProxyHandler) registry.lookup(destination.substring(PROTOCOL.length()));
 			handler.onMessageReceived(message);
 		}
-		catch (NotBoundException e) {
-			e.printStackTrace();
-		}
-		catch (RemoteException e) {
+		catch (NotBoundException | RemoteException e) {
 			e.printStackTrace();
 		}
 	}

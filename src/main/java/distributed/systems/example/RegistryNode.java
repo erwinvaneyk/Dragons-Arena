@@ -3,7 +3,7 @@ package distributed.systems.example;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 
-public class RegistryHandler {
+public class RegistryNode {
 
 	public static final int PORT = 1234;
 

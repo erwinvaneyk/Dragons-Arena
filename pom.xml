@@ -38,7 +38,7 @@
 					<finalName>IN4391-server</finalName>
 					<archive>
 						<manifest>
-							<mainClass>distributed.systems.example.RegistryHandler</mainClass>
+							<mainClass>distributed.systems.example.RegistryNode</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
