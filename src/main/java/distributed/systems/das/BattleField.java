@@ -25,7 +25,7 @@ import distributed.systems.example.LocalSocket;
  */
 public class BattleField implements IMessageReceivedHandler {
 	/* The array of units */
-	private Unit[][] map;
+	private Unit[][] map; // TODO: do it
 
 	/* The static singleton */
 	private static BattleField battlefield;
@@ -36,7 +36,7 @@ public class BattleField implements IMessageReceivedHandler {
 	/* The last id that was assigned to an unit. This variable is used to
 	 * enforce that each unit has its own unique id.
 	 */
-	private int lastUnitID = 0;
+	private int lastUnitID = 0; // TODO: do it
 
 	public final static String serverID = "server";
 	public final static int MAP_WIDTH = 25;

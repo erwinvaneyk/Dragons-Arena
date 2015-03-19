@@ -1,5 +1,7 @@
 package distributed.systems.example;
 
+import distributed.systems.das.BattleField;
+
 /**
  * A single server node
  *
@@ -7,18 +9,18 @@ package distributed.systems.example;
  */
 public class ServerNode {
 
+	//private final BattleField battlefield;
+
 	public static void main(String[] args) {
 		// do stuff
 	}
 
-	public ServerNode(boolean logEndPoint) {
-		if(logEndPoint) {
-
-		}
-
+	public ServerNode() {
+		// TODO: Acknowledge network/handshake
+		// TODO: sync with network
+		// TODO: Setup battlefield (self or from network)
+		// TODO: start a dragon (if necessary)
 	}
 
-	public void addLogger() {
 
-	}
 }

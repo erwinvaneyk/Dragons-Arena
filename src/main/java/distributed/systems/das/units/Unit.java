@@ -1,6 +1,7 @@
 package distributed.systems.das.units;
 
 import java.io.Serializable;
+import java.rmi.NotBoundException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -367,6 +368,8 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	// Disconnects the unit from the battlefield by exiting its run-state
 	public void disconnect() {
 		running = false;
+		// #Hack for clientsockets not unregister-ing
+		clientSocket.unRegister();
 	}
 
 	/**
@@ -375,7 +378,9 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	 */
 	public void stopRunnerThread() {
 		try {
-			runnerThread.join();
+			if(runnerThread != null) {
+				runnerThread.join();
+			}
 		} catch (InterruptedException ex) {
 			assert(false) : "Unit stopRunnerThread was interrupted";
 		}

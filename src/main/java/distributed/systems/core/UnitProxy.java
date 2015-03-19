@@ -1,25 +1,26 @@
 package distributed.systems.core;
 
-import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
+import distributed.systems.das.units.Unit;
 import lombok.ToString;
 
 /**
  * Entry-point for incoming messages
  */
 @ToString
-public class MessageProxy extends UnicastRemoteObject implements IMessageProxyHandler, Serializable {
+public class UnitProxy extends UnicastRemoteObject implements IMessageProxyHandler {
 
-	private final IMessageReceivedHandler subject;
+	private final Unit subject;
 
-	public MessageProxy(IMessageReceivedHandler subject) throws RemoteException {
+	public UnitProxy(Unit subject) throws RemoteException {
 		this.subject = subject;
 	}
 
 	@Override
 	public void onMessageReceived(Message message) throws RemoteException {
+		message.setReceivedTimestamp();
 		// TODO: if server/battlefield put message into queue
 		this.subject.onMessageReceived(message);
 	}

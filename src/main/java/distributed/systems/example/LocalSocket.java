@@ -8,9 +8,10 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Arrays;
 
+import distributed.systems.core.BattlefieldProxy;
 import distributed.systems.core.IMessageProxyHandler;
 import distributed.systems.core.Message;
-import distributed.systems.core.MessageProxy;
+import distributed.systems.core.UnitProxy;
 import distributed.systems.core.Socket;
 import distributed.systems.core.exception.AlreadyAssignedIDException;
 import distributed.systems.das.BattleField;
@@ -41,7 +42,7 @@ public class LocalSocket implements Socket,Serializable {
 	public void addMessageReceivedHandler(BattleField battleField) {
 		try {
 			System.out.println("the list is "+Arrays.toString(registry.list()));
-			registry.bind(id, new MessageProxy(battleField));
+			registry.bind(id, new BattlefieldProxy(battleField));
 		}
 		catch (AlreadyBoundException e) {
 			throw new AlreadyAssignedIDException();
@@ -54,7 +55,7 @@ public class LocalSocket implements Socket,Serializable {
 	@Override
 	public void addMessageReceivedHandler(Unit unit) {
 		try {
-			registry.bind(id, new MessageProxy(unit));
+			registry.bind(id, new UnitProxy(unit));
 		}
 		catch (AlreadyBoundException e) {
 			throw new AlreadyAssignedIDException();
@@ -80,12 +81,13 @@ public class LocalSocket implements Socket,Serializable {
 
 	@Override
 	public void sendMessage(Message message, String destination) {
-		System.out.println("the message is "+message);
 
 		try {
+			message.setOriginId(this.id);
 			message.put("origin", PROTOCOL + this.id);
 			IMessageProxyHandler handler = (IMessageProxyHandler) registry.lookup(destination.substring(PROTOCOL.length()));
 			handler.onMessageReceived(message);
+			System.out.println("send: " + message);
 		}
 		catch (NotBoundException | RemoteException e) {
 			e.printStackTrace();
@@ -96,9 +98,10 @@ public class LocalSocket implements Socket,Serializable {
 	public void unRegister() {
 		try {
 			registry.unbind(id);
+			System.out.println("Unregistered binding " + id);
 		}
 		catch (RemoteException | NotBoundException e) {
-			e.printStackTrace();
+			System.out.println(id + " was already unRegistered!");
 		}
 	}
 }

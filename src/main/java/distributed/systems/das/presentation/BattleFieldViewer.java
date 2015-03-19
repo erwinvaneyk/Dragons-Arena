@@ -40,6 +40,11 @@ public class BattleFieldViewer extends JPanel implements Runnable {
 	 */
 	private Thread runnerThread;
 
+	public static void main(String[] args) {
+		/* Spawn a new battlefield viewer */
+		new BattleFieldViewer().run();
+	}
+
 	/**
 	 * Create a battlefield viewer in 
 	 * a new thread. 

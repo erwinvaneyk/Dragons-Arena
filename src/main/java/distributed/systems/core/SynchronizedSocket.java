@@ -2,6 +2,7 @@ package distributed.systems.core;
 
 import distributed.systems.das.BattleField;
 import distributed.systems.das.units.Unit;
+import distributed.systems.example.LogHandler;
 
 import java.io.Serializable;
 
@@ -26,6 +27,11 @@ public class SynchronizedSocket implements Socket,Serializable{
 	@Override
 	public void addMessageReceivedHandler(Unit unit) {
 		this.local.addMessageReceivedHandler(unit);
+	}
+
+	@Override
+	public void addLoggingReceivedHandler(LogHandler logger) {
+		this.local.addLoggingReceivedHandler(logger);
 	}
 
 	@Override

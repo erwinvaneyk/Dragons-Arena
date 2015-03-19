@@ -88,7 +88,6 @@ public class Player extends Unit implements Runnable, Serializable {
 
 				// Randomly choose one of the four wind directions to move to if there are no units present
 				direction = Direction.values()[ (int)(Direction.values().length * Math.random()) ];
-				adjacentUnitType = UnitType.undefined;
 
 				switch (direction) {
 					case up:

@@ -1,6 +1,7 @@
 package distributed.systems.core;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.HashMap;
 
 import lombok.Getter;
@@ -25,17 +26,34 @@ public class Message implements Serializable {
 	@Getter @Setter
 	private Type messageType = Type.GENERIC;
 
+	@Getter
+	private final HashMap<String, Serializable> content = new HashMap<>();
+
+	@Getter
+	private final Date timestamp = new Date();
+
+	@Getter
+	private Date receivedTimestamp;
+
+	@Getter @Setter
+	private String originId;
+
 	public Message(Type messageType) {
 		this.messageType = messageType;
 	}
 
-	private final HashMap<String, Serializable> content = new HashMap<>();
-
-	public void put(String key, Serializable value) {
+	public Message put(String key, Serializable value) {
 		content.put(key, value);
+		return this;
 	}
 
 	public Serializable get(String string) {
 		return content.get(string);
+	}
+
+	public void setReceivedTimestamp() {
+		if(receivedTimestamp == null) {
+			receivedTimestamp = new Date();
+		}
 	}
 }
