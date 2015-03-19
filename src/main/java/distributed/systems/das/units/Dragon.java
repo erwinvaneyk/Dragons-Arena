@@ -67,7 +67,7 @@ public class Dragon extends Unit implements Runnable, Serializable {
 	 */
 	@SuppressWarnings("static-access")
 	public void run() {
-		ArrayList <Direction> adjacentPlayers = new ArrayList<Direction> ();
+		ArrayList <Direction> adjacentPlayers = new ArrayList<>();
 		
 		this.running = true;
 

@@ -6,13 +6,12 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.ArrayList;
 import java.util.Arrays;
 
+import distributed.systems.core.BattlefieldProxy;
 import distributed.systems.core.IMessageProxyHandler;
-import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.Message;
-import distributed.systems.core.MessageProxy;
+import distributed.systems.core.UnitProxy;
 import distributed.systems.core.Socket;
 import distributed.systems.core.exception.AlreadyAssignedIDException;
 import distributed.systems.das.BattleField;
@@ -28,7 +27,7 @@ public class LocalSocket implements Socket,Serializable {
 
 	public LocalSocket() {
 		try {
-			registry = LocateRegistry.getRegistry("127.0.0.1", RegistryHandler.PORT);
+			registry = LocateRegistry.getRegistry("127.0.0.1", RegistryNode.PORT);
 		} catch (RemoteException e) {
 			throw new RuntimeException("Mweh!");
 		}
@@ -43,7 +42,7 @@ public class LocalSocket implements Socket,Serializable {
 	public void addMessageReceivedHandler(BattleField battleField) {
 		try {
 			System.out.println("the list is "+Arrays.toString(registry.list()));
-			registry.bind(id, new MessageProxy(battleField));
+			registry.bind(id, new BattlefieldProxy(battleField));
 		}
 		catch (AlreadyBoundException e) {
 			throw new AlreadyAssignedIDException();
@@ -56,7 +55,7 @@ public class LocalSocket implements Socket,Serializable {
 	@Override
 	public void addMessageReceivedHandler(Unit unit) {
 		try {
-			registry.bind(id, new MessageProxy(unit));
+			registry.bind(id, new UnitProxy(unit));
 		}
 		catch (AlreadyBoundException e) {
 			throw new AlreadyAssignedIDException();
@@ -68,18 +67,29 @@ public class LocalSocket implements Socket,Serializable {
 	}
 
 	@Override
+	public void addLoggingReceivedHandler(LogHandler logger) {
+		try {
+			registry.bind(id, logger);
+		}
+		catch (AlreadyBoundException e) {
+			throw new AlreadyAssignedIDException();
+		}
+		catch (RemoteException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
 	public void sendMessage(Message message, String destination) {
-		System.out.println("the message is "+message);
 
 		try {
+			message.setOriginId(this.id);
 			message.put("origin", PROTOCOL + this.id);
 			IMessageProxyHandler handler = (IMessageProxyHandler) registry.lookup(destination.substring(PROTOCOL.length()));
 			handler.onMessageReceived(message);
+			System.out.println("send: " + message);
 		}
-		catch (NotBoundException e) {
-			e.printStackTrace();
-		}
-		catch (RemoteException e) {
+		catch (NotBoundException | RemoteException e) {
 			e.printStackTrace();
 		}
 	}
@@ -88,12 +98,10 @@ public class LocalSocket implements Socket,Serializable {
 	public void unRegister() {
 		try {
 			registry.unbind(id);
+			System.out.println("Unregistered binding " + id);
 		}
-		catch (RemoteException e) {
-			e.printStackTrace();
-		}
-		catch (NotBoundException e) {
-			e.printStackTrace();
+		catch (RemoteException | NotBoundException e) {
+			System.out.println(id + " was already unRegistered!");
 		}
 	}
 }

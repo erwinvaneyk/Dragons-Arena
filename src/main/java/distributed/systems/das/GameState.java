@@ -11,7 +11,7 @@ public class GameState {
 	// Is-the-program-actually-running-flag
 	private static volatile boolean running = true;
 	// Relation between game time and real time
-	public static final double GAME_SPEED = .01;
+	public static final double GAME_SPEED = 01;
 	// The number of players in the game
 	private static int playerCount = 0;
 
