@@ -5,17 +5,13 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.text.SimpleDateFormat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import distributed.systems.core.IMessageProxyHandler;
+import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.Message;
-import org.elasticsearch.client.Client;
-import org.elasticsearch.node.Node;
-import org.elasticsearch.node.NodeBuilder;
 
-public class LogHandler extends UnicastRemoteObject implements IMessageProxyHandler, Serializable {
+public class LogHandler extends UnicastRemoteObject implements IMessageReceivedHandler, Serializable {
 
 	private transient final ObjectMapper mapper = new ObjectMapper();
 	//private transient final Node node;

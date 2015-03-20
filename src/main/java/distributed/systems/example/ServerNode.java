@@ -4,14 +4,13 @@ import static java.util.stream.Collectors.toList;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Arrays;
-import java.util.List;
 
 import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.Message;
 import distributed.systems.core.Socket;
 import distributed.systems.core.SynchronizedSocket;
 import distributed.systems.das.BattleField;
+import distributed.systems.das.presentation.BattleFieldViewer;
 
 /**
  * A single server node
@@ -43,28 +42,26 @@ public class ServerNode extends UnicastRemoteObject implements IMessageReceivedH
 		battlefield = BattleField.getBattleField();
 		battlefield.setServerSocket(serverSocket);
 		// TODO: start a dragon (if necessary)
+
+		/* Spawn a new battlefield viewer */
+		new Thread(BattleFieldViewer::new).start();
 	}
 
 	private Socket connectToCluster() throws RemoteException {
 		Socket socket = new SynchronizedSocket(LocalSocket.connectToDefault());
-		address = determineAddress(socket);
+		address = socket.determineAddress(NodeAddress.NodeType.SERVER);
 		socket.register(address.toString());
 		socket.addMessageReceivedHandler(this);
 		return socket;
 	}
 
-	private NodeAddress determineAddress(Socket socket) throws RemoteException {
-		int highestId = socket.getNodes()
-				.stream()
-				.filter(node -> node.getType().equals(NodeAddress.NodeType.SERVER))
-				.mapToInt(NodeAddress::getId)
-				.max().orElse(-1);
-		return new NodeAddress(NodeAddress.NodeType.SERVER, highestId + 1);
-	}
-
 
 	@Override
-	public void onMessageReceived(Message message) {
+	public void onMessageReceived(Message message) throws RemoteException{
+		message.setReceivedTimestamp();
+		// TODO: handle other messages
 
+		// Battlefield-specific messages
+		this.battlefield.onMessageReceived(message);
 	}
 }

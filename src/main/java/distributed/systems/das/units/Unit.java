@@ -1,20 +1,16 @@
 package distributed.systems.das.units;
 
 import java.io.Serializable;
-import java.rmi.NotBoundException;
 import java.util.HashMap;
 import java.util.Map;
-
-import distributed.systems.das.BattleField;
 import distributed.systems.das.GameState;
 import distributed.systems.das.MessageRequest;
 import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.Message;
 import distributed.systems.core.Socket;
-import distributed.systems.core.SynchronizedSocket;
 import distributed.systems.core.exception.AlreadyAssignedIDException;
 import distributed.systems.core.exception.IDNotAssignedException;
-import distributed.systems.example.LocalSocket;
+import distributed.systems.example.ClientNode;
 
 /**
  * Base class for all players whom can 
@@ -25,7 +21,9 @@ import distributed.systems.example.LocalSocket;
  * @author Pieter Anemaet, Boaz Pat-El
  */
 public abstract class Unit implements Serializable, IMessageReceivedHandler {
-	private static final long serialVersionUID = -4550572524008491160L;
+	private static final long serialVersionUID = -4550572524008491161L;
+
+	private transient final ClientNode node;
 
 	// Position of the unit
 	protected int x, y;
@@ -38,10 +36,10 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	protected int attackPoints;
 
 	// Identifier of the unit
-	private int unitID;
+	private String unitID;
 
 	// The communication socket between this client and the board
-	protected Socket clientSocket;
+	protected transient Socket clientSocket;
 	
 	// Map messages from their ids
 	private Map<Integer, Message> messageList;
@@ -66,16 +64,14 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	}
 
 	/**
-	 * Create a new unit and specify the 
+	 * Create a new unit and specify the
 	 * number of hitpoints. Units hitpoints
-	 * are initialized to the maxHitPoints. 
-	 * 
-	 * @param maxHealth is the maximum health of 
+	 * are initialized to the maxHitPoints.
+	 *
+	 * @param maxHealth is the maximum health of
 	 * this specific unit.
 	 */
-	public Unit(int maxHealth, int attackPoints) throws AlreadyAssignedIDException {
-		Socket localSocket = LocalSocket.connectToDefault();
-
+	public Unit(int maxHealth, int attackPoints, ClientNode node) throws AlreadyAssignedIDException {
 		messageList = new HashMap<>();
 
 		// Initialize the max health and health
@@ -85,15 +81,10 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		this.attackPoints = attackPoints;
 
 		// Get a new unit id
-		unitID = BattleField.getBattleField().getNewUnitID();
+		this.unitID = node.getAddress().toString();
 
-		// Create a new socket
-		clientSocket = new SynchronizedSocket(localSocket);
-
-		// Try to register the socket
-		clientSocket.register("D" + unitID);
-
-		clientSocket.addMessageReceivedHandler(this);
+		this.node = node;
+		this.clientSocket = this.node.getSocket();
 	}
 
 	/**
@@ -134,7 +125,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		}
 		
 		// Send a spawn message
-		clientSocket.sendMessage(damageMessage, "localsocket://" + BattleField.serverID);
+		clientSocket.sendMessage(damageMessage, "localsocket://" + node.getServerAddress().toString());
 	}
 	
 	public void healDamage(int x, int y, int healed) {
@@ -155,7 +146,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		}
 
 		// Send a spawn message
-		clientSocket.sendMessage(healMessage, "localsocket://" + BattleField.serverID);
+		clientSocket.sendMessage(healMessage, "localsocket://" +  node.getServerAddress().toString());
 	}
 
 	/**
@@ -168,7 +159,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	/**
 	 * @return the unique unit identifier.
 	 */
-	public int getUnitID() {
+	public String getUnitID() {
 		return unitID;
 	}
 
@@ -231,7 +222,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
 		// Send a spawn message
 		try {
-			clientSocket.sendMessage(spawnMessage, "localsocket://" + BattleField.serverID);
+			clientSocket.sendMessage(spawnMessage, "localsocket://" +  node.getServerAddress().toString());
 		} catch (IDNotAssignedException e) {
 			System.err.println("No server found while spawning unit at location (" + x + ", " + y + ")");
 			return false;
@@ -258,7 +249,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		getMessage.put("id", id);
 
 		// Send the getUnit message
-		clientSocket.sendMessage(getMessage, "localsocket://" + BattleField.serverID);
+		clientSocket.sendMessage(getMessage, "localsocket://" +  node.getServerAddress().toString());
 
 		// Wait for the reply
 		while(!messageList.containsKey(id)) {
@@ -291,7 +282,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		getMessage.put("id", id);
 
 		// Send the getUnit message
-		clientSocket.sendMessage(getMessage, "localsocket://" + BattleField.serverID);
+		clientSocket.sendMessage(getMessage, "localsocket://" +  node.getServerAddress().toString());
 
 		// Wait for the reply
 		while(!messageList.containsKey(id)) {
@@ -321,7 +312,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		removeMessage.put("id", id);
 
 		// Send the removeUnit message
-		clientSocket.sendMessage(removeMessage, "localsocket://" + BattleField.serverID);
+		clientSocket.sendMessage(removeMessage, "localsocket://" +  node.getServerAddress().toString());
 	}
 
 	protected void moveUnit(int x, int y)
@@ -335,7 +326,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		moveMessage.put("unit", this);
 
 		// Send the getUnit message
-		clientSocket.sendMessage(moveMessage, "localsocket://" + BattleField.serverID);
+		clientSocket.sendMessage(moveMessage, "localsocket://" +  node.getServerAddress().toString());
 
 		// Wait for the reply
 		while(!messageList.containsKey(id))

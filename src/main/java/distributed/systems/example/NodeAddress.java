@@ -10,7 +10,7 @@ public class NodeAddress {
 	public static final String SEPERATOR = "-";
 
 	public enum NodeType {
-		SERVER, PLAYER
+		SERVER, PLAYER, DRAGON
 	}
 
 	private final NodeType type;
@@ -26,5 +26,9 @@ public class NodeAddress {
 		String[] parts = address.split(SEPERATOR, 2);
 		NodeType nodeType = NodeType.valueOf(parts[0]);
 		return new NodeAddress(nodeType, Integer.valueOf(parts[1]));
+	}
+
+	public boolean isServer() {
+		return type.equals(NodeType.SERVER);
 	}
 }

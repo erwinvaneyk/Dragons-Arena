@@ -2,6 +2,7 @@ package distributed.systems.example;
 
 import static java.util.stream.Collectors.toList;
 
+import javax.swing.text.html.Option;
 import javax.xml.soap.Node;
 
 import java.io.Serializable;
@@ -12,16 +13,12 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
-import distributed.systems.core.BattlefieldProxy;
-import distributed.systems.core.IMessageProxyHandler;
+import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.Message;
-import distributed.systems.core.UnitProxy;
 import distributed.systems.core.Socket;
 import distributed.systems.core.exception.AlreadyAssignedIDException;
-import distributed.systems.das.BattleField;
-import distributed.systems.das.units.Unit;
-import lombok.Getter;
 
 public class LocalSocket implements Socket,Serializable {
 
@@ -35,7 +32,7 @@ public class LocalSocket implements Socket,Serializable {
 	 * Creates a socket connected to the default server, ip 127.0.0.1 and port 1234
 	 */
 	public static LocalSocket connectToDefault() {
-		return new LocalSocket("127.0.0.1", RegistryNode.PORT);
+		return connectTo("127.0.0.1", RegistryNode.PORT);
 	}
 
 	public static LocalSocket connectTo(String ip, int port) {
@@ -44,7 +41,7 @@ public class LocalSocket implements Socket,Serializable {
 
 	protected LocalSocket(String ip, int port) {
 		try {
-			registry = LocateRegistry.getRegistry("127.0.0.1", RegistryNode.PORT);
+			registry = LocateRegistry.getRegistry(ip, port);
 			System.out.println(Arrays.toString(registry.list()));
 		} catch (RemoteException e) {
 			throw new RuntimeException("Could not connect LocalSocket to registry!", e);
@@ -57,50 +54,10 @@ public class LocalSocket implements Socket,Serializable {
 	}
 
 	@Override
-	public void addMessageReceivedHandler(BattleField battleField) {
+	public void addMessageReceivedHandler(IMessageReceivedHandler handler) {
 		try {
-			System.out.println("the list is "+Arrays.toString(registry.list()));
-			registry.bind(id, new BattlefieldProxy(battleField));
-		}
-		catch (AlreadyBoundException e) {
-			throw new AlreadyAssignedIDException();
-		}
-		catch (RemoteException e) {
-			e.printStackTrace();
-		}
-	}
-
-	@Override
-	public void addMessageReceivedHandler(Unit unit) {
-		try {
-			registry.bind(id, new UnitProxy(unit));
-		}
-		catch (AlreadyBoundException e) {
-			throw new AlreadyAssignedIDException();
-		}
-		catch (RemoteException e) {
-			e.printStackTrace();
-		}
-
-	}
-
-	@Override
-	public void addMessageReceivedHandler(ServerNode server) {
-		try {
-			registry.bind(id, server);
-		}
-		catch (AlreadyBoundException e) {
-			throw new AlreadyAssignedIDException();
-		}
-		catch (RemoteException e) {
-			e.printStackTrace();
-		}
-	}
-
-	@Override
-	public void addLoggingReceivedHandler(LogHandler logger) {
-		try {
-			registry.bind(id, logger);
+			registry.bind(id, handler);
+			System.out.println("Currently bound objects: " + Arrays.toString(registry.list()));
 		}
 		catch (AlreadyBoundException e) {
 			throw new AlreadyAssignedIDException();
@@ -116,7 +73,8 @@ public class LocalSocket implements Socket,Serializable {
 		try {
 			message.setOriginId(this.id);
 			message.put("origin", PROTOCOL + this.id);
-			IMessageProxyHandler handler = (IMessageProxyHandler) registry.lookup(destination.substring(PROTOCOL.length()));
+			IMessageReceivedHandler handler = (IMessageReceivedHandler) registry.lookup(destination.substring(PROTOCOL.length()));
+			System.out.println(message);
 			handler.onMessageReceived(message);
 			System.out.println("send: " + message);
 		}
@@ -142,5 +100,23 @@ public class LocalSocket implements Socket,Serializable {
 				.stream(registry.list())
 				.map(NodeAddress::fromAddress)
 				.collect(toList());
+	}
+
+	public NodeAddress determineAddress(NodeAddress.NodeType type) throws RemoteException {
+		int highestId = getNodes()
+				.stream()
+				.filter(node -> node.getType().equals(type))
+				.mapToInt(NodeAddress::getId)
+				.max().orElse(-1);
+		System.out.println(highestId);
+		return new NodeAddress(type, highestId + 1);
+	}
+
+	// Load Balancer
+	public Optional<NodeAddress> findServer() throws RemoteException {
+		return getNodes()
+				.stream()
+				.filter(NodeAddress::isServer)
+				.findAny();
 	}
 }
