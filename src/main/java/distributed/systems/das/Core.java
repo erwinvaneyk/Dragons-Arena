@@ -48,7 +48,7 @@ public class Core {
 			new Thread(new Runnable() {
 				public void run() {
 					try {
-						new Dragon(finalX, finalY);
+						new Dragon(finalX, finalY, null);
 					} catch (AlreadyAssignedIDException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -83,7 +83,7 @@ public class Core {
 			new Thread(new Runnable() {
 				public void run() {
 					try {
-						new Player(finalX, finalY);
+						new Player(finalX, finalY, null);
 					} catch (AlreadyAssignedIDException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -127,7 +127,7 @@ public class Core {
 
 				if (battlefield.getUnit(x, y) == null) {
 					try {
-						new Player(finalX, finalY);
+						new Player(finalX, finalY, null);
 					} catch (AlreadyAssignedIDException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();

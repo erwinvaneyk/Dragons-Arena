@@ -9,6 +9,7 @@ import distributed.systems.example.ServerNode;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.List;
+import java.util.Optional;
 
 public class SynchronizedSocket implements Socket,Serializable{
 
@@ -24,26 +25,10 @@ public class SynchronizedSocket implements Socket,Serializable{
 	}
 
 	@Override
-	public void addMessageReceivedHandler(BattleField battleField) {
-		this.local.addMessageReceivedHandler(battleField);
+	public void addMessageReceivedHandler(IMessageReceivedHandler handler) {
+		this.local.addMessageReceivedHandler(handler);
 	}
 
-	@Override
-	public void addMessageReceivedHandler(Unit unit) {
-		this.local.addMessageReceivedHandler(unit);
-	}
-
-	@Override
-	public void addMessageReceivedHandler(ServerNode server) {
-		this.local.addMessageReceivedHandler(server);
-	}
-
-	@Override
-	public void addLoggingReceivedHandler(LogHandler logger) {
-		this.local.addLoggingReceivedHandler(logger);
-	}
-
-	@Override
 	public void sendMessage(Message reply, String origin) {
 		this.local.sendMessage(reply, origin);
 	}
@@ -56,5 +41,15 @@ public class SynchronizedSocket implements Socket,Serializable{
 	@Override
 	public List<NodeAddress> getNodes() throws RemoteException {
 		return this.local.getNodes();
+	}
+
+	@Override
+	public NodeAddress determineAddress(NodeAddress.NodeType type) throws RemoteException {
+		return this.local.determineAddress(type);
+	}
+
+	@Override
+	public Optional<NodeAddress> findServer() throws RemoteException {
+		return this.local.findServer();
 	}
 }

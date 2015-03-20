@@ -5,6 +5,7 @@ import java.io.Serializable;
 import distributed.systems.core.exception.AlreadyAssignedIDException;
 import distributed.systems.das.BattleField;
 import distributed.systems.das.GameState;
+import distributed.systems.example.ClientNode;
 
 /**
  * A Player is, as the name implies, a playing 
@@ -37,21 +38,24 @@ public class Player extends Unit implements Runnable, Serializable {
 	 * the hit and the attackpoints. 
 	 * @throws AlreadyAssignedIDException 
 	 */
-	public Player(int x, int y) throws AlreadyAssignedIDException {
+	public Player(int x, int y, ClientNode node) throws AlreadyAssignedIDException {
 		/* Initialize the hitpoints and attackpoints */
-		super((int)(Math.random() * (MAX_HITPOINTS - MIN_HITPOINTS) + MIN_HITPOINTS), (int)(Math.random() * (MAX_ATTACKPOINTS - MIN_ATTACKPOINTS) + MIN_ATTACKPOINTS));
+		super((int)(Math.random() * (MAX_HITPOINTS - MIN_HITPOINTS) + MIN_HITPOINTS), (int)(Math.random() * (MAX_ATTACKPOINTS - MIN_ATTACKPOINTS) + MIN_ATTACKPOINTS), node);
 
 		/* Create a random delay */
 		timeBetweenTurns = (int)(Math.random() * (MAX_TIME_BETWEEN_TURNS - MIN_TIME_BETWEEN_TURNS)) + MIN_TIME_BETWEEN_TURNS;
 
+		/**
+		 * update the local position
+		 */
+		this.x = x;
+		this.y = y;
+	}
+
+	public void start() {
+
 		if (!spawn(x, y))
 			return; // We could not spawn on the battlefield
-        /**
-         * update the local position
-         * @author Ma
-         */
-        this.x = x;
-        this.y = y;
 
 		/* Create a new player thread */
 		//new Thread(this).start();

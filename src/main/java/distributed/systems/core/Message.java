@@ -20,7 +20,7 @@ import lombok.ToString;
 public class Message implements Serializable {
 
 	public enum Type {
-		LOG, GENERIC, ROUND_FINISHED
+		LOG, GENERIC, ROUND_FINISHED, INFO
 	}
 
 	@Getter @Setter

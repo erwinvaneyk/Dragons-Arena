@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import distributed.systems.core.exception.AlreadyAssignedIDException;
 import distributed.systems.das.BattleField;
 import distributed.systems.das.GameState;
+import distributed.systems.example.ClientNode;
 
 /**
  * A dragon is a non-playing character, which can't
@@ -40,10 +41,12 @@ public class Dragon extends Unit implements Runnable, Serializable {
 	 * @throws AlreadyAssignedIDException 
 	 *
 	 */
-	public Dragon(int x, int y) throws AlreadyAssignedIDException {
+	public Dragon(int x, int y, ClientNode node) throws AlreadyAssignedIDException {
 		/* Spawn the dragon with a random number of hitpoints between
 		 * 50..100 and 5..20 attackpoints. */
-		super((int)(Math.random() * (MAX_HITPOINTS - MIN_HITPOINTS) + MIN_HITPOINTS), (int)(Math.random() * (MAX_ATTACKPOINTS - MIN_ATTACKPOINTS) + MIN_ATTACKPOINTS));
+		super((int)(Math.random() * (MAX_HITPOINTS - MIN_HITPOINTS) + MIN_HITPOINTS)
+				, (int)(Math.random() * (MAX_ATTACKPOINTS - MIN_ATTACKPOINTS) + MIN_ATTACKPOINTS)
+				, node);
 
 		/* Create a random delay */
 		timeBetweenTurns = (int)(Math.random() * (MAX_TIME_BETWEEN_TURNS - MIN_TIME_BETWEEN_TURNS)) + MIN_TIME_BETWEEN_TURNS;
