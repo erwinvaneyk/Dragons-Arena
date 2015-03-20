@@ -5,7 +5,7 @@ import java.io.Serializable;
 import distributed.systems.core.exception.AlreadyAssignedIDException;
 import distributed.systems.das.BattleField;
 import distributed.systems.das.GameState;
-import distributed.systems.example.ClientNode;
+import distributed.systems.network.ClientNode;
 
 /**
  * A Player is, as the name implies, a playing 

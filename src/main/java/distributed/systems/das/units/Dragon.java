@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import distributed.systems.core.exception.AlreadyAssignedIDException;
 import distributed.systems.das.BattleField;
 import distributed.systems.das.GameState;
-import distributed.systems.example.ClientNode;
+import distributed.systems.network.ClientNode;
 
 /**
  * A dragon is a non-playing character, which can't
@@ -51,6 +51,11 @@ public class Dragon extends Unit implements Runnable, Serializable {
 		/* Create a random delay */
 		timeBetweenTurns = (int)(Math.random() * (MAX_TIME_BETWEEN_TURNS - MIN_TIME_BETWEEN_TURNS)) + MIN_TIME_BETWEEN_TURNS;
 
+		this.x = x;
+		this.y = y;
+	}
+
+	public void start() {
 		if (!spawn(x, y))
 			return; // We could not spawn on the battlefield
 
