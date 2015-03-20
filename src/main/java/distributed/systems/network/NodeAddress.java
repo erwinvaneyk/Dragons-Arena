@@ -1,4 +1,4 @@
-package distributed.systems.example;
+package distributed.systems.network;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

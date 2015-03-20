@@ -10,9 +10,7 @@ import distributed.systems.das.units.Unit.UnitType;
 import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.Message;
 import distributed.systems.core.Socket;
-import distributed.systems.core.SynchronizedSocket;
 import distributed.systems.core.exception.IDNotAssignedException;
-import distributed.systems.example.LocalSocket;
 import lombok.Setter;
 
 /**

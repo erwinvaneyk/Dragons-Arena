@@ -1,9 +1,6 @@
-package distributed.systems.example;
+package distributed.systems.network;
 
 import static java.util.stream.Collectors.toList;
-
-import javax.swing.text.html.Option;
-import javax.xml.soap.Node;
 
 import java.io.Serializable;
 import java.rmi.AlreadyBoundException;

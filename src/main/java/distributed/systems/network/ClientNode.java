@@ -1,4 +1,4 @@
-package distributed.systems.example;
+package distributed.systems.network;
 
 import distributed.systems.core.Socket;
 

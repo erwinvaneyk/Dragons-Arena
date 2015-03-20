@@ -1,10 +1,6 @@
 package distributed.systems.core;
 
-import distributed.systems.das.BattleField;
-import distributed.systems.das.units.Unit;
-import distributed.systems.example.LogHandler;
-import distributed.systems.example.NodeAddress;
-import distributed.systems.example.ServerNode;
+import distributed.systems.network.NodeAddress;
 
 import java.io.Serializable;
 import java.rmi.RemoteException;

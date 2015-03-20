@@ -1,6 +1,4 @@
-package distributed.systems.example;
-
-import static java.util.stream.Collectors.toList;
+package distributed.systems.network;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;

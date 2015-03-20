@@ -1,15 +1,10 @@
 package distributed.systems.core;
 
 import java.rmi.RemoteException;
-import java.rmi.registry.Registry;
 import java.util.List;
 import java.util.Optional;
 
-import distributed.systems.das.BattleField;
-import distributed.systems.das.units.Unit;
-import distributed.systems.example.LogHandler;
-import distributed.systems.example.NodeAddress;
-import distributed.systems.example.ServerNode;
+import distributed.systems.network.NodeAddress;
 
 public interface Socket {
 

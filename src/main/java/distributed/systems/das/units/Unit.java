@@ -10,7 +10,7 @@ import distributed.systems.core.Message;
 import distributed.systems.core.Socket;
 import distributed.systems.core.exception.AlreadyAssignedIDException;
 import distributed.systems.core.exception.IDNotAssignedException;
-import distributed.systems.example.ClientNode;
+import distributed.systems.network.ClientNode;
 
 /**
  * Base class for all players whom can 
