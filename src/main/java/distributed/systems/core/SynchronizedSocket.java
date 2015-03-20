@@ -3,8 +3,12 @@ package distributed.systems.core;
 import distributed.systems.das.BattleField;
 import distributed.systems.das.units.Unit;
 import distributed.systems.example.LogHandler;
+import distributed.systems.example.NodeAddress;
+import distributed.systems.example.ServerNode;
 
 import java.io.Serializable;
+import java.rmi.RemoteException;
+import java.util.List;
 
 public class SynchronizedSocket implements Socket,Serializable{
 
@@ -30,6 +34,11 @@ public class SynchronizedSocket implements Socket,Serializable{
 	}
 
 	@Override
+	public void addMessageReceivedHandler(ServerNode server) {
+		this.local.addMessageReceivedHandler(server);
+	}
+
+	@Override
 	public void addLoggingReceivedHandler(LogHandler logger) {
 		this.local.addLoggingReceivedHandler(logger);
 	}
@@ -42,5 +51,10 @@ public class SynchronizedSocket implements Socket,Serializable{
 	@Override
 	public void unRegister() {
 		this.local.unRegister();
+	}
+
+	@Override
+	public List<NodeAddress> getNodes() throws RemoteException {
+		return this.local.getNodes();
 	}
 }

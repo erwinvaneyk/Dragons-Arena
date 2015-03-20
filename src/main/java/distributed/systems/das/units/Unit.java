@@ -74,7 +74,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	 * this specific unit.
 	 */
 	public Unit(int maxHealth, int attackPoints) throws AlreadyAssignedIDException {
-		Socket localSocket = new LocalSocket();
+		Socket localSocket = LocalSocket.connectToDefault();
 
 		messageList = new HashMap<>();
 
