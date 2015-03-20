@@ -1,5 +1,6 @@
 package distributed.systems.das;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 import distributed.systems.das.units.Dragon;
@@ -12,6 +13,7 @@ import distributed.systems.core.Socket;
 import distributed.systems.core.SynchronizedSocket;
 import distributed.systems.core.exception.IDNotAssignedException;
 import distributed.systems.example.LocalSocket;
+import lombok.Setter;
 
 /**
  * The actual battlefield where the fighting takes place.
@@ -23,15 +25,16 @@ import distributed.systems.example.LocalSocket;
  * 
  * @author Pieter Anemaet, Boaz Pat-El
  */
-public class BattleField implements IMessageReceivedHandler {
+public class BattleField implements Serializable, IMessageReceivedHandler {
 	/* The array of units */
 	private Unit[][] map; // TODO: do it
 
 	/* The static singleton */
-	private static BattleField battlefield;
+	private transient static BattleField battlefield;
 
-	/* Primary socket of the battlefield */ 
-	private Socket serverSocket;
+	/* Primary socket of the battlefield */
+	@Setter
+	private transient Socket serverSocket;
 	
 	/* The last id that was assigned to an unit. This variable is used to
 	 * enforce that each unit has its own unique id.
@@ -41,7 +44,7 @@ public class BattleField implements IMessageReceivedHandler {
 	public final static String serverID = "server";
 	public final static int MAP_WIDTH = 25;
 	public final static int MAP_HEIGHT = 25;
-	private ArrayList <Unit> units; 
+	private ArrayList<Unit> units;
 
 	/**
 	 * Initialize the battlefield to the specified size 
@@ -49,16 +52,8 @@ public class BattleField implements IMessageReceivedHandler {
 	 * @param height of the battlefield
 	 */
 	private BattleField(int width, int height) {
-		Socket local = new LocalSocket();
-		
-		synchronized (this) {
-			map = new Unit[width][height];
-			local.register(BattleField.serverID);
-			serverSocket = new SynchronizedSocket(local);
-			serverSocket.addMessageReceivedHandler(this);
-			units = new ArrayList<>();
-		}
-		
+		map = new Unit[width][height];
+		units = new ArrayList<>();
 	}
 
 	/**
@@ -71,6 +66,10 @@ public class BattleField implements IMessageReceivedHandler {
 		if (battlefield == null)
 			battlefield = new BattleField(MAP_WIDTH, MAP_HEIGHT);
 		return battlefield;
+	}
+
+	public static void setBattlefield(BattleField battlefield) {
+		BattleField.battlefield = battlefield;
 	}
 	
 	/**
