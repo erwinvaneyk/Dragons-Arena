@@ -2,9 +2,9 @@
 Distributed Systems - game
 
 ### TODO
-- [ ] Split up the code of the Core into Client and Server (replace/remove threads)\*
+- [x] Split up the code of the Core into Client and Server (replace/remove threads)
 - [ ] Implement distributed logging
-- [ ] Implement two message-queues (IncomingQueue and CurrentQueue)
+- [ ] Implement two message-queues (IncomingQueue and CurrentQueue)*
 - [ ] Implement synchronization (1-phase, use timestamp checks)
 - [ ] Implement functionality for server to take tasks from the queue and send result to client
 - [ ] Implement message buffering in both server and client
