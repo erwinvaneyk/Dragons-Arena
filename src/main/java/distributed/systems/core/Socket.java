@@ -12,7 +12,11 @@ public interface Socket {
 
 	public void addMessageReceivedHandler(IMessageReceivedHandler handler);
 
-	public void sendMessage(Message reply, String origin);
+	public void sendMessage(Message message, String origin);
+
+	public void logMessage(Message logMessage);
+
+	public void logMessage(String message, LogType type);
 
 	public void unRegister();
 

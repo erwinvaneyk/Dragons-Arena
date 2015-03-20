@@ -4,6 +4,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
 import distributed.systems.core.IMessageReceivedHandler;
+import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.core.Socket;
 import distributed.systems.core.SynchronizedSocket;
@@ -19,13 +20,11 @@ public class ServerNode extends UnicastRemoteObject implements IMessageReceivedH
 
 	private final static String REGISTRY_PREFIX = "server";
 
-	private final Socket serverSocket;
+	private final Socket socket;
 
 	private BattleField battlefield;
 
 	private NodeAddress address;
-
-	//private final BattleField battlefield;
 
 	public static void main(String[] args) throws RemoteException {
 		new ServerNode();
@@ -33,14 +32,15 @@ public class ServerNode extends UnicastRemoteObject implements IMessageReceivedH
 
 	public ServerNode() throws RemoteException{
 		// TODO: register to cluster
-		serverSocket = connectToCluster();
+		socket = connectToCluster();
 		// TODO: Acknowledge network/handshake
 		// TODO: sync with network
 		// TODO: Setup battlefield (self or from network)
 		battlefield = BattleField.getBattleField();
-		battlefield.setServerSocket(serverSocket);
+		battlefield.setServerSocket(socket);
 		// TODO: start a dragon (if necessary)
 
+		socket.logMessage("Server (" + address + ") is up and running", LogType.INFO);
 		/* Spawn a new battlefield viewer */
 		new Thread(BattleFieldViewer::new).start();
 	}

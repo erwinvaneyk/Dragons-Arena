@@ -10,7 +10,7 @@ public class NodeAddress {
 	public static final String SEPERATOR = "-";
 
 	public enum NodeType {
-		SERVER, PLAYER, DRAGON
+		SERVER, PLAYER, DRAGON, LOGGER
 	}
 
 	private final NodeType type;

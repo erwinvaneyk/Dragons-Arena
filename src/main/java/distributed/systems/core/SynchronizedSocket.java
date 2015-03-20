@@ -30,6 +30,16 @@ public class SynchronizedSocket implements Socket,Serializable{
 	}
 
 	@Override
+	public void logMessage(Message logMessage) {
+		this.local.logMessage(logMessage);
+	}
+
+	@Override
+	public void logMessage(String message, LogType type) {
+		this.local.logMessage(message, type);
+	}
+
+	@Override
 	public void unRegister() {
 		this.local.unRegister();
 	}
