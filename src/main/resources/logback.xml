@@ -1,0 +1,19 @@
+<configuration scan="true" scanperiod="5 seconds">
+	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
+		<file>logs/logback.log</file>
+		<append>true</append>
+		<encoder>
+			<pattern>[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} - %msg%n</pattern>
+		</encoder>
+	</appender>
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<pattern>%-5level - %msg %n</pattern>
+		</encoder>
+	</appender>
+
+	<root level="DEBUG">
+		<appender-ref ref="FILE"></appender-ref>
+		<appender-ref ref="STDOUT" />
+	</root>
+</configuration>

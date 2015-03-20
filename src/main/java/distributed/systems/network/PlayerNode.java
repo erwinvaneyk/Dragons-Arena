@@ -4,6 +4,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
 import distributed.systems.core.IMessageReceivedHandler;
+import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.core.Socket;
 import distributed.systems.core.SynchronizedSocket;
@@ -40,16 +41,13 @@ public class PlayerNode extends UnicastRemoteObject implements ClientNode, IMess
 		address = socket.determineAddress(NodeAddress.NodeType.PLAYER);
 		socket.register(address.toString());
 		socket.addMessageReceivedHandler(this);
-		System.out.println("Node is registered and bounded.");
 		// find suitable server
 		// TODO: needs to be load balanced
 		serverAddress = socket.findServer().orElseThrow(() -> new RuntimeException("No server available"));
-		System.out.println("Server was assigned:" + serverAddress);
 		// spawn player
 		this.player = new Player(x,y, this);
-		System.out.println("Player created!");
+		socket.logMessage("Player (" + address + ") created and running. Assigned to server: " + serverAddress, LogType.INFO);
 		player.start();
-		System.out.println("Player running...");
 	}
 
 	@Override

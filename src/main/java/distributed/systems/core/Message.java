@@ -16,7 +16,6 @@ import lombok.ToString;
  * - origin
  */
 @ToString
-@NoArgsConstructor
 public class Message implements Serializable {
 
 	public enum Type {
@@ -30,7 +29,7 @@ public class Message implements Serializable {
 	private final HashMap<String, Serializable> content = new HashMap<>();
 
 	@Getter
-	private final Date timestamp = new Date();
+	private final Date timestamp;
 
 	@Getter
 	private Date receivedTimestamp;
@@ -40,6 +39,11 @@ public class Message implements Serializable {
 
 	public Message(Type messageType) {
 		this.messageType = messageType;
+		this.timestamp = new Date();
+	}
+
+	public Message() {
+		this.timestamp = new Date();
 	}
 
 	public Message put(String key, Serializable value) {
@@ -55,5 +59,13 @@ public class Message implements Serializable {
 		if(receivedTimestamp == null) {
 			receivedTimestamp = new Date();
 		}
+	}
+
+	public Message(Message message) {
+		this.content.putAll(message.content);
+		this.timestamp = message.timestamp;
+		this.receivedTimestamp = message.receivedTimestamp;
+		this.messageType = message.messageType;
+		this.originId = message.originId;
 	}
 }

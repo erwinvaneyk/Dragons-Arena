@@ -4,6 +4,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
 import distributed.systems.core.IMessageReceivedHandler;
+import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.core.Socket;
 import distributed.systems.core.SynchronizedSocket;
@@ -40,16 +41,13 @@ public class DragonNode extends UnicastRemoteObject implements ClientNode, IMess
 		address = socket.determineAddress(NodeAddress.NodeType.DRAGON);
 		socket.register(address.toString());
 		socket.addMessageReceivedHandler(this);
-		System.out.println("Node is registered and bounded.");
 		// find suitable server
 		// TODO: needs to be load balanced
 		serverAddress = socket.findServer().orElseThrow(() -> new RuntimeException("No server available"));
-		System.out.println("Server was assigned:" + serverAddress);
 		// spawn player
 		this.dragon = new Dragon(x,y, this);
-		System.out.println("Dragon created!");
+		socket.logMessage("Dragon (" + address + ") created and running. Assigned to server: " + serverAddress, LogType.INFO);
 		dragon.start();
-		System.out.println("Dragon running...");
 	}
 
 	@Override
