@@ -14,6 +14,8 @@ import distributed.systems.core.Socket;
 import distributed.systems.core.exception.AlreadyAssignedIDException;
 import distributed.systems.core.exception.IDNotAssignedException;
 import distributed.systems.network.ClientNode;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Base class for all players whom can 
@@ -26,6 +28,7 @@ import distributed.systems.network.ClientNode;
 public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	private static final long serialVersionUID = -4550572524008491161L;
 
+	@Getter
 	private transient final ClientNode node;
 	private transient final MessageFactory messageFactory;
 
@@ -49,7 +52,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	private Map<Integer, Message> messageList;
 	// Is used for mapping an unique id to a message sent by this unit
 	private int localMessageCounter = 0;
-	
+
 	// If this is set to false, the unit will return its run()-method and disconnect from the server
 	protected boolean running;
 
@@ -66,6 +69,16 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	public enum UnitType {
 		player, dragon, undefined,
 	}
+
+    public boolean lived;
+
+    public static final int ADJ_UP =1;
+    public static final int ADJ_RIGHT =2;
+    public static final int ADJ_DOWN =3;
+    public static final int ADJ_LEFT =4;
+    public static final int ADJ_NONE =0;
+    @Getter@Setter
+    private boolean adjacent ;
 
 	/**
 	 * Create a new unit and specify the
@@ -89,7 +102,9 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
 		this.node = node;
 		this.clientSocket = this.node.getSocket();
+
 		this.messageFactory = new MessageFactory(node.getAddress());
+        this.lived = true;
 	}
 
 	/**
@@ -105,11 +120,16 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
 		hitPoints += modifier;
 
-		if (hitPoints > maxHitPoints)
-			hitPoints = maxHitPoints;
+		if (hitPoints > maxHitPoints) {
+            hitPoints = maxHitPoints;
+        }
 
-		if (hitPoints <= 0)
-			removeUnit(x, y);
+		if (hitPoints <= 0){
+            //System.out.println("let's see the node address <Unit adjustHitPoints> " + node.getAddress().toString());
+            //System.out.println("test2 unit adjustHitPoints" + node.getServerAddress().toString());
+            this.lived = false;
+			//removeUnit(x, y);
+        }
 	}
 	
 	public void dealDamage(int x, int y, int damage) {
@@ -127,6 +147,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 			damageMessage.put("y", y);
 			damageMessage.put("damage", damage);
 			damageMessage.put("id", id);
+            damageMessage.put("unit",this);
 		}
 		
 		// Send a spawn message
@@ -148,6 +169,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 			healMessage.put("y", y);
 			healMessage.put("healed", healed);
 			healMessage.put("id", id);
+            healMessage.put("unit",this);
 		}
 
 		// Send a spawn message
@@ -252,6 +274,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		getMessage.put("x", x);
 		getMessage.put("y", y);
 		getMessage.put("id", id);
+        getMessage.put("unit",this);
 
 		// Send the getUnit message
 		clientSocket.sendMessage(getMessage, node.getServerAddress());
@@ -285,6 +308,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		getMessage.put("x", x);
 		getMessage.put("y", y);
 		getMessage.put("id", id);
+        getMessage.put("unit",this);
 
 		// Send the getUnit message
 		clientSocket.sendMessage(getMessage, node.getServerAddress());
@@ -303,7 +327,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
 		result = messageList.get(id);
 		messageList.put(id, null);
-
+        this.setAdjacent(((Unit) result.get("unit")).isAdjacent());
 		return (Unit) result.get("unit");	
 	}
 
@@ -315,6 +339,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		removeMessage.put("x", x);
 		removeMessage.put("y", y);
 		removeMessage.put("id", id);
+        removeMessage.put("unit",this);
 
 		// Send the removeUnit message
 		clientSocket.sendMessage(removeMessage, node.getServerAddress());
@@ -352,13 +377,27 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
          */
         this.x = x;
         this.y = y;
-
+        //this.setAdjacent(((Unit) messageList.get(id).get("unit")).isAdjacent());
 		// Remove the result from the messageList
 		messageList.put(id, null);
 	}
 
 	public Message onMessageReceived(Message message) {
-		messageList.put((Integer)message.get("id"), message);
+        if (message.getContent().containsKey("adjacent")){
+            this.setAdjacent((Boolean) message.get("adjacent"));
+        }
+        if (message.getContent().containsKey("heal")){
+            this.hitPoints= (int) message.get("heal");
+        }
+        if (message.getContent().containsKey("id")){
+		    messageList.put((Integer)message.get("id"), message);
+        }
+        if (message.getContent().containsKey("damage")) {
+            this.adjustHitPoints((Integer) message.get("damage"));
+            if (this.lived==false) {
+                this.disconnect();
+            }
+        }
 		return null;
 	}
 	
@@ -367,6 +406,8 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		running = false;
 		// #Hack for clientsockets not unregister-ing
 		clientSocket.unRegister();
+
+        stopRunnerThread();
 	}
 
 	/**

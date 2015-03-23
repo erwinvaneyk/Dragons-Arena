@@ -6,6 +6,8 @@ import distributed.systems.core.exception.AlreadyAssignedIDException;
 import distributed.systems.das.BattleField;
 import distributed.systems.das.GameState;
 import distributed.systems.network.ClientNode;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * A Player is, as the name implies, a playing 
@@ -32,6 +34,7 @@ public class Player extends Unit implements Runnable, Serializable {
 	public static final int MAX_HITPOINTS = 10;
 	public static final int MIN_ATTACKPOINTS = 1;
 	public static final int MAX_ATTACKPOINTS = 10;
+
 
 	/**
 	 * Create a player, initialize both 
