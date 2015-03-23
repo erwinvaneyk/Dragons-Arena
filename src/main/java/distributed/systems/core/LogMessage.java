@@ -3,6 +3,7 @@ package distributed.systems.core;
 import lombok.Data;
 import lombok.NonNull;
 
+
 @Data
 public class LogMessage extends Message {
 
@@ -34,6 +35,10 @@ public class LogMessage extends Message {
 		this.logType = LogType.DEBUG;
 	}
 
+    public LogType getLogType() {
+        return logType;
+    }
+
 	@Override
 	public String toString() {
 		String result = "send: " + getTimestamp();
@@ -45,4 +50,5 @@ public class LogMessage extends Message {
 		}
 		return result;
 	}
+
 }

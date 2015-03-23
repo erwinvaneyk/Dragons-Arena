@@ -1,5 +1,6 @@
 package distributed.systems.network;
 
+import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
@@ -18,7 +19,7 @@ import lombok.Getter;
  * - playerID (to generate it, only one that calls the battlefield)
  * - Socket
  */
-public class PlayerNode extends UnicastRemoteObject implements ClientNode, IMessageReceivedHandler {
+public class PlayerNode extends UnicastRemoteObject implements ClientNode, IMessageReceivedHandler, Serializable {
 
 	@Getter
 	private final Socket socket;
@@ -39,6 +40,7 @@ public class PlayerNode extends UnicastRemoteObject implements ClientNode, IMess
 		// Connect to cluster
 		socket = new SynchronizedSocket(LocalSocket.connectToDefault());
 		address = socket.determineAddress(NodeAddress.NodeType.PLAYER);
+        System.out.println(address.toString());
 		socket.register(address.toString());
 		socket.addMessageReceivedHandler(this);
 		// find suitable server
@@ -56,4 +58,19 @@ public class PlayerNode extends UnicastRemoteObject implements ClientNode, IMess
 		// TODO: if server/battlefield put message into queue
 		this.player.onMessageReceived(message);
 	}
+
+//    @Override
+//    public NodeAddress getServerAddress() {
+//        return null;
+//    }
+
+//    @Override
+//    public NodeAddress getAddress() {
+//        return null;
+//    }
+
+//    @Override
+//    public Socket getSocket() {
+//        return null;
+//    }
 }

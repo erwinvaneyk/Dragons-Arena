@@ -10,6 +10,7 @@ import distributed.systems.core.Socket;
 import distributed.systems.core.SynchronizedSocket;
 import distributed.systems.das.BattleField;
 import distributed.systems.das.presentation.BattleFieldViewer;
+import lombok.Getter;
 
 /**
  * A single server node
@@ -22,6 +23,7 @@ public class ServerNode extends UnicastRemoteObject implements IMessageReceivedH
 
 	private final Socket socket;
 
+    @Getter
 	private BattleField battlefield;
 
 	private NodeAddress address;
@@ -60,6 +62,7 @@ public class ServerNode extends UnicastRemoteObject implements IMessageReceivedH
 		// TODO: handle other messages
 
 		// Battlefield-specific messages
+        //System.out.println("serverNode onMessageReceived"+message.toString());
 		this.battlefield.onMessageReceived(message);
 	}
 }
