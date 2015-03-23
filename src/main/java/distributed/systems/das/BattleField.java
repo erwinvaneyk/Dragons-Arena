@@ -79,7 +79,6 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
                     }
                 }
         ).start();
-
 	}
 
 	/**
@@ -139,7 +138,6 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 	 */
 	private synchronized boolean putUnit(Unit unit, int x, int y)
 	{
-
 		if (map[x][y] != null)
 			return false;
 
@@ -191,7 +189,6 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 						return true;
 					}
 				}
-
 		return false;
 	}
 
@@ -361,7 +358,6 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 
 		try {
 			if (reply != null){
-
 				serverSocket.sendMessage(reply, origin);
             }
             if (notifacation !=null){
@@ -583,7 +579,6 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 			unit.disconnect();
 			unit.stopRunnerThread();
 		}
-
 		serverSocket.unRegister();
 	}
 	
