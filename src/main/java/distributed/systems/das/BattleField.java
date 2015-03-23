@@ -225,6 +225,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 
 	public Message onMessageReceived(Message msg) {
         adjacentfilter(msg);
+
 		Message reply = null;
         Message notification = null;
         NodeAddress origin = msg.getOrigin();
@@ -339,33 +340,19 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 				break;
 			}
 			case moveUnit:
-            {
                 reply = messagefactory.createMessage();
-                int x = (Integer)msg.get("x");
-                int y = (Integer)msg.get("y");
-                int ox = (Integer)msg.get("ox");
-                int oy = (Integer)msg.get("oy");
-                this.moveUnit((Unit)msg.get("unit"), x, y);
-				/* Copy the id of the message so that the unit knows
-				 * what message the battlefield responded to.
+				this.moveUnit((Unit) msg.get("unit"), (Integer) msg.get("x"), (Integer) msg.get("y"));
+				/* Copy the id of the message so that the unit knows 
+				 * what message the battlefield responded to. 
 				 */
-                reply.put("request", MessageRequest.reply);
-                reply.put("id", msg.get("id"));
-                reply.put("adjacent", map[x][y].isAdjacent());
-                break;
-            }
+                int ox = ((Unit)msg.get("unit")).getX();
+                int oy = ((Unit)msg.get("unit")).getY();
+				reply.put("id", msg.get("id"));
+                reply.put("adjacent", map[ox][oy].isAdjacent());
+				break;
 			case removeUnit:
-            {
 				this.removeUnit((Integer)msg.get("x"), (Integer)msg.get("y"));
 				return null;
-            }
-            case testconnection:
-            {
-                reply.put("request",MessageRequest.testconnection);
-                reply.put("id",msg.get("id"));
-
-                break;
-            }
 		}
 
 		try {
@@ -373,6 +360,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 				serverSocket.sendMessage(reply, origin);
             }
             if (notification !=null){
+                System.out.println("notifaction is " + notification.toString());
                 serverSocket.sendMessage(notification, target);
             }
 
@@ -381,8 +369,9 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 			// Could happen if the target already logged out
 			idnae.printStackTrace();
 		}
-		return null;
+        return null;
 	}
+
 
 
     public boolean adjacent (int x ,int y ){

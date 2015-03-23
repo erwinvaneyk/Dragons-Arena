@@ -139,5 +139,6 @@ public class ServerNode extends BasicNode implements IMessageReceivedHandler {
 			safeLogMessage("Cannot launch battlefield-viewer; no battlefield available!", LogType.ERROR);
 		}
 
+
 	}
 }

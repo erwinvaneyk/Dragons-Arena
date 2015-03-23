@@ -72,11 +72,6 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
     public boolean lived;
 
-    public static final int ADJ_UP =1;
-    public static final int ADJ_RIGHT =2;
-    public static final int ADJ_DOWN =3;
-    public static final int ADJ_LEFT =4;
-    public static final int ADJ_NONE =0;
     @Getter@Setter
     private int disconnect;
     @Getter@Setter
@@ -404,7 +399,6 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
         result = messageList.get(id);
         this.x =x;
         this.y = y;
-
 		// Remove the result from the messageList
 		messageList.put(id, null);
 	}
