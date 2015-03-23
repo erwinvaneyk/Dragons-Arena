@@ -96,12 +96,10 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
 		// Get a new unit id
 		this.unitID = node.getAddress().getName();
-
 		this.node = node;
 		this.clientSocket = this.node.getSocket();
 		this.messageFactory = new MessageFactory(node.getAddress());
         this.lived = true;
-
 	}
 
 	/**
@@ -114,13 +112,10 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	public synchronized void adjustHitPoints(int modifier) {
 		if (hitPoints <= 0)
 			return;
-
 		hitPoints += modifier;
-
 		if (hitPoints > maxHitPoints) {
             hitPoints = maxHitPoints;
         }
-
 		if (hitPoints <= 0){
             this.lived = false;
 			//removeUnit(x, y);
@@ -135,7 +130,6 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		Message damageMessage;
 		synchronized (this) {
 			id = localMessageCounter++;
-
 			damageMessage = messageFactory.createMessage();
 			damageMessage.put("request", MessageRequest.dealDamage);
 			damageMessage.put("x", x);
@@ -161,7 +155,6 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		Message healMessage;
 		synchronized (this) {
 			id = localMessageCounter++;
-
 			healMessage =  messageFactory.createMessage();
 			healMessage.put("request", MessageRequest.healDamage);
 			healMessage.put("x", x);
@@ -260,7 +253,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
 		// Wait for the unit to be placed
 		getUnit(x, y);
-		System.out.println("<"+x+","+y+">"+" has put "+this.getUnitID());
+
 		return true;
 	}
 	
@@ -302,11 +295,6 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		if (result == null) // Could happen if the game window had closed
 			return UnitType.undefined;
 		messageList.put(id, null);
-
-        if (result.getContent().containsKey("adjacent")){
-            this.setAdjacent((Boolean) result.get("adjacent"));
-        }
-
 		return (UnitType) result.get("type");
 	}
 
@@ -334,12 +322,10 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 				Thread.sleep(50);
 			} catch (InterruptedException e) {
 			}
-
 			// Quit if the game window has closed
 			if (!GameState.getRunningState())
 				return null;
 		}
-
 		result = messageList.get(id);
 		messageList.put(id, null);
 
@@ -354,7 +340,6 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		removeMessage.put("x", x);
 		removeMessage.put("y", y);
 		removeMessage.put("id", id);
-
 
 		// Send the removeUnit message
 
@@ -444,7 +429,6 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		running = false;
 		// #Hack for clientsockets not unregister-ing
 		clientSocket.unRegister();
-
         stopRunnerThread();
 	}
 

@@ -66,11 +66,34 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 		map = new Unit[width][height];
 		units = new ArrayList<>();
         Lqueue = new LinkedList<Message>();
+<<<<<<< HEAD
         //control the Lqueue
         StartLexectueThread();
         //start a time task to clean the Lqueue in case tasks are block in the Lqueue
         StartReleaseThread();
     }
+=======
+        new Thread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        while(true){
+                            try {
+                                Thread.sleep(50);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            synchronized(Lqueue) {
+                                if (Lqueue.size()>0) {
+                                    onMessageReceived2(Lqueue.poll());
+                                }
+                            }
+                        }
+                    }
+                }
+        ).start();
+	}
+>>>>>>> remove white space and comment
 
 	public BattleField() {
 		map = new Unit[MAP_WIDTH][MAP_HEIGHT];
@@ -122,7 +145,6 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 	 */
 	private synchronized boolean putUnit(Unit unit, int x, int y)
 	{
-
 		if (map[x][y] != null)
 			return false;
 
@@ -175,7 +197,6 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 						return true;
 					}
 				}
-
 		return false;
 	}
 
@@ -466,7 +487,6 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 			unit.disconnect();
 			unit.stopRunnerThread();
 		}
-
 		serverSocket.unRegister();
 	}
 
