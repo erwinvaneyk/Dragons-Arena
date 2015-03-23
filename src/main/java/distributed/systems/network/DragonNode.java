@@ -16,6 +16,7 @@ import distributed.systems.network.services.HeartbeatService;
 import distributed.systems.network.services.NodeBalanceService;
 import lombok.Getter;
 
+
 public class DragonNode extends BasicNode implements ClientNode, Serializable {
 
 	private List<ServerAddress> knownServers = new ArrayList<>();
@@ -29,6 +30,7 @@ public class DragonNode extends BasicNode implements ClientNode, Serializable {
 	public static void main(String[] args) throws RemoteException {
 		new DragonNode(null, 1, 1);
 	}
+
 
 
 	public DragonNode(NodeAddress server, int x, int y) throws RemoteException {

@@ -104,7 +104,6 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
 		this.node = node;
 		this.clientSocket = this.node.getSocket();
-
 		this.messageFactory = new MessageFactory(node.getAddress());
         this.lived = true;
 
@@ -146,9 +145,11 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 			damageMessage.put("request", MessageRequest.dealDamage);
 			damageMessage.put("x", x);
 			damageMessage.put("y", y);
+            damageMessage.put("ox",this.getX());
+            damageMessage.put("oy",this.getY());
 			damageMessage.put("damage", damage);
 			damageMessage.put("id", id);
-            damageMessage.put("unit",this);
+
 		}
 		
 		// Send a spawn message
@@ -170,9 +171,11 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 			healMessage.put("request", MessageRequest.healDamage);
 			healMessage.put("x", x);
 			healMessage.put("y", y);
+            healMessage.put("ox",this.getX());
+            healMessage.put("oy",this.getY());
 			healMessage.put("healed", healed);
 			healMessage.put("id", id);
-            healMessage.put("unit",this);
+
 		}
 
 		// Send a spawn message
@@ -278,9 +281,10 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		getMessage.put("request", MessageRequest.getType);
 		getMessage.put("x", x);
 		getMessage.put("y", y);
+        getMessage.put("ox",this.getX());
+        getMessage.put("oy",this.getY());
 		getMessage.put("id", id);
-        getMessage.put("unit",this);
-        //System.out.println("the local unit in getType is "+);
+
 
 		// Send the getUnit message
         if (this.lived==true) {
@@ -318,8 +322,11 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		getMessage.put("request", MessageRequest.getUnit);
 		getMessage.put("x", x);
 		getMessage.put("y", y);
+        getMessage.put("ox",this.getX());
+        getMessage.put("oy",this.getY());
 		getMessage.put("id", id);
-        getMessage.put("unit", this);
+
+
 
         // Send the getUnit message
         if (this.lived==true) {
@@ -340,9 +347,6 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
 		result = messageList.get(id);
 		messageList.put(id, null);
-        if (result.getContent().containsKey("adjacent")){
-            this.setAdjacent((Boolean) result.get("adjacent"));
-        }
 
 		return (Unit) result.get("unit");	
 	}
@@ -355,10 +359,12 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		removeMessage.put("x", x);
 		removeMessage.put("y", y);
 		removeMessage.put("id", id);
-        removeMessage.put("unit",this);
+
 
 		// Send the removeUnit message
+
 		clientSocket.sendMessage(removeMessage, node.getServerAddress());
+
 	}
 
 	protected void moveUnit(int x, int y)
@@ -369,6 +375,8 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		moveMessage.put("x", x);
 		moveMessage.put("y", y);
 		moveMessage.put("id", id);
+        moveMessage.put("ox",this.getX());
+        moveMessage.put("oy",this.getY());
 		moveMessage.put("unit", this);
 
 		// Send the getUnit message
@@ -396,14 +404,12 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
         result = messageList.get(id);
         this.x =x;
         this.y = y;
+
 		// Remove the result from the messageList
 		messageList.put(id, null);
 	}
 
 	public Message onMessageReceived(Message message) {
-        if (message.get("request")==MessageRequest.testconnection){
-            this.disconnect=0;
-        }
         if (message.getContent().containsKey("release")){
             this.setAdjacent(false);
             this.x= (int) message.get("x");
@@ -412,20 +418,31 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
         if (message.getContent().containsKey("adjacent")){
             this.setAdjacent((Boolean) message.get("adjacent"));
         }
-        if (message.getContent().containsKey("heal")){
-            this.hitPoints= (int) message.get("heal");
-        }
-        if (message.getContent().containsKey("id")){
-		    messageList.put((Integer)message.get("id"), message);
-        }
+
         if (message.getContent().containsKey("damage")) {
-            System.out.println(this.getUnitID()+" got damage "+ message.get("damage"));
             this.adjustHitPoints(-(Integer) message.get("damage"));
-            if (this.lived==false) {
+            if (this.lived==false){
+                this.removeUnit(this.getX(),this.getY());
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 this.disconnect();
             }
         }
-		return null;
+        if (message.getContent().containsKey("healed")){
+            if(this.lived==true){
+                this.adjustHitPoints((Integer) message.get("healed"));
+            }
+
+        }
+        if (message.getContent().containsKey("id")){
+            messageList.put((Integer)message.get("id"), message);
+        }
+//		messageList.put((Integer)message.get("id"), message);
+        return null;
+
 	}
 	
 	// Disconnects the unit from the battlefield by exiting its run-state

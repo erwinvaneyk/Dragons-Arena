@@ -1,5 +1,6 @@
 package distributed.systems.network;
 
+import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +24,7 @@ import lombok.Getter;
  * - playerID (to generate it, only one that calls the battlefield)
  * - Socket
  */
+
 public class PlayerNode extends BasicNode implements ClientNode, IMessageReceivedHandler {
 
 	private Player player;

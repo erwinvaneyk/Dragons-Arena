@@ -7,4 +7,5 @@ import java.util.Optional;
 public interface IMessageReceivedHandler extends Remote {
 
 	Message onMessageReceived(Message message) throws RemoteException;
+
 }

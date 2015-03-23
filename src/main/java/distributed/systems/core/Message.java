@@ -75,5 +75,8 @@ public class Message implements Serializable {
 	public String toString() {
 		return "[" + this.origin + "] Message(messageType=" + this.messageType + ", content=" + this.content
 				+ ", timestamp=" + this.timestamp + ", receivedTimestamp=" + this.receivedTimestamp + ")";
+
 	}
+
+
 }

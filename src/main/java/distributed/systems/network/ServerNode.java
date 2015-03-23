@@ -3,7 +3,6 @@ package distributed.systems.network;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
-
 import com.sun.istack.internal.NotNull;
 import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.LogType;
@@ -20,6 +19,7 @@ import distributed.systems.network.services.ServerHeartbeatService;
 import lombok.Getter;
 import lombok.ToString;
 import org.apache.commons.lang.SerializationUtils;
+
 
 /**
  * A single server node
@@ -138,5 +138,6 @@ public class ServerNode extends BasicNode implements IMessageReceivedHandler {
 		} else {
 			safeLogMessage("Cannot launch battlefield-viewer; no battlefield available!", LogType.ERROR);
 		}
+
 	}
 }

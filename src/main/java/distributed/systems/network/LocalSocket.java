@@ -95,6 +95,7 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 			if(id != null) message.setOrigin(id);
 			IMessageReceivedHandler handler = (IMessageReceivedHandler) registry.lookup(destination.getName());
 			return handler.onMessageReceived(message);
+
 		}
 		catch (NotBoundException | RemoteException e) {
 			try {
