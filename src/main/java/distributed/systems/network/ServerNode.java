@@ -1,7 +1,11 @@
 package distributed.systems.network;
 
+import java.io.Serializable;
 import java.rmi.RemoteException;
+import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.HashMap;
+import java.util.Map;
 
 import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.LogType;
@@ -16,21 +20,26 @@ import distributed.systems.das.presentation.BattleFieldViewer;
  *
  * Will also need to take care of the dragons (with fault tolerance)
  */
-public class ServerNode extends UnicastRemoteObject implements IMessageReceivedHandler {
+public class ServerNode extends UnicastRemoteObject implements Serializable, IMessageReceivedHandler {
 
-	private final static String REGISTRY_PREFIX = "server";
+	private transient final Socket socket;
 
-	private final Socket socket;
+	private transient final Registry registry;
 
 	private BattleField battlefield;
 
 	private NodeAddress address;
+
+	private final Map<String,Socket> otherServers = new HashMap<>();
 
 	public static void main(String[] args) throws RemoteException {
 		new ServerNode();
 	}
 
 	public ServerNode() throws RemoteException{
+		// Set own registry
+		registry = new RegistryNode(RegistryNode.PORT).getRegistry();
+
 		// TODO: register to cluster
 		socket = connectToCluster();
 		// TODO: Acknowledge network/handshake
@@ -55,11 +64,71 @@ public class ServerNode extends UnicastRemoteObject implements IMessageReceivedH
 
 
 	@Override
-	public void onMessageReceived(Message message) throws RemoteException{
+	public void onMessageReceived(Message message) throws RemoteException {
 		message.setReceivedTimestamp();
-		// TODO: handle other messages
+		switch(message.getMessageType()) {
+			case HANDSHAKE:
+				if(message.get("response") == null) {
+					onHandshake(message);
+				}
+				break;
+			case DISCOVER:
+				if(message.get("response") == null) {
+					onDiscover(message);
+				}
 
-		// Battlefield-specific messages
-		this.battlefield.onMessageReceived(message);
+			case GENERIC:
+				// Battlefield-specific messages
+				this.battlefield.onMessageReceived(message);
+				break;
+		}
+	}
+
+	/**
+	 * Sender:      New Server
+	 * Receiver:    Existing server in cluster
+	 * Result:      server is added
+	 *
+	 * Message to cluster:
+	 * - MessageType: HANDSHAKE
+	 * - serverId:  id of server added
+	 * - address:   address of the new server
+	 *
+	 * Return message
+	 * - MessageType: HANDSHAKE
+	 * - response: true
+	 * - success: true/false
+	 *
+	 */
+	private void onHandshake(Message message) {
+		String newServerId = (String) message.get("serverId");
+		Address newServerAddress = (Address) message.get("address");
+		Socket newServerSocket = LocalSocket.connectTo(newServerAddress);
+		otherServers.put(newServerId, newServerSocket);
+	}
+
+	public void handshake(Address hostAddress) {
+		Socket socket = LocalSocket.connectTo(hostAddress);
+		socket.sendMessage(new Message(Message.Type.HANDSHAKE).put("serverId", address.toString()).put("address", hostAddress), address.toString());
+	}
+
+	/**
+	 * Get all known servers in a cluster
+	 *
+	 * Message:
+	 * - MessageType: DISCOVER
+	 *
+	 * Return message:
+	 * - MessageType: DISCOVER
+	 * - response: true
+	 * - servers: Map<String, Address> all servers known to this node
+	 */
+	private void onDiscover(Message message) {
+		HashMap<String, Address> servers = new HashMap<>();
+		for(Map.Entry<String, Socket> server : otherServers.entrySet()) {
+			servers.put(server.getKey(), server.getValue().getAddress());
+		}
+		otherServers.get(message.getOriginId()).sendMessage(
+				new Message(Message.Type.DISCOVER).put("servers", servers).put("response", true), message.getOriginId());
 	}
 }

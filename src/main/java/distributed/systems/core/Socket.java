@@ -1,12 +1,28 @@
 package distributed.systems.core;
 
 import java.rmi.RemoteException;
+import java.rmi.registry.Registry;
 import java.util.List;
 import java.util.Optional;
 
+import distributed.systems.network.Address;
 import distributed.systems.network.NodeAddress;
 
 public interface Socket {
+
+	public static final int MILISECOND_TIMEOUT = 3000;
+
+	public static void waitUntillTimeout() throws RemoteException {
+		int interval = 100;
+		try {
+			while() {
+				
+				Thread.sleep(interval);
+			}
+		}
+		catch (InterruptedException e) {}
+		throw new RemoteException("Time out occurred!");
+	}
 
 	public void register(String id);
 
@@ -26,4 +42,9 @@ public interface Socket {
 
 	public Optional<NodeAddress> findServer() throws RemoteException;
 
+	public void broadcast(Message message, NodeAddress.NodeType type) throws RemoteException;
+
+	public void broadcast(Message message) throws RemoteException;
+
+	public Address getAddress();
 }

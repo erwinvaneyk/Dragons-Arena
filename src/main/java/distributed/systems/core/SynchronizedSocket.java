@@ -58,4 +58,14 @@ public class SynchronizedSocket implements Socket,Serializable{
 	public Optional<NodeAddress> findServer() throws RemoteException {
 		return this.local.findServer();
 	}
+
+	@Override
+	public void broadcast(Message message, NodeAddress.NodeType type) throws RemoteException {
+		this.local.broadcast(message, type);
+	}
+
+	@Override
+	public void broadcast(Message message) throws RemoteException {
+		this.local.broadcast(message);
+	}
 }

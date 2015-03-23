@@ -5,7 +5,6 @@ import java.util.Date;
 import java.util.HashMap;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -19,7 +18,7 @@ import lombok.ToString;
 public class Message implements Serializable {
 
 	public enum Type {
-		LOG, GENERIC, ROUND_FINISHED, INFO
+		LOG, GENERIC, ROUND_FINISHED, HANDSHAKE, DISCOVER
 	}
 
 	@Getter @Setter

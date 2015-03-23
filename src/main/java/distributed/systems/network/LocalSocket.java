@@ -18,14 +18,24 @@ import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.core.Socket;
 import distributed.systems.core.exception.AlreadyAssignedIDException;
+import lombok.Getter;
 
 public class LocalSocket implements Socket,Serializable {
 
 	private String id;
 
-	private Registry registry;
+	private final Registry registry;
 
-	private static final String PROTOCOL = "localsocket://";
+	@Getter
+	private final Address address;
+
+	private static final String PROTOCOL_LOCAL = "localsocket";
+
+	private static final String PROTOCOL_BROADCAST = "all";
+
+	private static final String PROTOCOL_SERVERS = "servers";
+
+	private static final String PROTOCOL_SEPARATOR = "://";
 
 	/**
 	 * Creates a socket connected to the default server, ip 127.0.0.1 and port 1234
@@ -38,9 +48,14 @@ public class LocalSocket implements Socket,Serializable {
 		return new LocalSocket(ip, port);
 	}
 
+	public static LocalSocket connectTo(Address address) {
+		return new LocalSocket(address.getIp().toString(), address.getPort());
+	}
+
 	protected LocalSocket(String ip, int port) {
 		try {
 			registry = LocateRegistry.getRegistry(ip, port);
+			address = new Address(ip, port);
 		} catch (RemoteException e) {
 			throw new RuntimeException("Could not connect LocalSocket to registry!", e);
 		}
@@ -66,11 +81,13 @@ public class LocalSocket implements Socket,Serializable {
 
 	@Override
 	public void sendMessage(Message message, String destination) {
-		String binding = destination.startsWith(PROTOCOL) ? destination.substring(PROTOCOL.length()) : destination;
+		// TODO: figure out destination to other servers
+		String binding = destination.startsWith(PROTOCOL_LOCAL + PROTOCOL_SEPARATOR) ? destination.substring(
+				(PROTOCOL_LOCAL + PROTOCOL_SEPARATOR).length()) : destination;
 
 		try {
 			message.setOriginId(this.id);
-			message.put("origin", PROTOCOL + this.id);
+			message.put("origin", PROTOCOL_LOCAL + PROTOCOL_SEPARATOR + this.id);
 			IMessageReceivedHandler handler = (IMessageReceivedHandler) registry.lookup(binding);
 			handler.onMessageReceived(message);
 		}
@@ -135,5 +152,15 @@ public class LocalSocket implements Socket,Serializable {
 				.stream()
 				.filter(NodeAddress::isServer)
 				.findAny();
+	}
+
+	public void broadcast(Message message, NodeAddress.NodeType type) throws RemoteException {
+		getNodes().stream()
+				.filter(address -> address.getType().equals(type))
+				.forEach(address -> sendMessage(message, address.toString()));
+	}
+
+	public void broadcast(Message message) throws RemoteException {
+		getNodes().stream().forEach(address -> sendMessage(message, address.toString()));
 	}
 }
