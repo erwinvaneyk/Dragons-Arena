@@ -68,11 +68,6 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
     public boolean lived;
 
-    public static final int ADJ_UP =1;
-    public static final int ADJ_RIGHT =2;
-    public static final int ADJ_DOWN =3;
-    public static final int ADJ_LEFT =4;
-    public static final int ADJ_NONE =0;
     @Getter@Setter
     private boolean adjacent ;
 
@@ -120,8 +115,6 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
         }
 
 		if (hitPoints <= 0){
-            //System.out.println("let's see the node address <Unit adjustHitPoints> " + node.getAddress().toString());
-            //System.out.println("test2 unit adjustHitPoints" + node.getServerAddress().toString());
             this.lived = false;
 			//removeUnit(x, y);
         }
@@ -373,7 +366,6 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
          */
         this.x = x;
         this.y = y;
-        //this.setAdjacent(((Unit) messageList.get(id).get("unit")).isAdjacent());
 		// Remove the result from the messageList
 		messageList.put(id, null);
 	}

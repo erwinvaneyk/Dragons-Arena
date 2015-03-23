@@ -60,9 +60,7 @@ public class ServerNode extends UnicastRemoteObject implements IMessageReceivedH
 	public void onMessageReceived(Message message) throws RemoteException{
 		message.setReceivedTimestamp();
 		// TODO: handle other messages
-
 		// Battlefield-specific messages
-        //System.out.println("serverNode onMessageReceived"+message.toString());
 		this.battlefield.onMessageReceived(message);
 	}
 }

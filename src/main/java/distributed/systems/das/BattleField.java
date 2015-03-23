@@ -224,25 +224,13 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 		return ++lastUnitID;
 	}
 
-    public void onMessageReceivedinit(Message msg){
-        synchronized(Lqueue) {
-            if (((Unit) msg.get("unit")).isAdjacent() == true) {
-                Lqueue.add(msg);
-                System.out.println(Lqueue.size());
-                return;
-            }
-        }
-        onMessageReceived(msg);
-    }
 
 	public void onMessageReceived(Message msg) {
 
         synchronized(Lqueue) {
             if (msg.getContent().containsKey("unit")){
-                //System.out.println(msg.toString()+" "+((Unit)msg.get("unit")).isAdjacent());
                 if (((Unit) msg.get("unit")).isAdjacent() == true) {
                     Lqueue.addLast(msg);
-                    //System.out.println("the Lqueue size is "+Lqueue.size());
                     return;
                 }
             }
@@ -315,7 +303,6 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 				unit = this.getUnit(x, y);
                 map[ox][oy].setAdjacent(adjacent(ox,oy));
                 reply.put("adjacent",map[ox][oy].isAdjacent());
-                //System.out.println("the unit in BF is "+target);
 				if (unit != null){
 					unit.adjustHitPoints( -(Integer)msg.get("damage") );
                     notifacation = new Message();
@@ -337,7 +324,6 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 			case healDamage:
 			{
                 reply = new Message();
-
 				int x = (Integer)msg.get("x");
 				int y = (Integer)msg.get("y");
                 int ox = ((Unit)msg.get("unit")).getX();
@@ -366,7 +352,6 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
                 int ox = ((Unit)msg.get("unit")).getX();
                 int oy = ((Unit)msg.get("unit")).getY();
 				reply.put("id", msg.get("id"));
-                System.out.println(map[ox][oy].getUnitID()+" ---- "+map[ox][oy].isAdjacent());
                 reply.put("adjacent", map[ox][oy].isAdjacent());
 				break;
 			case removeUnit:
@@ -453,12 +438,9 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
                 int ox = ((Unit)msg.get("unit")).getX();
                 int oy = ((Unit)msg.get("unit")).getY();
                 reply.put("id", msg.get("id"));
-                //System.out.println("the Battle Field deal Damage "+ msg.toString());
                 int x = (Integer)msg.get("x");
                 int y = (Integer)msg.get("y");
                 unit = this.getUnit(x, y);
-
-                //System.out.println("the unit in BF is "+target);
                 if (unit != null){
                     unit.adjustHitPoints( -(Integer)msg.get("damage") );
                     notifacation = new Message();
@@ -467,16 +449,13 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
                     if (unit.lived==false){
                         this.removeUnit(x, y);
                     }
-
                 }
                 System.out.println("location is "+"<"+ox+","+oy+">");
                 map[ox][oy].setAdjacent(adjacent(ox,oy));
                 reply.put("adjacent",map[ox][oy].isAdjacent());
-
 				/* Copy the id of the message so that the unit knows
 				 * what message the battlefield responded to.
 				 */
-
                 break;
             }
             case healDamage:
@@ -532,11 +511,6 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
             // Could happen if the target already logged out
             idnae.printStackTrace();
         }
-    }
-
-
-    public void onadjMessageReceived(){
-
     }
 
     public boolean adjacent (int x ,int y ){
