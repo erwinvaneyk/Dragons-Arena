@@ -49,6 +49,7 @@ public class LocalSocket implements Socket,Serializable {
 	@Override
 	public void register(String id) {
 		this.id = id;
+
 	}
 
 	@Override
@@ -72,7 +73,8 @@ public class LocalSocket implements Socket,Serializable {
 			message.setOriginId(this.id);
 			message.put("origin", PROTOCOL + this.id);
 			IMessageReceivedHandler handler = (IMessageReceivedHandler) registry.lookup(binding);
-			handler.onMessageReceived(message);
+            handler.onMessageReceived(message);
+//			handler.onMessageReceived(message);
 		}
 		catch (NotBoundException | RemoteException e) {
 			e.printStackTrace();

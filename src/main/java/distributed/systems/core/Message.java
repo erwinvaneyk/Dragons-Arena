@@ -67,5 +67,8 @@ public class Message implements Serializable {
 		this.receivedTimestamp = message.receivedTimestamp;
 		this.messageType = message.messageType;
 		this.originId = message.originId;
+
 	}
+
+
 }

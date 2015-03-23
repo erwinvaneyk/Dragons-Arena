@@ -11,6 +11,7 @@ public class SynchronizedSocket implements Socket,Serializable{
 
 	private final Socket local;
 
+
 	public SynchronizedSocket(Socket local) {
 		this.local = local;
 	}
