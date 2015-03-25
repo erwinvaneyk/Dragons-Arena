@@ -129,19 +129,4 @@ public class PlayerNode extends UnicastRemoteObject implements ClientNode, IMess
 			e.printStackTrace();
 		}
 	}
-
-//    @Override
-//    public NodeAddress getServerAddress() {
-//        return null;
-//    }
-
-//    @Override
-//    public NodeAddress getAddress() {
-//        return null;
-//    }
-
-//    @Override
-//    public Socket getSocket() {
-//        return null;
-//    }
 }
