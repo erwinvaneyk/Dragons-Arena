@@ -3,9 +3,11 @@ package distributed.systems.network;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
+import distributed.systems.core.ExtendedSocket;
 import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
+import distributed.systems.core.MessageFactory;
 import distributed.systems.core.Socket;
 import distributed.systems.core.SynchronizedSocket;
 import distributed.systems.das.units.Dragon;
@@ -21,7 +23,8 @@ import lombok.Getter;
 public class DragonNode extends UnicastRemoteObject implements ClientNode, IMessageReceivedHandler {
 
 	@Getter
-	private final Socket socket;
+	private final ExtendedSocket socket;
+	private final MessageFactory messageFactory;
 
 	private Dragon dragon;
 
@@ -41,6 +44,7 @@ public class DragonNode extends UnicastRemoteObject implements ClientNode, IMess
 		address = socket.determineAddress(NodeAddress.NodeType.DRAGON);
 		socket.register(address.toString());
 		socket.addMessageReceivedHandler(this);
+		messageFactory = new MessageFactory(address);
 		// find suitable server
 		// TODO: needs to be load balanced
 		serverAddress = socket.findServer().orElseThrow(() -> new RuntimeException("No server available"));
@@ -51,8 +55,9 @@ public class DragonNode extends UnicastRemoteObject implements ClientNode, IMess
 	}
 
 	@Override
-	public void onMessageReceived(Message message) throws RemoteException {
+	public Message onMessageReceived(Message message) throws RemoteException {
 		message.setReceivedTimestamp();
 		this.dragon.onMessageReceived(message);
+		return messageFactory.createReply(message).setMessageType(Message.Type.ACK);
 	}
 }

@@ -4,10 +4,8 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 
+import distributed.systems.network.NodeAddress;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
 /**
  * Message-object that will be passed between nodes.
@@ -15,14 +13,13 @@ import lombok.ToString;
  * - id
  * - origin
  */
-@ToString
 public class Message implements Serializable {
 
 	public enum Type {
-		LOG, GENERIC, ROUND_FINISHED, INFO
+		LOG, GENERIC, HEARTBEAT, HANDSHAKE, ERROR, ACK, JOIN_SERVER, SYNC_BATTLEFIELD
 	}
 
-	@Getter @Setter
+	@Getter
 	private Type messageType = Type.GENERIC;
 
 	@Getter
@@ -34,16 +31,24 @@ public class Message implements Serializable {
 	@Getter
 	private Date receivedTimestamp;
 
-	@Getter @Setter
-	private String originId;
+	@Getter
+	private NodeAddress origin;
 
-	public Message(Type messageType) {
-		this.messageType = messageType;
+	Message(NodeAddress origin) {
 		this.timestamp = new Date();
+		this.origin = origin;
 	}
 
-	public Message() {
+	Message(Type type) {
 		this.timestamp = new Date();
+		this.messageType = type;
+	}
+
+	Message(Message message) {
+		this.content.putAll(message.content);
+		this.timestamp = message.timestamp;
+		this.messageType = message.messageType;
+		this.origin = message.origin;
 	}
 
 	public Message put(String key, Serializable value) {
@@ -55,17 +60,24 @@ public class Message implements Serializable {
 		return content.get(string);
 	}
 
+	public Message setMessageType(Type any) {
+		messageType = any;
+		return this;
+	}
+
+	public Message setOrigin(NodeAddress originId) {
+		this.origin = originId;
+		return this;
+	}
+
 	public void setReceivedTimestamp() {
 		if(receivedTimestamp == null) {
 			receivedTimestamp = new Date();
 		}
 	}
 
-	public Message(Message message) {
-		this.content.putAll(message.content);
-		this.timestamp = message.timestamp;
-		this.receivedTimestamp = message.receivedTimestamp;
-		this.messageType = message.messageType;
-		this.originId = message.originId;
+	public String toString() {
+		return "[" + this.origin + "] Message(messageType=" + this.messageType + ", content=" + this.content
+				+ ", timestamp=" + this.timestamp + ", receivedTimestamp=" + this.receivedTimestamp + ")";
 	}
 }

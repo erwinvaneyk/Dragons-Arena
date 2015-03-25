@@ -3,6 +3,8 @@ package distributed.systems.das;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import distributed.systems.core.ExtendedSocket;
+import distributed.systems.core.MessageFactory;
 import distributed.systems.das.units.Dragon;
 import distributed.systems.das.units.Player;
 import distributed.systems.das.units.Unit;
@@ -11,6 +13,8 @@ import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.Message;
 import distributed.systems.core.Socket;
 import distributed.systems.core.exception.IDNotAssignedException;
+import distributed.systems.network.ServerNode;
+import lombok.EqualsAndHashCode;
 import lombok.Setter;
 
 /**
@@ -23,21 +27,24 @@ import lombok.Setter;
  * 
  * @author Pieter Anemaet, Boaz Pat-El
  */
+@EqualsAndHashCode
 public class BattleField implements Serializable, IMessageReceivedHandler {
+	@Setter
+	private transient MessageFactory messagefactory;
 	/* The array of units */
-	private Unit[][] map; // TODO: do it
+	private Unit[][] map;
 
 	/* The static singleton */
 	private transient static BattleField battlefield;
 
 	/* Primary socket of the battlefield */
 	@Setter
-	private transient Socket serverSocket;
+	private transient ExtendedSocket serverSocket;
 	
 	/* The last id that was assigned to an unit. This variable is used to
 	 * enforce that each unit has its own unique id.
 	 */
-	private int lastUnitID = 0; // TODO: do it
+	private int lastUnitID = 0;
 
 	public final static String serverID = "server";
 	public final static int MAP_WIDTH = 25;
@@ -189,7 +196,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 		return ++lastUnitID;
 	}
 
-	public void onMessageReceived(Message msg) {
+	public Message onMessageReceived(Message msg) {
 		Message reply = null;
 		String origin = (String)msg.get("origin");
 		MessageRequest request = (MessageRequest)msg.get("request");
@@ -204,7 +211,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 				break;
 			case getUnit:
 			{
-				reply = new Message();
+				reply = messagefactory.createMessage();
 				int x = (Integer)msg.get("x");
 				int y = (Integer)msg.get("y");
 				/* Copy the id of the message so that the unit knows 
@@ -217,7 +224,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 			}
 			case getType:
 			{
-				reply = new Message();
+				reply = messagefactory.createMessage();
 				int x = (Integer)msg.get("x");
 				int y = (Integer)msg.get("y");
 				/* Copy the id of the message so that the unit knows 
@@ -256,7 +263,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 				break;
 			}
 			case moveUnit:
-				reply = new Message();
+				reply = messagefactory.createMessage();
 				this.moveUnit((Unit)msg.get("unit"), (Integer)msg.get("x"), (Integer)msg.get("y"));
 				/* Copy the id of the message so that the unit knows 
 				 * what message the battlefield responded to. 
@@ -265,7 +272,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 				break;
 			case removeUnit:
 				this.removeUnit((Integer)msg.get("x"), (Integer)msg.get("y"));
-				return;
+				return null;
 		}
 
 		try {
@@ -276,6 +283,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 			// Could happen if the target already logged out
 			idnae.printStackTrace();
 		}
+		return null;
 	}
 
 	/**

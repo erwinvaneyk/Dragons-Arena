@@ -1,25 +1,37 @@
 package distributed.systems.network;
 
+import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
+import java.util.List;
+
+import distributed.systems.core.IMessageReceivedHandler;
+import distributed.systems.core.Message;
+import distributed.systems.core.exception.AlreadyAssignedIDException;
+import lombok.Getter;
 
 public class RegistryNode implements Runnable {
 
 	public static final int PORT = 1234;
 
-	public static void main(String[] args) {
+	@Getter
+	private final Registry registry;
+
+	public static void main(String[] args) throws RemoteException {
 		new RegistryNode(PORT).run();
 	}
 
-	public RegistryNode(int port) {
-		try {
-			System.out.println("Creating registry...");
-			LocateRegistry.createRegistry(port);
-			System.out.println("Registry running at port " + port + "...");
+	public RegistryNode(int port) throws RemoteException {
+		System.out.println("Creating registry...");
+		registry = LocateRegistry.createRegistry(port);
+		System.out.println("Registry running at port " + port + "...");
+	}
 
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		}
+	public RegistryNode(Address address) throws RemoteException {
+		registry = LocateRegistry.getRegistry(address.getIp(), address.getPort());
 	}
 
 	@Override

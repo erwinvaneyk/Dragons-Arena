@@ -1,12 +1,14 @@
 package distributed.systems.network;
 
-import distributed.systems.core.Socket;
+import java.io.Serializable;
 
-public interface ClientNode {
+import distributed.systems.core.ExtendedSocket;
+
+public interface ClientNode extends Serializable {
 
 	public NodeAddress getServerAddress();
 
 	public NodeAddress getAddress();
 
-	public Socket getSocket();
+	public ExtendedSocket getSocket();
 }

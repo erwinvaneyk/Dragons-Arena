@@ -3,6 +3,9 @@ package distributed.systems.das.units;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+
+import distributed.systems.core.ExtendedSocket;
+import distributed.systems.core.MessageFactory;
 import distributed.systems.das.GameState;
 import distributed.systems.das.MessageRequest;
 import distributed.systems.core.IMessageReceivedHandler;
@@ -24,6 +27,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	private static final long serialVersionUID = -4550572524008491161L;
 
 	private transient final ClientNode node;
+	private transient final MessageFactory messageFactory;
 
 	// Position of the unit
 	protected int x, y;
@@ -39,7 +43,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	private String unitID;
 
 	// The communication socket between this client and the board
-	protected transient Socket clientSocket;
+	protected transient ExtendedSocket clientSocket;
 	
 	// Map messages from their ids
 	private Map<Integer, Message> messageList;
@@ -85,6 +89,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
 		this.node = node;
 		this.clientSocket = this.node.getSocket();
+		this.messageFactory = new MessageFactory(node.getAddress());
 	}
 
 	/**
@@ -116,7 +121,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		synchronized (this) {
 			id = localMessageCounter++;
 		
-			damageMessage = new Message();
+			damageMessage = messageFactory.createMessage();
 			damageMessage.put("request", MessageRequest.dealDamage);
 			damageMessage.put("x", x);
 			damageMessage.put("y", y);
@@ -137,7 +142,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		synchronized (this) {
 			id = localMessageCounter++;
 
-			healMessage = new Message();
+			healMessage =  messageFactory.createMessage();
 			healMessage.put("request", MessageRequest.healDamage);
 			healMessage.put("x", x);
 			healMessage.put("y", y);
@@ -213,7 +218,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		 * designated position. 
 		 */
 		int id = localMessageCounter++;
-		Message spawnMessage = new Message();
+		Message spawnMessage =  messageFactory.createMessage();
 		spawnMessage.put("request", MessageRequest.spawnUnit);
 		spawnMessage.put("x", x);
 		spawnMessage.put("y", y);
@@ -241,7 +246,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	 * @return UnitType: the indicated square contains a player, a dragon or nothing.
 	 */
 	protected UnitType getType(int x, int y) {
-		Message getMessage = new Message(), result;
+		Message getMessage =  messageFactory.createMessage(), result;
 		int id = localMessageCounter++;
 		getMessage.put("request", MessageRequest.getType);
 		getMessage.put("x", x);
@@ -274,7 +279,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
 	protected Unit getUnit(int x, int y)
 	{
-		Message getMessage = new Message(), result;
+		Message getMessage =  messageFactory.createMessage(), result;
 		int id = localMessageCounter++;
 		getMessage.put("request", MessageRequest.getUnit);
 		getMessage.put("x", x);
@@ -304,7 +309,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
 	protected void removeUnit(int x, int y)
 	{
-		Message removeMessage = new Message();
+		Message removeMessage =  messageFactory.createMessage();
 		int id = localMessageCounter++;
 		removeMessage.put("request", MessageRequest.removeUnit);
 		removeMessage.put("x", x);
@@ -317,7 +322,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
 	protected void moveUnit(int x, int y)
 	{
-		Message moveMessage = new Message();
+		Message moveMessage =  messageFactory.createMessage();
 		int id = localMessageCounter++;
 		moveMessage.put("request", MessageRequest.moveUnit);
 		moveMessage.put("x", x);
@@ -352,8 +357,9 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		messageList.put(id, null);
 	}
 
-	public void onMessageReceived(Message message) {
+	public Message onMessageReceived(Message message) {
 		messageList.put((Integer)message.get("id"), message);
+		return null;
 	}
 	
 	// Disconnects the unit from the battlefield by exiting its run-state
