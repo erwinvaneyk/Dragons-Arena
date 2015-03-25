@@ -45,6 +45,7 @@ public class PlayerNode extends UnicastRemoteObject implements ClientNode, IMess
 		socket.addMessageReceivedHandler(this);
 		// find suitable server
 		// TODO: needs to be load balanced
+
 		serverAddress = socket.findServer().orElseThrow(() -> new RuntimeException("No server available"));
 		// spawn player
 		this.player = new Player(x,y, this);

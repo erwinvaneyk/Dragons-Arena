@@ -47,6 +47,26 @@ public class ServerNode extends UnicastRemoteObject implements IMessageReceivedH
 		new Thread(BattleFieldViewer::new).start();
 	}
 
+    public ServerNode(int num) throws RemoteException{
+        // TODO: Setup battlefield (self or from network)
+        battlefield = BattleField.getBattleField();
+
+
+            // TODO: register to cluster
+            socket = connectToCluster();
+            // TODO: Acknowledge network/handshake
+            // TODO: sync with network
+
+
+            battlefield.setServerSocket(socket);
+            // TODO: start a dragon (if necessary)
+
+            socket.logMessage("Server (" + address + ") is up and running", LogType.INFO);
+
+		/* Spawn a new battlefield viewer */
+        new Thread(BattleFieldViewer::new).start();
+    }
+
 	private Socket connectToCluster() throws RemoteException {
 		Socket socket = new SynchronizedSocket(LocalSocket.connectToDefault());
 		address = socket.determineAddress(NodeAddress.NodeType.SERVER);
@@ -60,7 +80,9 @@ public class ServerNode extends UnicastRemoteObject implements IMessageReceivedH
 	public void onMessageReceived(Message message) throws RemoteException{
 		message.setReceivedTimestamp();
 		// TODO: handle other messages
+
 		// Battlefield-specific messages
+        //System.out.println("serverNode onMessageReceived"+message.toString());
 		this.battlefield.onMessageReceived(message);
 	}
 }
