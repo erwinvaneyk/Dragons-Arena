@@ -2,9 +2,11 @@ package distributed.systems.example;
 
 import java.rmi.RemoteException;
 
+
 import distributed.systems.core.exception.AlreadyAssignedIDException;
 import distributed.systems.das.BattleField;
 import distributed.systems.network.*;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -14,6 +16,7 @@ public class TestSetup3 {
     public static final int DRAGON_COUNT = 20;
     public static final int TIME_BETWEEN_PLAYER_LOGIN = 5000;
     public static int playerCount;
+
 
     public static void main(String[] args) throws RemoteException, InterruptedException {
         // Server setup
@@ -87,5 +90,6 @@ public class TestSetup3 {
             System.out.println(server2.getServerSocket().getOtherNodes());
             Thread.sleep(500);
         }
+
     }
 }

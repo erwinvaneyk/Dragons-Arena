@@ -21,6 +21,7 @@ public class TestSetup {
 
 	public static void main(String[] args) throws RemoteException {
 
+
         new Thread(new RegistryNode(RegistryNode.PORT)).start();
         ServerNode server = new ServerNode(RegistryNode.PORT,false);
         //new LogNode(Logger.getDefault());
@@ -28,6 +29,7 @@ public class TestSetup {
         new PlayerNode(server.getAddress(),3,2);
         new PlayerNode(server.getAddress(),6,6);
         DragonNode dragon = new DragonNode(server.getAddress(),10, 10);
+
 
 	}
 }

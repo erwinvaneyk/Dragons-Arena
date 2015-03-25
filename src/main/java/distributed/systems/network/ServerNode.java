@@ -127,6 +127,7 @@ public class ServerNode extends BasicNode implements IMessageReceivedHandler {
 		// Add new binding
 		socket = LocalSocket.connectTo(address);
 		socket.register(address);
+
 		socket.addMessageReceivedHandler(this);
 		safeLogMessage("Successfully rebounded the binding " + currentBinding + " to " + address, LogType.DEBUG);
 		currentBinding = (NodeAddress) SerializationUtils.clone(address);
@@ -138,7 +139,6 @@ public class ServerNode extends BasicNode implements IMessageReceivedHandler {
 		} else {
 			safeLogMessage("Cannot launch battlefield-viewer; no battlefield available!", LogType.ERROR);
 		}
-
 
 	}
 }
