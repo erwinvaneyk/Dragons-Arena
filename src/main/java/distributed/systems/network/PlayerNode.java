@@ -1,6 +1,7 @@
 package distributed.systems.network;
 
 import java.rmi.NoSuchObjectException;
+import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
@@ -128,4 +129,19 @@ public class PlayerNode extends UnicastRemoteObject implements ClientNode, IMess
 			e.printStackTrace();
 		}
 	}
+
+//    @Override
+//    public NodeAddress getServerAddress() {
+//        return null;
+//    }
+
+//    @Override
+//    public NodeAddress getAddress() {
+//        return null;
+//    }
+
+//    @Override
+//    public Socket getSocket() {
+//        return null;
+//    }
 }

@@ -1,5 +1,6 @@
 package distributed.systems.network;
 
+import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
@@ -20,7 +21,7 @@ import lombok.Getter;
  * - playerID (to generate it, only one that calls the battlefield)
  * - Socket
  */
-public class DragonNode extends UnicastRemoteObject implements ClientNode, IMessageReceivedHandler {
+public class DragonNode extends UnicastRemoteObject implements ClientNode, IMessageReceivedHandler,Serializable {
 
 	@Getter
 	private final ExtendedSocket socket;
@@ -48,6 +49,7 @@ public class DragonNode extends UnicastRemoteObject implements ClientNode, IMess
 		// find suitable server
 		// TODO: needs to be load balanced
 		serverAddress = socket.findServer().orElseThrow(() -> new RuntimeException("No server available"));
+        System.out.println("serverAddress in Dragon is "+ this.getServerAddress());
 		// spawn player
 		this.dragon = new Dragon(x,y, this);
 		socket.logMessage("Dragon (" + address + ") created and running. Assigned to server: " + serverAddress, LogType.INFO);

@@ -86,7 +86,6 @@ public class ServerNode extends UnicastRemoteObject implements IMessageReceivedH
 
 		serverSocket.logMessage("Server (" + address + ") is up and running", LogType.INFO);
 		new Thread(BattleFieldViewer::new).start();
-
 	}
 
 	@Override
