@@ -56,9 +56,8 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 	public final static int MAP_WIDTH = 25;
 	public final static int MAP_HEIGHT = 25;
 	private ArrayList<Unit> units;
-    public SynchronizedQueue squeue;
-    public LinkedList<Message> Lqueue;
-    private Timer timer=new Timer();
+    public transient LinkedList<Message> Lqueue;
+    private transient Timer timer=new Timer();
     //public
 
 	/**
@@ -69,7 +68,6 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 	private BattleField(int width, int height) {
 		map = new Unit[width][height];
 		units = new ArrayList<>();
-        squeue = new SynchronizedQueue();
         Lqueue = new LinkedList<Message>();
         //control the Lqueue
         StartLexectueThread();
