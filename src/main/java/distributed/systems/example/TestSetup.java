@@ -23,6 +23,5 @@ public class TestSetup {
 		new Thread(new RegistryNode(RegistryNode.PORT)).start();
 		ServerNode server = new ServerNode(1234);
 		new LogNode(Logger.getDefault());
-
 	}
 }

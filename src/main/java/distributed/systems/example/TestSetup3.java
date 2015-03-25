@@ -12,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class TestSetup3 {
-
 	public static void main(String[] args) throws RemoteException, InterruptedException {
 		// Server setup
 		ServerNode server1 = new ServerNode(1234, true);

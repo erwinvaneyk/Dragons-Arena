@@ -29,11 +29,15 @@ public class TestSetup2 {
         new Thread(new RegistryNode(RegistryNode.PORT)).start();
         ServerNode snode = new ServerNode(1234);
         new LogNode(Logger.getDefault());
-
+//        new PlayerNode(1,2);
+//        new PlayerNode(3,2);
+//        new PlayerNode(6,6);
+        //DragonNode dragon = new DragonNode(10, 10);
 
         for(int i = 0; i < DRAGON_COUNT; i++) {
 			/* Try picking a random spot */
             int x, y, attempt = 0;
+            final int temp = i;
             do {
                 x = (int)(Math.random() * BattleField.MAP_WIDTH);
                 y = (int)(Math.random() * BattleField.MAP_HEIGHT);
@@ -46,7 +50,39 @@ public class TestSetup2 {
             final int finalX = x;
             final int finalY = y;
 
-            new DragonNode(finalX, finalY);
+            new Thread(new Runnable() {
+                public void run() {
+                    try {
+                        Thread.sleep(temp*100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        new DragonNode(finalX, finalY);
+                    } catch (AlreadyAssignedIDException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+			/* Create the new dragon in a separate
+			 * thread, making sure it does not
+			 * block the system.
+			 */
+/*            new Thread(new Runnable() {
+                public void run() {
+                    try {
+                        new DragonNode(finalX, finalY);
+                    } catch (AlreadyAssignedIDException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();*/
 
         }
 
@@ -56,6 +92,7 @@ public class TestSetup2 {
         {
 			/* Once again, pick a random spot */
             int x, y, attempt = 0;
+            final int temp = i;
             do {
                 x = (int)(Math.random() * BattleField.MAP_WIDTH);
                 y = (int)(Math.random() * BattleField.MAP_HEIGHT);

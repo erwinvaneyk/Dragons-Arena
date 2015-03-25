@@ -36,6 +36,7 @@ public class Player extends Unit implements Runnable, Serializable {
 	public static final int MAX_ATTACKPOINTS = 10;
 
 
+
 	/**
 	 * Create a player, initialize both 
 	 * the hit and the attackpoints. 
@@ -57,11 +58,13 @@ public class Player extends Unit implements Runnable, Serializable {
 
 	public void start() {
 
-		if (!spawn(x, y))
-			return; // We could not spawn on the battlefield
+		if (!spawn(x, y)){
+			return;
+        }// We could not spawn on the battlefield
 
 		/* Create a new player thread */
 		//new Thread(this).start();
+        this.setDisconnect(0);
 		runnerThread = new Thread(this);
 		runnerThread.start();
 	}
