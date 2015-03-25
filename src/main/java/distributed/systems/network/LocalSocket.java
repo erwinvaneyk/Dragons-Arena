@@ -17,25 +17,25 @@ import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.LogMessage;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
-import distributed.systems.core.Socket;
+import distributed.systems.core.MessageFactory;
 import distributed.systems.core.exception.AlreadyAssignedIDException;
+import lombok.ToString;
 
 /**
  *
  * Socket serving as an interface for single RMIRegistry
  *
  */
+@ToString
 public class LocalSocket implements ExtendedSocket,Serializable {
 
-	private String id;
+	private NodeAddress id;
 
 	private final Registry registry;
 
 	private final NodeAddress registryAddress;
 
-	private static final String PROTOCOL_LOCAL = "localsocket";
-
-	private static final String PROTOCOL_SEPARATOR = "://";
+	private transient MessageFactory messageFactory;
 
 	/**
 	 * Creates a socket connected to the default server, ip 127.0.0.1 and port 1234
@@ -71,14 +71,16 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 	}
 
 	@Override
-	public void register(String id) {
+	public void register(NodeAddress id) {
 		this.id = id;
+		this.messageFactory = new MessageFactory(id);
 	}
 
 	@Override
 	public void addMessageReceivedHandler(IMessageReceivedHandler handler) {
 		try {
-			registry.bind(id, handler);
+			registry.bind(id.getName(), handler);
+			logMessage("Bounded " + id.getName() + " on registry of " + registryAddress + ". Now contains: " + Arrays.toString(registry.list()), LogType.DEBUG);
 		}
 		catch (AlreadyBoundException e) {
 			throw new AlreadyAssignedIDException();
@@ -89,17 +91,16 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 	}
 
 	@Override
-	public Message sendMessage(Message message, String destination) {
-		String binding = destination.startsWith(PROTOCOL_LOCAL + PROTOCOL_SEPARATOR) ? destination.substring(
-				(PROTOCOL_LOCAL + PROTOCOL_SEPARATOR).length()) : destination;
+	public Message sendMessage(Message message, NodeAddress destination) {
 		try {
-			//message.setOriginId(this.id);
-			message.put("origin", PROTOCOL_LOCAL + PROTOCOL_SEPARATOR + this.id);
-			IMessageReceivedHandler handler = (IMessageReceivedHandler) registry.lookup(binding);
+			if(id != null) message.setOrigin(id);
+			//message.put("origin", PROTOCOL_LOCAL + PROTOCOL_SEPARATOR + this.id);
+			IMessageReceivedHandler handler = (IMessageReceivedHandler) registry.lookup(destination.getName());
 			return handler.onMessageReceived(message);
 		}
 		catch (NotBoundException | RemoteException e) {
 			try {
+				e.printStackTrace();
 				throw new RuntimeException("Failed to send message: `" + message + "` to " + destination + " on registry "+ Arrays.toString(registry.list()), e);
 			}
 			catch (RemoteException e1) {
@@ -108,14 +109,10 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 		}
 	}
 
-	public Message sendMessage(Message message, NodeAddress destination) {
-		return sendMessage(message, destination.getName());
-	}
-
 	@Override
 	public void unRegister() {
 		try {
-			registry.unbind(id);
+			registry.unbind(id.getName());
 		}
 		catch (RemoteException | NotBoundException e) {
 			System.out.println(id + " was already unRegistered!");
@@ -131,7 +128,14 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 
 	@Override
 	public void logMessage(String message, LogType type) {
-		logMessage(new LogMessage(message, type));
+		LogMessage log;
+		if(messageFactory != null) {
+			log = messageFactory.createLogMessage(message, type);
+		} else {
+			log = new LogMessage(message, type);
+
+		}
+		logMessage(log);
 	}
 
 
@@ -160,7 +164,7 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 		try {
 			getNodes().stream()
 					.filter(address -> address.getType().equals(type))
-					.forEach(address -> sendMessage(message, address.toString()));
+					.forEach(address -> sendMessage(message, address));
 		}
 		catch (RemoteException e) {
 			e.printStackTrace();
@@ -169,7 +173,7 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 
 	public void broadcast(Message message) {
 		try {
-			getNodes().stream().forEach(address -> sendMessage(message, address.toString()));
+			getNodes().stream().forEach(address -> sendMessage(message, address));
 		}
 		catch (RemoteException e) {
 			e.printStackTrace();

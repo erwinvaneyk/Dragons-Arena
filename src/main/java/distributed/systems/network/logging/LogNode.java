@@ -32,7 +32,7 @@ public class LogNode extends UnicastRemoteObject implements IMessageReceivedHand
 		// Connect to cluster
 		socket = LocalSocket.connectToDefault();
 		address = socket.determineAddress(NodeAddress.NodeType.LOGGER);
-		socket.register(address.toString());
+		socket.register(address);
 		socket.addMessageReceivedHandler(this);
 		this.logger = logger;
 		this.messageFactory = new MessageFactory(address);

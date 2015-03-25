@@ -16,17 +16,13 @@ public class SynchronizedSocket implements ExtendedSocket,Serializable{
 	}
 
 	@Override
-	public void register(String serverid) {
+	public void register(NodeAddress serverid) {
 		this.local.register(serverid);
 	}
 
 	@Override
 	public void addMessageReceivedHandler(IMessageReceivedHandler handler) {
 		this.local.addMessageReceivedHandler(handler);
-	}
-
-	public Message sendMessage(Message reply, String origin) {
-		return this.local.sendMessage(reply, origin);
 	}
 
 	@Override

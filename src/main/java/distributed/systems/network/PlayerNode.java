@@ -13,6 +13,7 @@ import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.core.MessageFactory;
+import distributed.systems.core.Socket;
 import distributed.systems.das.units.Player;
 import distributed.systems.network.services.HeartbeatService;
 import lombok.Getter;
@@ -35,7 +36,7 @@ public class PlayerNode extends UnicastRemoteObject implements ClientNode, IMess
 
 	@Getter
 	private NodeAddress address;
-	private List<NodeAddress> knownServers = new ArrayList<>();
+	private List<ServerAddress> knownServers = new ArrayList<>();
 
 	@Getter
 	private NodeAddress serverAddress;
@@ -63,7 +64,7 @@ public class PlayerNode extends UnicastRemoteObject implements ClientNode, IMess
 
 		// Join server
 		serverAddress = joinServer(serverAddress);
-		knownServers.add(serverAddress);
+		knownServers.add(new ServerAddress(serverAddress));
 
 
 		// TODO: get reserve servers
@@ -85,10 +86,12 @@ public class PlayerNode extends UnicastRemoteObject implements ClientNode, IMess
 			return joinServer(redirectedAddress);
 		} else {
 			// Join this server
-			NodeAddress newAddress = (NodeAddress) response.get("address");
-			address.setId(newAddress.getId());
-			address.setPhysicalAddress(newAddress.getPhysicalAddress());
-			socket.register(address.getName());
+			NodeAddress myNewAddress = (NodeAddress) response.get("address");
+			serverAddress = (ServerAddress) response.get("server");
+			socket = LocalSocket.connectTo(serverAddress);
+			address.setId(myNewAddress.getId());
+			address.setPhysicalAddress(myNewAddress.getPhysicalAddress());
+			socket.register(address);
 			socket.addMessageReceivedHandler(this);
 			socket.logMessage("Added the player `" + address +"` to server `" + serverAddress + "`", LogType.INFO);
 		}
@@ -100,6 +103,7 @@ public class PlayerNode extends UnicastRemoteObject implements ClientNode, IMess
 		message.setReceivedTimestamp();
 		switch (message.getMessageType()) {
 			case GENERIC:
+				socket.logMessage("[" + address + "] received message: (" + message + ")", LogType.DEBUG);
 				this.player.onMessageReceived(message);
 				break;
 			case HEARTBEAT:

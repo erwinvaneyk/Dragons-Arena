@@ -8,7 +8,7 @@ import distributed.systems.network.NodeAddress;
 
 public interface ExtendedSocket extends Socket {
 
-	public void register(String id);
+	public void register(NodeAddress id);
 
 	public void addMessageReceivedHandler(IMessageReceivedHandler handler);
 

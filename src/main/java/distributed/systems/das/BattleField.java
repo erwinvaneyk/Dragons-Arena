@@ -13,6 +13,7 @@ import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.Message;
 import distributed.systems.core.Socket;
 import distributed.systems.core.exception.IDNotAssignedException;
+import distributed.systems.network.NodeAddress;
 import distributed.systems.network.ServerNode;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
@@ -198,7 +199,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 
 	public Message onMessageReceived(Message msg) {
 		Message reply = null;
-		String origin = (String)msg.get("origin");
+		NodeAddress origin = msg.getOrigin();
 		MessageRequest request = (MessageRequest)msg.get("request");
 		Unit unit;
 		switch(request)
