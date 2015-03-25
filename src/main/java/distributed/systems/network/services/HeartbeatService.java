@@ -10,6 +10,7 @@ import distributed.systems.core.Message;
 import distributed.systems.core.MessageFactory;
 import distributed.systems.core.Socket;
 import distributed.systems.network.NodeAddress;
+import distributed.systems.network.ServerAddress;
 import distributed.systems.network.ServerSocket;
 
 public class HeartbeatService implements Runnable, SocketService {
@@ -17,12 +18,12 @@ public class HeartbeatService implements Runnable, SocketService {
 	private static final int TIMEOUT_DURATION = 15000;
 	private static final int CHECK_INTERVAL = 5000;
 
-	private final List<NodeAddress> heartbeatNodes;
+	private final List<ServerAddress> heartbeatNodes;
 	private final Socket socket;
 	private final MessageFactory messageFactory;
 	private Map<NodeAddress, Integer> nodes = new ConcurrentHashMap<>();
 
-	public HeartbeatService(List<NodeAddress> heartbeatNodes, Socket socket, MessageFactory messageFactory) {
+	public HeartbeatService(List<ServerAddress> heartbeatNodes, Socket socket, MessageFactory messageFactory) {
 		this.heartbeatNodes = heartbeatNodes;
 		this.socket = socket;
 		this.messageFactory = messageFactory;
@@ -66,7 +67,7 @@ public class HeartbeatService implements Runnable, SocketService {
 	private void removeNode(NodeAddress address) {
 		nodes.remove(address);
 		heartbeatNodes.remove(address);
-		socket.logMessage("Node `" + address.toString() + "` TIMED OUT, because it has not been sending any heartbeats!",
+		socket.logMessage("Node `" + address.getName() + "` TIMED OUT, because it has not been sending any heartbeats!",
 				LogType.WARN);
 
 	}
@@ -78,13 +79,14 @@ public class HeartbeatService implements Runnable, SocketService {
 		// Fast hack to get my clients
 		if(socket instanceof ServerSocket) {
 			ServerSocket serversocket = (ServerSocket) socket;
-			serversocket.getMyClients().stream().forEach(node -> {
+			serversocket.getMe().getAddress().getClients().stream().forEach(node -> {
 				try {
 					socket.sendMessage(message, node);
 				}
 				catch (RuntimeException e) {
-					socket.logMessage("Failed to send message to node `" + node + "`; message: " + message + ", because: "
-							+ e, LogType.ERROR);
+					socket.logMessage(
+							"Failed to send message to node `" + node + "`; message: " + message + ", because: "
+									+ e, LogType.ERROR);
 				}
 			});
 		}
@@ -99,7 +101,7 @@ public class HeartbeatService implements Runnable, SocketService {
 				.findAny()
 				.ifPresent(node -> {
 					node.setValue(TIMEOUT_DURATION / CHECK_INTERVAL);
-					socket.logMessage("Received a heartbeat from node `" + node.getKey().toString() + "` (" + nodes +").",
+					socket.logMessage("Received a heartbeat from node `" + node.getKey().getName() + "` (" + nodes +").",
 							LogType.DEBUG);
 				});
 		return null;

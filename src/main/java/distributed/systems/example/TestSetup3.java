@@ -11,7 +11,7 @@ import distributed.systems.network.logging.Logger;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class TestSetup2 {
+public class TestSetup3 {
 
 	public static void main(String[] args) throws RemoteException, InterruptedException {
 		// Server setup
@@ -23,8 +23,11 @@ public class TestSetup2 {
 
 		// Players added
 		PlayerNode player1 = new PlayerNode(server1.getAddress(),0,0);
+		PlayerNode player2 = new PlayerNode(server1.getAddress(),0,0);
 		System.out.println(server1.getBattlefield().equals(server2.getBattlefield()));
-		System.out.println(server2.getServerSocket().getOtherNodes());
-
+		System.out.println(server1.getAddress());
+		System.out.println(server2.getAddress());
+		System.out.println(player1.getAddress());
+		System.out.println(player2.getAddress());
 	}
 }

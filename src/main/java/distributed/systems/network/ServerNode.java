@@ -7,6 +7,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import distributed.systems.core.IMessageReceivedHandler;
+import distributed.systems.core.LogMessage;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.das.BattleField;
@@ -33,7 +34,7 @@ public class ServerNode extends UnicastRemoteObject implements IMessageReceivedH
 	private BattleField battlefield;
 
 	@Getter
-	private NodeAddress address;
+	private ServerAddress address;
 
 	private RegistryNode ownRegistry;
 	private HeartbeatService heartbeatService;
@@ -54,18 +55,18 @@ public class ServerNode extends UnicastRemoteObject implements IMessageReceivedH
 
 	public void setup(int port, boolean newCluster) throws RemoteException {
 		// Set own ownRegistry
-		address = new NodeAddress(port, NodeAddress.NodeType.SERVER);
+		address = new ServerAddress(port, NodeAddress.NodeType.SERVER);
 		ownRegistry = new RegistryNode(port);
 		// Setup server socket
 		serverSocket = new ServerSocket(this);
 		socket = LocalSocket.connectTo(address);
-		socket.register(address.toString());
+		socket.register(address);
 
 		if (newCluster) {
 			serverSocket.logMessage("Starting new cluster, starting with id 0", LogType.DEBUG);
 			address.setId(0);
 			// Add handlers to registry
-			socket.register(address.toString());
+			socket.register(address);
 			socket.addMessageReceivedHandler(this);
 			// Setup battlefield
 			battlefield = BattleField.getBattleField();
@@ -106,7 +107,7 @@ public class ServerNode extends UnicastRemoteObject implements IMessageReceivedH
 				return onSyncBattlefield(message);
 			case GENERIC:
 				// TODO: task distribution
-				serverSocket.logMessage(message);
+				serverSocket.logMessage("[" + address + "] received message: (" + message + ")", LogType.DEBUG);
 				return battlefield.onMessageReceived(message);
 			default:
 				serverSocket.logMessage("Unknown type of message: " + message + "! Ignoring the message", LogType.WARN);

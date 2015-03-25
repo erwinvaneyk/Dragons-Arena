@@ -85,7 +85,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		this.attackPoints = attackPoints;
 
 		// Get a new unit id
-		this.unitID = node.getAddress().toString();
+		this.unitID = node.getAddress().getName();
 
 		this.node = node;
 		this.clientSocket = this.node.getSocket();
@@ -130,7 +130,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		}
 		
 		// Send a spawn message
-		clientSocket.sendMessage(damageMessage, "localsocket://" + node.getServerAddress().toString());
+		clientSocket.sendMessage(damageMessage,  node.getServerAddress());
 	}
 	
 	public void healDamage(int x, int y, int healed) {
@@ -151,7 +151,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		}
 
 		// Send a spawn message
-		clientSocket.sendMessage(healMessage, "localsocket://" +  node.getServerAddress().toString());
+		clientSocket.sendMessage(healMessage,  node.getServerAddress());
 	}
 
 	/**
@@ -227,7 +227,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
 		// Send a spawn message
 		try {
-			clientSocket.sendMessage(spawnMessage, "localsocket://" +  node.getServerAddress().toString());
+			clientSocket.sendMessage(spawnMessage, node.getServerAddress());
 		} catch (IDNotAssignedException e) {
 			System.err.println("No server found while spawning unit at location (" + x + ", " + y + ")");
 			return false;
@@ -254,7 +254,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		getMessage.put("id", id);
 
 		// Send the getUnit message
-		clientSocket.sendMessage(getMessage, "localsocket://" +  node.getServerAddress().toString());
+		clientSocket.sendMessage(getMessage, node.getServerAddress());
 
 		// Wait for the reply
 		while(!messageList.containsKey(id)) {
@@ -287,7 +287,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		getMessage.put("id", id);
 
 		// Send the getUnit message
-		clientSocket.sendMessage(getMessage, "localsocket://" +  node.getServerAddress().toString());
+		clientSocket.sendMessage(getMessage, node.getServerAddress());
 
 		// Wait for the reply
 		while(!messageList.containsKey(id)) {
@@ -317,7 +317,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		removeMessage.put("id", id);
 
 		// Send the removeUnit message
-		clientSocket.sendMessage(removeMessage, "localsocket://" +  node.getServerAddress().toString());
+		clientSocket.sendMessage(removeMessage, node.getServerAddress());
 	}
 
 	protected void moveUnit(int x, int y)
@@ -331,7 +331,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		moveMessage.put("unit", this);
 
 		// Send the getUnit message
-		clientSocket.sendMessage(moveMessage, "localsocket://" +  node.getServerAddress().toString());
+		clientSocket.sendMessage(moveMessage, node.getServerAddress());
 
 		// Wait for the reply
 		while(!messageList.containsKey(id))

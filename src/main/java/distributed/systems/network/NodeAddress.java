@@ -45,7 +45,7 @@ public class NodeAddress implements Serializable {
 
 	@Override
 	public String toString() {
-		return type + SEPARATOR + id;
+		return physicalAddress + "/" + type + SEPARATOR + id;
 	}
 
 	public boolean hasSamePhysicalLocation(NodeAddress other) {
@@ -53,6 +53,6 @@ public class NodeAddress implements Serializable {
 	}
 
 	public String getName() {
-		return type.toString() + SEPARATOR + id;
+		return type + SEPARATOR + id;
 	}
 }

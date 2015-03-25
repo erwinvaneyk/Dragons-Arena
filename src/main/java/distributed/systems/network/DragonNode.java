@@ -42,7 +42,7 @@ public class DragonNode extends UnicastRemoteObject implements ClientNode, IMess
 		// Connect to cluster
 		socket = new SynchronizedSocket(LocalSocket.connectToDefault());
 		address = socket.determineAddress(NodeAddress.NodeType.DRAGON);
-		socket.register(address.toString());
+		socket.register(address);
 		socket.addMessageReceivedHandler(this);
 		messageFactory = new MessageFactory(address);
 		// find suitable server

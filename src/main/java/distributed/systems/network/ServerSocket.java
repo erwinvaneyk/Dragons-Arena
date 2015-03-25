@@ -2,12 +2,16 @@ package distributed.systems.network;
 
 import static java.util.stream.Collectors.toList;
 
+import javax.xml.soap.Node;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.sun.istack.internal.NotNull;
 import distributed.systems.core.ExtendedSocket;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
@@ -26,19 +30,22 @@ public class ServerSocket implements Socket {
 	 * Connections to other servers in the cluster
 	 */
 	@Getter
-	private final ArrayList<NodeAddress> otherNodes = new ArrayList<>();
+	private final ArrayList<ServerAddress> otherNodes = new ArrayList<>();
+
 	@Getter
-	private final ArrayList<NodeAddress> myClients = new ArrayList<>();
 	private final ServerNode me;
 	@Getter
 	private final MessageFactory messageFactory;
-
-	private boolean isConnected = false;
 
 
 	public ServerSocket(ServerNode me) {
 		this.me = me;
 		this.messageFactory = new MessageFactory(me.getAddress());
+	}
+
+	public Optional<ServerAddress> getNode(NodeAddress nodeAddress) {
+		int index = otherNodes.indexOf(nodeAddress);
+		return index > -1 ?  Optional.ofNullable(otherNodes.get(index)) : Optional.empty();
 	}
 
 	/**
@@ -68,12 +75,12 @@ public class ServerSocket implements Socket {
 		// TODO: error handling
 
 		// Assume all is good
-		ArrayList<NodeAddress> otherServers = (ArrayList<NodeAddress>) response.get("servers");
-		NodeAddress verifiedAddress = (NodeAddress) response.get("address");
+		ArrayList<ServerAddress> otherServers = (ArrayList<ServerAddress>) response.get("servers");
+		ServerAddress verifiedAddress = (ServerAddress) response.get("address");
 		me.getAddress().setId(verifiedAddress.getId());
 		// Add handlers to registry
 		ExtendedSocket mySocket = LocalSocket.connectTo(me.getAddress());
-		mySocket.register(me.getAddress().toString());
+		mySocket.register(me.getAddress());
 		mySocket.addMessageReceivedHandler(me);
 		otherNodes.addAll(otherServers);
 		logMessage("Server `" + me.getAddress() + "` successfully connected to the cluster, other nodes found: " + otherNodes, LogType.INFO);
@@ -82,17 +89,17 @@ public class ServerSocket implements Socket {
 
 	public Message onConnectToCluster(Message message) {
 		Message response = null;
-		NodeAddress newServer = (NodeAddress) message.get("address");
+		ServerAddress newServer = (ServerAddress) message.get("address");
 		// TODO: check if address is unique
 		if(message.get("forwarded") == null) {
-			ArrayList<NodeAddress> servers = new ArrayList<>(otherNodes);
+			ArrayList<ServerAddress> servers = new ArrayList<>(otherNodes);
 			servers.add(me.getAddress());
 			response = messageFactory.createMessage(message.getMessageType())
 					.put("servers", servers);
 
 			// Determine id for new server if necessary
 			if(newServer.getId() < 0) { // Indicates that server has no id yet
-				newServer = generateUniqueId(newServer);
+				newServer.setId(generateUniqueId(newServer));
 				response.put("address", newServer);
 				message.put("address", newServer);
 				logMessage("Assigned ID to new server, named it: `" + newServer + "`, otherNodes: " + otherNodes + ".", LogType.DEBUG);
@@ -102,7 +109,7 @@ public class ServerSocket implements Socket {
 			broadcast(message);
 		}
 		// Add new server to list
-		otherNodes.add(newServer);
+		otherNodes.add(new ServerAddress(newServer));
 		logMessage("Added node to list of connected nodes, now the list is: " + otherNodes + ".", LogType.DEBUG);
 		return response;
 	}
@@ -144,7 +151,7 @@ public class ServerSocket implements Socket {
 	}
 
 
-	public NodeAddress generateUniqueId(NodeAddress oldAddress) {
+	public int generateUniqueId(@NotNull NodeAddress oldAddress) {
 		ArrayList<NodeAddress> nodes = new ArrayList<>(otherNodes);
 		nodes.add(me.getAddress());
 		int highestId = nodes
@@ -152,13 +159,7 @@ public class ServerSocket implements Socket {
 				.filter(node -> node.getType().equals(oldAddress.getType()))
 				.mapToInt(NodeAddress::getId)
 				.max().orElse(Math.max(me.getAddress().getId(), 0)) + 1;
-		return new NodeAddress(oldAddress.getType(), highestId, oldAddress.getPhysicalAddress());
-	}
-
-
-	@Override @Deprecated
-	public Message sendMessage(Message message, String destination) {
-		return sendMessage(message, NodeAddress.fromAddress(destination));
+		return highestId;
 	}
 
 	/**
@@ -166,8 +167,7 @@ public class ServerSocket implements Socket {
 	 */
 	public Message sendMessage(Message message, NodeAddress destination) {
 		Socket socket = LocalSocket.connectTo(destination);
-		socket.logMessage(destination.toString(), LogType.DEBUG);
-		return socket.sendMessage(message, destination.toString());
+		return socket.sendMessage(message, destination);
 	}
 
 	public void broadcast(Message message) {

@@ -6,8 +6,6 @@ import distributed.systems.network.NodeAddress;
 
 public interface Socket {
 
-	public Message sendMessage(Message message, String destination);
-
 	public Message sendMessage(Message message, NodeAddress destination);
 
 	public void logMessage(Message logMessage);

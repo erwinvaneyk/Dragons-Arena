@@ -18,4 +18,8 @@ public class Address implements Serializable {
 	public static Address getMyAddress(int port) {
 		return new Address("localhost", port);
 	}
+
+	public String toString() {
+		return ip + ":" + port;
+	}
 }
