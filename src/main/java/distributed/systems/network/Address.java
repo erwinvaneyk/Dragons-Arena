@@ -16,11 +16,6 @@ public class Address implements Serializable {
 	private final int port;
 
 	public static Address getMyAddress(int port) {
-		try {
-			return new Address(InetAddress.getLocalHost().toString(), port);
-		}
-		catch (UnknownHostException e) {
-			throw new RuntimeException(e);
-		}
+		return new Address("localhost", port);
 	}
 }

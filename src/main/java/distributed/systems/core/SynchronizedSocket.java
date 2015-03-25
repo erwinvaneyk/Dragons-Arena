@@ -7,11 +7,11 @@ import java.rmi.RemoteException;
 import java.util.List;
 import java.util.Optional;
 
-public class SynchronizedSocket implements Socket,Serializable{
+public class SynchronizedSocket implements ExtendedSocket,Serializable{
 
-	private final Socket local;
+	private final ExtendedSocket local;
 
-	public SynchronizedSocket(Socket local) {
+	public SynchronizedSocket(ExtendedSocket local) {
 		this.local = local;
 	}
 
@@ -25,8 +25,13 @@ public class SynchronizedSocket implements Socket,Serializable{
 		this.local.addMessageReceivedHandler(handler);
 	}
 
-	public void sendMessage(Message reply, String origin) {
-		this.local.sendMessage(reply, origin);
+	public Message sendMessage(Message reply, String origin) {
+		return this.local.sendMessage(reply, origin);
+	}
+
+	@Override
+	public Message sendMessage(Message message, NodeAddress destination) {
+		return this.local.sendMessage(message, destination);
 	}
 
 	@Override
@@ -60,12 +65,17 @@ public class SynchronizedSocket implements Socket,Serializable{
 	}
 
 	@Override
-	public void broadcast(Message message, NodeAddress.NodeType type) throws RemoteException {
+	public void broadcast(Message message, NodeAddress.NodeType type) {
 		this.local.broadcast(message, type);
 	}
 
 	@Override
-	public void broadcast(Message message) throws RemoteException {
+	public void broadcast(Message message) {
 		this.local.broadcast(message);
+	}
+
+	@Override
+	public NodeAddress getRegistryAddress() {
+		return this.local.getRegistryAddress();
 	}
 }

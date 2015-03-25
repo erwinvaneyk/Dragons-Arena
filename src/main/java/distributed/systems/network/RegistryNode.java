@@ -1,21 +1,21 @@
 package distributed.systems.network;
 
+import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.Message;
+import distributed.systems.core.exception.AlreadyAssignedIDException;
 import lombok.Getter;
 
 public class RegistryNode implements Runnable {
 
 	public static final int PORT = 1234;
-
-	private final List<RegistryNode> otherNodes = new ArrayList<>();
-
-	private final Address address = Address.getMyAddress(1000);
 
 	@Getter
 	private final Registry registry;
@@ -31,7 +31,7 @@ public class RegistryNode implements Runnable {
 	}
 
 	public RegistryNode(Address address) throws RemoteException {
-		registry = LocateRegistry.getRegistry(address.getIp().toString(), address.getPort());
+		registry = LocateRegistry.getRegistry(address.getIp(), address.getPort());
 	}
 
 	@Override
@@ -48,9 +48,4 @@ public class RegistryNode implements Runnable {
 			System.out.println("Registry stopped.");
 		}
 	}
-
-	public void sendMessage(Message message, String destination) {
-
-	}
-
 }
