@@ -27,7 +27,7 @@ import org.apache.commons.lang.SerializationUtils;
  * Will also need to take care of the dragons (with fault tolerance)
  */
 @ToString
-public class ServerNode extends BasicNode implements IMessageReceivedHandler {
+public class ServerNode extends AbstractNode implements IMessageReceivedHandler {
 
 	@Getter
 	private final ArrayList<ServerAddress> otherNodes = new ArrayList<>();

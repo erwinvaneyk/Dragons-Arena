@@ -6,12 +6,12 @@ import distributed.systems.core.ExtendedSocket;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.core.Socket;
-import distributed.systems.network.BasicNode;
+import distributed.systems.network.AbstractNode;
 import distributed.systems.network.ServerAddress;
 
 public class ClientHeartbeatService extends HeartbeatService {
 
-	public ClientHeartbeatService(BasicNode me, Socket socket, List<ServerAddress> heartbeatNodes) {
+	public ClientHeartbeatService(AbstractNode me, Socket socket, List<ServerAddress> heartbeatNodes) {
 		super(me, socket, heartbeatNodes);
 	}
 

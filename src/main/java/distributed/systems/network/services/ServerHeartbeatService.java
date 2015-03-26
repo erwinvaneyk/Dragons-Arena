@@ -1,23 +1,18 @@
 package distributed.systems.network.services;
 
-import java.rmi.RemoteException;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
-import distributed.systems.core.ExtendedSocket;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
-import distributed.systems.core.MessageFactory;
 import distributed.systems.core.Socket;
-import distributed.systems.network.BasicNode;
+import distributed.systems.network.AbstractNode;
 import distributed.systems.network.NodeAddress;
 import distributed.systems.network.ServerAddress;
 import distributed.systems.network.ServerSocket;
 
 public class ServerHeartbeatService extends HeartbeatService {
 
-	public ServerHeartbeatService(BasicNode me, Socket socket, List<ServerAddress> heartbeatNodes) {
+	public ServerHeartbeatService(AbstractNode me, Socket socket, List<ServerAddress> heartbeatNodes) {
 		super(me, socket, heartbeatNodes);
 	}
 

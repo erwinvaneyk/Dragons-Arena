@@ -10,7 +10,6 @@ import distributed.systems.core.MessageFactory;
 import distributed.systems.das.units.Player;
 import distributed.systems.das.units.Unit;
 import distributed.systems.network.messagehandlers.ClientGameActionHandler;
-import distributed.systems.network.messagehandlers.ServerGameActionHandler;
 import distributed.systems.network.services.ClientHeartbeatService;
 import distributed.systems.network.services.HeartbeatService;
 import distributed.systems.network.services.NodeBalanceService;
@@ -23,7 +22,7 @@ import lombok.Getter;
  * - playerID (to generate it, only one that calls the battlefield)
  * - Socket
  */
-public class PlayerNode extends BasicNode implements ClientNode, IMessageReceivedHandler {
+public class PlayerNode extends AbstractNode implements ClientNode, IMessageReceivedHandler {
 
 	private Player player;
 

@@ -5,12 +5,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import distributed.systems.core.ExtendedSocket;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
-import distributed.systems.core.MessageFactory;
 import distributed.systems.core.Socket;
-import distributed.systems.network.BasicNode;
+import distributed.systems.network.AbstractNode;
 import distributed.systems.network.NodeAddress;
 import distributed.systems.network.ServerAddress;
 
@@ -23,10 +21,10 @@ public abstract class HeartbeatService implements SocketService {
 
 	protected final List<ServerAddress> heartbeatNodes;
 	protected final Socket socket;
-	protected final BasicNode me;
+	protected final AbstractNode me;
 	protected Map<ServerAddress, Integer> nodes = new ConcurrentHashMap<>();
 
-	public HeartbeatService(BasicNode me, Socket socket, List<ServerAddress> heartbeatNodes) {
+	public HeartbeatService(AbstractNode me, Socket socket, List<ServerAddress> heartbeatNodes) {
 		this.heartbeatNodes = heartbeatNodes;
 		this.socket = socket;
 		this.me = me;

@@ -10,13 +10,12 @@ import distributed.systems.core.MessageFactory;
 import distributed.systems.das.units.Dragon;
 import distributed.systems.das.units.Unit;
 import distributed.systems.network.messagehandlers.ClientGameActionHandler;
-import distributed.systems.network.messagehandlers.ServerGameActionHandler;
 import distributed.systems.network.services.ClientHeartbeatService;
 import distributed.systems.network.services.HeartbeatService;
 import distributed.systems.network.services.NodeBalanceService;
 import lombok.Getter;
 
-public class DragonNode extends BasicNode implements ClientNode, Serializable {
+public class DragonNode extends AbstractNode implements ClientNode, Serializable {
 
 	private List<ServerAddress> knownServers = new ArrayList<>();
 
