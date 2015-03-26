@@ -10,7 +10,6 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import distributed.systems.core.ExtendedSocket;
 import distributed.systems.core.IMessageReceivedHandler;
@@ -80,7 +79,7 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 	public void addMessageReceivedHandler(IMessageReceivedHandler handler) {
 		try {
 			registry.bind(id.getName(), handler);
-			logMessage("Bounded " + id.getName() + " on registry of " + registryAddress + ". Now contains: " + Arrays.toString(registry.list()), LogType.DEBUG);
+			logMessage("Bounded " + id.getName() + " on registry of " + registryAddress.getPhysicalAddress() + ". Now contains: " + Arrays.toString(registry.list()), LogType.DEBUG);
 		}
 		catch (AlreadyBoundException e) {
 			throw new AlreadyAssignedIDException();
@@ -94,13 +93,11 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 	public Message sendMessage(Message message, NodeAddress destination) {
 		try {
 			if(id != null) message.setOrigin(id);
-			//message.put("origin", PROTOCOL_LOCAL + PROTOCOL_SEPARATOR + this.id);
 			IMessageReceivedHandler handler = (IMessageReceivedHandler) registry.lookup(destination.getName());
 			return handler.onMessageReceived(message);
 		}
 		catch (NotBoundException | RemoteException e) {
 			try {
-				e.printStackTrace();
 				throw new RuntimeException("Failed to send message: `" + message + "` to " + destination + " on registry "+ Arrays.toString(registry.list()), e);
 			}
 			catch (RemoteException e1) {
@@ -147,19 +144,7 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 				.collect(toList());
 	}
 
-	@Override
-	public NodeAddress determineAddress(NodeAddress.NodeType type) throws RemoteException {
-		return null;
-	}
-
-	// Load Balancer
-	public Optional<NodeAddress> findServer() throws RemoteException {
-		return getNodes()
-				.stream()
-				.filter(NodeAddress::isServer)
-				.findAny();
-	}
-
+	@Deprecated
 	public void broadcast(Message message, NodeAddress.NodeType type) {
 		try {
 			getNodes().stream()
@@ -171,6 +156,7 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 		}
 	}
 
+	@Deprecated
 	public void broadcast(Message message) {
 		try {
 			getNodes().stream().forEach(address -> sendMessage(message, address));

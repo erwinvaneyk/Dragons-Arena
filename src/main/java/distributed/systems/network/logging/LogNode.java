@@ -7,35 +7,34 @@ import java.rmi.server.UnicastRemoteObject;
 import distributed.systems.core.ExtendedSocket;
 import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.LogMessage;
+import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.core.MessageFactory;
 import distributed.systems.core.Socket;
 import distributed.systems.core.SynchronizedSocket;
+import distributed.systems.network.BasicNode;
 import distributed.systems.network.LocalSocket;
 import distributed.systems.network.NodeAddress;
+import distributed.systems.network.RegistryNode;
+import distributed.systems.network.ServerAddress;
 
 /**
  * This node has as one and only task to log everything it receives.
  */
-public class LogNode extends UnicastRemoteObject implements IMessageReceivedHandler {
+public class LogNode extends BasicNode {
 
 	private final Logger logger;
-	private final ExtendedSocket socket;
-	private final NodeAddress address;
-	private final MessageFactory messageFactory;
+	private final RegistryNode ownRegistry;
 
-	public static void main(String[] args) throws RemoteException {
-		new LogNode(Logger.getDefault());
-	}
-
-	public LogNode(Logger logger) throws RemoteException {
-		// Connect to cluster
-		socket = LocalSocket.connectToDefault();
-		address = socket.determineAddress(NodeAddress.NodeType.LOGGER);
+	public LogNode(int port, NodeAddress node, Logger logger) throws RemoteException {
+		// Parent requirements
+		ownRegistry = new RegistryNode(port);
+		address = new ServerAddress(port, NodeAddress.NodeType.SERVER);
+		socket = LocalSocket.connectTo(address);
 		socket.register(address);
-		socket.addMessageReceivedHandler(this);
+		messageFactory = new MessageFactory(address);
+		// Logger
 		this.logger = logger;
-		this.messageFactory = new MessageFactory(address);
 	}
 
 	@Override
@@ -44,7 +43,7 @@ public class LogNode extends UnicastRemoteObject implements IMessageReceivedHand
 		if(message instanceof LogMessage) {
 			logger.log((LogMessage) message);
 		} else {
-			logger.log(messageFactory.createLogMessage(message));
+			logger.log(messageFactory.createLogMessage(message, LogType.DEBUG));
 		}
 		return null;
 	}

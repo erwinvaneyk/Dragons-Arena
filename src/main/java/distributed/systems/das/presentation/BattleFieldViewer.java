@@ -15,6 +15,7 @@ import distributed.systems.das.GameState;
 import distributed.systems.das.units.Dragon;
 import distributed.systems.das.units.Player;
 import distributed.systems.das.units.Unit;
+import distributed.systems.network.ServerNode;
 
 /**
  * Create an viewer, which runs in a seperate thread and
@@ -26,6 +27,7 @@ import distributed.systems.das.units.Unit;
 @SuppressWarnings("serial")
 public class BattleFieldViewer extends JPanel implements Runnable {
 
+	private BattleField bf;
 	/* Double buffered image */
 	private Image doubleBufferImage;
 	/* Double buffered graphics */
@@ -53,6 +55,19 @@ public class BattleFieldViewer extends JPanel implements Runnable {
 		doubleBufferGraphics = null;
 		runnerThread = new Thread(this);
 		runnerThread.start();
+		this.bf = new BattleField();
+	}
+
+
+	public BattleFieldViewer(BattleField bf) {
+		doubleBufferGraphics = null;
+		runnerThread = new Thread(this);
+		runnerThread.start();
+		this.bf = bf;
+	}
+
+	public void updateBattleField(BattleField bf) {
+		this.bf = bf;
 	}
 
 	/**
@@ -75,7 +90,6 @@ public class BattleFieldViewer extends JPanel implements Runnable {
 		double xRatio = (double)this.getWidth() / (double)BattleField.MAP_WIDTH;
 		double yRatio = (double)this.getHeight() / (double)BattleField.MAP_HEIGHT;
 		double filler;
-		BattleField bf = BattleField.getBattleField();
 
 		/* Possibly adjust the double buffer */
 		if(bufferWidth != getSize().width 

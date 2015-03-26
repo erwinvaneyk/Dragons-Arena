@@ -15,12 +15,8 @@ import lombok.Getter;
  */
 public class Message implements Serializable {
 
-	public enum Type {
-		LOG, GENERIC, HEARTBEAT, HANDSHAKE, ERROR, ACK, JOIN_SERVER, SYNC_BATTLEFIELD
-	}
-
 	@Getter
-	private Type messageType = Type.GENERIC;
+	private String messageType = "DEFAULT";
 
 	@Getter
 	private final HashMap<String, Serializable> content = new HashMap<>();
@@ -39,7 +35,7 @@ public class Message implements Serializable {
 		this.origin = origin;
 	}
 
-	Message(Type type) {
+	Message(String type) {
 		this.timestamp = new Date();
 		this.messageType = type;
 	}
@@ -60,7 +56,7 @@ public class Message implements Serializable {
 		return content.get(string);
 	}
 
-	public Message setMessageType(Type any) {
+	public Message setMessageType(String any) {
 		messageType = any;
 		return this;
 	}

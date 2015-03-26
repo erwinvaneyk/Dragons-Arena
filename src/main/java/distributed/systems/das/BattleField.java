@@ -40,9 +40,6 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 	/* The array of units */
 	private Unit[][] map;
 
-	/* The static singleton */
-	private transient static BattleField battlefield;
-
 	/* Primary socket of the battlefield */
 	@Setter
 	private transient ExtendedSocket serverSocket;
@@ -73,26 +70,18 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
         StartLexectueThread();
         //start a time task to clean the Lqueue in case tasks are block in the Lqueue
         StartReleaseThread();
-
-
     }
 
-	/**
-	 * Singleton method which returns the sole 
-	 * instance of the battlefield.
-	 * 
-	 * @return the battlefield.
-	 */
-	public static BattleField getBattleField() {
-		if (battlefield == null)
-			battlefield = new BattleField(MAP_WIDTH, MAP_HEIGHT);
-		return battlefield;
+	public BattleField() {
+		map = new Unit[MAP_WIDTH][MAP_HEIGHT];
+		units = new ArrayList<>();
+		Lqueue = new LinkedList<Message>();
+		//control the Lqueue
+		StartLexectueThread();
+		//start a time task to clean the Lqueue in case tasks are block in the Lqueue
+		StartReleaseThread();
 	}
 
-	public static void setBattlefield(BattleField battlefield) {
-		BattleField.battlefield = battlefield;
-	}
-	
 	/**
 	 * Puts a new unit at the specified position. First, it
 	 * checks whether the position is empty, if not, it
@@ -579,49 +568,49 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
             }
             else {adjacent = false;}
         }
-        else if (x==0 && y<this.MAP_HEIGHT-1 && y >0) {
+        else if (x==0 && y< MAP_HEIGHT-1 && y >0) {
             if ((map[x+1][y]!=null)||(map[x][y+1]!=null)||(map[x][y-1]!=null)){
                 adjacent = true;
             }
             else {adjacent = false;}
         }
-        else if (x==0 && y==this.MAP_HEIGHT-1) {
+        else if (x==0 && y== MAP_HEIGHT-1) {
             if ((map[x+1][y]!=null)||(map[x][y-1]!=null)){
                 adjacent = true;
             }
             else {adjacent = false;}
         }
-        else if (x>0 && x<this.MAP_WIDTH-1 && y==0) {
+        else if (x>0 && x< MAP_WIDTH-1 && y==0) {
             if ((map[x+1][y]!=null)||(map[x][y+1]!=null)||(map[x-1][y]!=null)){
                 adjacent = true;
             }
             else {adjacent = false;}
         }
-        else if (x>0 && x<this.MAP_WIDTH-1 && y>0 && y<this.MAP_HEIGHT-1) {
+        else if (x>0 && x< MAP_WIDTH-1 && y>0 && y< MAP_HEIGHT-1) {
             if ((map[x+1][y]!=null)||(map[x][y+1]!=null)||(map[x-1][y]!=null)||(map[x][y-1]!=null)){
                 adjacent = true;
             }
             else {adjacent = false;}
         }
-        else if (x>0 && x<this.MAP_WIDTH-1 && y==this.MAP_HEIGHT-1) {
+        else if (x>0 && x< MAP_WIDTH-1 && y== MAP_HEIGHT-1) {
             if ((map[x+1][y]!=null)||(map[x][y-1]!=null)||(map[x-1][y]!=null)||(map[x][y-1]!=null)){
                 adjacent = true;
             }
             else {adjacent = false;}
         }
-        else if (x==this.MAP_WIDTH-1 && y==this.MAP_HEIGHT-1) {
+        else if (x== MAP_WIDTH-1 && y== MAP_HEIGHT-1) {
             if ((map[x-1][y]!=null)|| (map[x][y-1]!=null)){
                 adjacent = true;
             }
             else {adjacent = false;}
         }
-        else if (x==this.MAP_WIDTH-1 && y==0) {
+        else if (x== MAP_WIDTH-1 && y==0) {
             if ((map[x-1][y]!=null)||(map[x][y+1]!=null)){
                 adjacent = true;
             }
             else {adjacent = false;}
         }
-        else if (x==this.MAP_WIDTH-1 && y>0 && y<this.MAP_HEIGHT-1) {
+        else if (x== MAP_WIDTH-1 && y>0 && y< MAP_HEIGHT-1) {
             if ((map[x-1][y]!=null)||(map[x][y+1]!=null)||(map[x][y-1]!=null)){
                 adjacent = true;
             }

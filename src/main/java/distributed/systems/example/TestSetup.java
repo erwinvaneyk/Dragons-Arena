@@ -20,8 +20,8 @@ public class TestSetup {
     public static int playerCount;
 
 	public static void main(String[] args) throws RemoteException {
-		new Thread(new RegistryNode(RegistryNode.PORT)).start();
+		/*new Thread(new RegistryNode(RegistryNode.PORT)).start();
 		ServerNode server = new ServerNode(1234);
-		new LogNode(Logger.getDefault());
+		new LogNode(Logger.getDefault());*/
 	}
 }

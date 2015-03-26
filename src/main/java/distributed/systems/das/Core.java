@@ -23,7 +23,7 @@ public class Core {
 	public static int playerCount;
 
 	public static void main(String[] args) {
-		battlefield = BattleField.getBattleField();
+		battlefield = new BattleField();
 
 		/* All the dragons connect */
 		for(int i = 0; i < DRAGON_COUNT; i++) {
@@ -152,7 +152,7 @@ public class Core {
 		/* Make sure both the battlefield and
 		 * the socketmonitor close down.
 		 */
-		BattleField.getBattleField().shutdown();
+		battlefield.shutdown();
 		System.exit(0); // Stop all running processes
 	}
 

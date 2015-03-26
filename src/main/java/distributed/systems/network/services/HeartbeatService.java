@@ -5,36 +5,40 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import distributed.systems.core.ExtendedSocket;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.core.MessageFactory;
 import distributed.systems.core.Socket;
+import distributed.systems.network.BasicNode;
 import distributed.systems.network.NodeAddress;
 import distributed.systems.network.ServerAddress;
-import distributed.systems.network.ServerSocket;
 
-public class HeartbeatService implements Runnable, SocketService {
+public abstract class HeartbeatService implements SocketService {
 
-	private static final int TIMEOUT_DURATION = 15000;
-	private static final int CHECK_INTERVAL = 5000;
+	public static final String MESSAGE_TYPE = "HEARTBEAT";
 
-	private final List<ServerAddress> heartbeatNodes;
-	private final Socket socket;
-	private final MessageFactory messageFactory;
-	private Map<NodeAddress, Integer> nodes = new ConcurrentHashMap<>();
+	protected static final int TIMEOUT_DURATION = 15000;
+	protected static final int CHECK_INTERVAL = 5000;
 
-	public HeartbeatService(List<ServerAddress> heartbeatNodes, Socket socket, MessageFactory messageFactory) {
+	protected final List<ServerAddress> heartbeatNodes;
+	protected final Socket socket;
+	protected final BasicNode me;
+	protected Map<ServerAddress, Integer> nodes = new ConcurrentHashMap<>();
+
+	public HeartbeatService(BasicNode me, Socket socket, List<ServerAddress> heartbeatNodes) {
 		this.heartbeatNodes = heartbeatNodes;
 		this.socket = socket;
-		this.messageFactory = messageFactory;
+		this.me = me;
 		updateNodes();
 	}
 
 
 	public void run() {
-		socket.logMessage("Starting heartbeat process...", LogType.DEBUG);
+		me.safeLogMessage("Starting heartbeat process...", LogType.DEBUG);
 		try {
 			while(!Thread.currentThread().isInterrupted()) {
+				updateNodes();
 				doHeartbeat();
 				checkHeartbeats();
 				Thread.sleep(CHECK_INTERVAL);
@@ -51,8 +55,6 @@ public class HeartbeatService implements Runnable, SocketService {
 	}
 
 	private void checkHeartbeats() {
-		// Check for new nodes
-		updateNodes();
 		// Count down nodes
 		nodes.entrySet().stream().forEach(node -> {
 			if(node.getValue() < 0) {
@@ -64,22 +66,23 @@ public class HeartbeatService implements Runnable, SocketService {
 	}
 
 	// TODO: do some cleanup, moving the clients of a disconnected server to other servers
-	private void removeNode(NodeAddress address) {
+	protected abstract void removeNode(ServerAddress address);
+	/*
 		nodes.remove(address);
 		heartbeatNodes.remove(address);
 		socket.logMessage("Node `" + address.getName() + "` TIMED OUT, because it has not been sending any heartbeats!",
 				LogType.WARN);
 
-	}
+	}*/
 
-	public void doHeartbeat() {
+	public abstract void doHeartbeat();/* {
 		// TODO: also broadcast to clientnodes
-		Message message = messageFactory.createMessage(Message.Type.HEARTBEAT);
-		socket.broadcast(message, NodeAddress.NodeType.SERVER);
+		Message message = messageFactory.createMessage(MESSAGE_TYPE);
 		// Fast hack to get my clients
 		if(socket instanceof ServerSocket) {
+			socket.broadcast(message, NodeAddress.NodeType.SERVER);
 			ServerSocket serversocket = (ServerSocket) socket;
-			serversocket.getMe().getAddress().getClients().stream().forEach(node -> {
+			serversocket.getMe().getServerAddress().getClients().stream().forEach(node -> {
 				try {
 					socket.sendMessage(message, node);
 				}
@@ -91,7 +94,7 @@ public class HeartbeatService implements Runnable, SocketService {
 			});
 		}
 
-	}
+	}*/
 
 	@Override
 	public Message onMessageReceived(Message message) throws RemoteException {
@@ -105,5 +108,10 @@ public class HeartbeatService implements Runnable, SocketService {
 							LogType.DEBUG);
 				});
 		return null;
+	}
+
+	@Override
+	public String getMessageType() {
+		return MESSAGE_TYPE;
 	}
 }

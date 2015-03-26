@@ -16,9 +16,5 @@ public interface ExtendedSocket extends Socket {
 
 	public List<NodeAddress> getNodes() throws RemoteException;
 
-	public NodeAddress determineAddress(NodeAddress.NodeType type) throws RemoteException;
-
-	public Optional<NodeAddress> findServer() throws RemoteException;
-
 	public NodeAddress getRegistryAddress();
 }

@@ -6,6 +6,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import distributed.systems.core.IMessageReceivedHandler;
@@ -46,6 +47,16 @@ public class RegistryNode implements Runnable {
 		catch (InterruptedException ignored) {}
 		finally {
 			System.out.println("Registry stopped.");
+		}
+	}
+
+	public String toString() {
+		try {
+			return Arrays.toString(registry.list());
+		}
+		catch (RemoteException e) {
+			e.printStackTrace();
+			return "[]";
 		}
 	}
 }
