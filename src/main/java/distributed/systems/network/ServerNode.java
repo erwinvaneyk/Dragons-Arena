@@ -1,22 +1,25 @@
 package distributed.systems.network;
 
-import java.rmi.NoSuchObjectException;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.rmi.server.UnicastRemoteObject;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.ArrayList;
 
+import com.sun.istack.internal.NotNull;
 import distributed.systems.core.IMessageReceivedHandler;
-import distributed.systems.core.LogMessage;
 import distributed.systems.core.LogType;
-import distributed.systems.core.Message;
+import distributed.systems.core.MessageFactory;
 import distributed.systems.das.BattleField;
 import distributed.systems.das.presentation.BattleFieldViewer;
+import distributed.systems.network.messagehandlers.ServerGameActionHandler;
+import distributed.systems.network.messagehandlers.LogHandler;
+import distributed.systems.network.messagehandlers.ServerJoinHandler;
+import distributed.systems.network.messagehandlers.SyncBattlefieldHandler;
 import distributed.systems.network.services.HeartbeatService;
-import distributed.systems.network.services.LoadBalanceService;
+import distributed.systems.network.services.NodeBalanceService;
+import distributed.systems.network.services.ServerHeartbeatService;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.lang.SerializationUtils;
 
 /**
  * A single server node
@@ -24,119 +27,116 @@ import lombok.ToString;
  * Will also need to take care of the dragons (with fault tolerance)
  */
 @ToString
-public class ServerNode extends UnicastRemoteObject implements IMessageReceivedHandler {
-	private final ExecutorService services = Executors.newCachedThreadPool();
+public class ServerNode extends BasicNode implements IMessageReceivedHandler {
+
+	@Getter
+	private final ArrayList<ServerAddress> otherNodes = new ArrayList<>();
+
+	@Getter
+	private BattleField battlefield;
+
+	// Own registry
+	private RegistryNode ownRegistry;
+	private NodeAddress currentBinding;
 
 	@Getter
 	private ServerSocket serverSocket;
 
-	@Getter @Setter
-	private BattleField battlefield;
-
-	@Getter
-	private ServerAddress address;
-
-	private RegistryNode ownRegistry;
 	private HeartbeatService heartbeatService;
-	private LoadBalanceService loadBalanceService;
-	private LocalSocket socket;
+	private NodeBalanceService nodeBalanceService;
+
 
 	public static void main(String[] args) throws RemoteException {
-		new ServerNode(RegistryNode.PORT);
+		new ServerNode(RegistryNode.PORT, false);
 	}
 
 	public ServerNode(int port, boolean newCluster) throws RemoteException {
-		setup(port, newCluster);
-	}
-
-	public ServerNode(int port) throws RemoteException {
-		setup(port, false);
-	}
-
-	public void setup(int port, boolean newCluster) throws RemoteException {
-		// Set own ownRegistry
-		address = new ServerAddress(port, NodeAddress.NodeType.SERVER);
+		// Parent requirements
 		ownRegistry = new RegistryNode(port);
-		// Setup server socket
-		serverSocket = new ServerSocket(this);
+		address = new ServerAddress(port, NodeAddress.NodeType.SERVER);
 		socket = LocalSocket.connectTo(address);
 		socket.register(address);
+		messageFactory = new MessageFactory(address);
+		// Setup message-handlers
+		addMessageHandler(new ServerJoinHandler(this));
+		addMessageHandler(new SyncBattlefieldHandler(this));
+		addMessageHandler(new LogHandler(this));
+		// Setup server localSocket
+		serverSocket = new ServerSocket(this, otherNodes);
 
 		if (newCluster) {
 			serverSocket.logMessage("Starting new cluster, starting with id 0", LogType.DEBUG);
 			address.setId(0);
-			// Add handlers to registry
-			socket.register(address);
-			socket.addMessageReceivedHandler(this);
+			updateBindings();
 			// Setup battlefield
-			battlefield = BattleField.getBattleField();
+			battlefield = new BattleField();
 			battlefield.setServerSocket(socket);
-			battlefield.setMessagefactory(serverSocket.getMessageFactory());
+			battlefield.setMessagefactory(messageFactory);
 			serverSocket.logMessage("Created the battlefield.", LogType.DEBUG);
 		}
 
 		// setup services
-		heartbeatService = new HeartbeatService(serverSocket.getOtherNodes(), serverSocket, serverSocket.getMessageFactory());
-		loadBalanceService = new LoadBalanceService(serverSocket, address);
-		services.submit(heartbeatService);
+		heartbeatService = new ServerHeartbeatService(this, serverSocket, otherNodes);
+		nodeBalanceService = new NodeBalanceService(this);
+		addMessageHandler(heartbeatService);
+		addMessageHandler(nodeBalanceService);
+		addMessageHandler(new ServerGameActionHandler(this));
+		System.out.println(ownRegistry);
+		runService(heartbeatService);
 
-
-		// TODO: Setup battlefield (self or from network)
 		// TODO: start a dragon (if necessary)
-
 		serverSocket.logMessage("Server (" + address + ") is up and running", LogType.INFO);
-		new Thread(BattleFieldViewer::new).start();
 	}
 
-	@Override
-	public Message onMessageReceived(Message message) throws RemoteException {
-		message.setReceivedTimestamp();
-		switch (message.getMessageType()) {
-			case HANDSHAKE:
-				return serverSocket.onConnectToCluster(message);
-			case HEARTBEAT:
-				return heartbeatService.onMessageReceived(message);
-			case LOG:
-				// Propagate log-messages (from clients or anyone else) to log nodes
-				serverSocket.logMessage(message);
-				break;
-			case JOIN_SERVER:
-				return loadBalanceService.onMessageReceived(message);
-			case SYNC_BATTLEFIELD:
-				return onSyncBattlefield(message);
-			case GENERIC:
-				// TODO: task distribution
-				serverSocket.logMessage("[" + address + "] received message: (" + message + ")", LogType.DEBUG);
-				return battlefield.onMessageReceived(message);
-			default:
-				serverSocket.logMessage("Unknown type of message: " + message + "! Ignoring the message", LogType.WARN);
-				break;
+	public ServerAddress getServerAddress() {
+		return (ServerAddress) address;
+	}
+
+	public int generateUniqueId(@NotNull NodeAddress oldAddress) {
+		ArrayList<NodeAddress> nodes = new ArrayList<>(getOtherNodes());
+		nodes.add(getAddress());
+		int highestId = nodes
+				.stream()
+				.filter(node -> node.getType().equals(oldAddress.getType()))
+				.mapToInt(NodeAddress::getId)
+				.max().orElse(Math.max(getAddress().getId(), 0)) + 1;
+		return highestId;
+	}
+
+	public void connect(NodeAddress server) {
+		ServerJoinHandler.connectToCluster(this, server);
+		battlefield = SyncBattlefieldHandler.syncBattlefield(this);
+	}
+
+	public void updateBindings() {
+		// Check if there is a difference
+		if (address.equals(currentBinding)) {
+			return;
 		}
-		return null;
-	}
 
-	public Message onSyncBattlefield(Message message) {
-		// TODO: desyncronized battlefields fix
-		Message response = serverSocket.getMessageFactory().createMessage(Message.Type.SYNC_BATTLEFIELD)
-				.put("battlefield", battlefield);
-		return response;
-	}
-
-
-	public void disconnect() {
-		// Unregister the API
-		socket.unRegister();
-
-		// Stop services
-		services.shutdownNow();
-
+		// Remove old binding
 		try {
-			// Stop exporting this object
-			UnicastRemoteObject.unexportObject(this, true);
-			serverSocket.logMessage("Disconnected `" + address + "`.", LogType.INFO);
+			if(currentBinding != null) {
+				ownRegistry.getRegistry().unbind(currentBinding.getName());
+			}
 		}
-		catch (NoSuchObjectException e) {
-			e.printStackTrace();
+		catch (RemoteException | NotBoundException e) {
+			safeLogMessage("Trying to unbind a non-existent binding: " + currentBinding + " from " + ownRegistry, LogType.WARN);
+		}
+
+		// Add new binding
+		socket = LocalSocket.connectTo(address);
+		socket.register(address);
+		socket.addMessageReceivedHandler(this);
+		safeLogMessage("Successfully rebounded the binding " + currentBinding + " to " + address, LogType.DEBUG);
+		currentBinding = (NodeAddress) SerializationUtils.clone(address);
+	}
+
+	public void launchViewer() {
+		if(battlefield != null) {
+			new BattleFieldViewer(battlefield);
+		} else {
+			safeLogMessage("Cannot launch battlefield-viewer; no battlefield available!", LogType.ERROR);
 		}
 	}
 }

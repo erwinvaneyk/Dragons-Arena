@@ -1,7 +1,10 @@
 package distributed.systems.network.services;
 
-import distributed.systems.core.IMessageReceivedHandler;
+import distributed.systems.network.messagehandlers.MessageHandler;
 
-public interface SocketService extends IMessageReceivedHandler {
+/**
+ * Services
+ */
+public interface SocketService extends MessageHandler, Runnable {
 
 }

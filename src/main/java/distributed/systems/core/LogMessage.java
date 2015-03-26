@@ -7,20 +7,16 @@ import lombok.NonNull;
 @Data
 public class LogMessage extends Message {
 
+	public static final String MESSAGE_TYPE = "LOG";
+
 	private final String logMessage;
 
 	private final LogType logType;
 
 	public LogMessage(@NonNull String logMessage, LogType type) {
-		super(Type.LOG);
+		super(MESSAGE_TYPE);
 		this.logMessage = logMessage;
 		this.logType = type;
-	}
-
-	LogMessage(Message logMessage) {
-		super(logMessage);
-		this.logMessage = "";
-		this.logType = LogType.DEBUG;
 	}
 
     public LogType getLogType() {

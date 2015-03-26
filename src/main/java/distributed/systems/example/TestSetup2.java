@@ -18,7 +18,7 @@ import distributed.systems.network.logging.LogNode;
 import distributed.systems.network.logging.Logger;
 import lombok.extern.slf4j.Slf4j;
 @Slf4j
-public class TestSetup2 {
+public class TestSetup2 {/*
     public static final int MIN_PLAYER_COUNT = 30;
     public static final int MAX_PLAYER_COUNT = 60;
     public static final int DRAGON_COUNT = 20;
@@ -27,15 +27,14 @@ public class TestSetup2 {
 
     public static void main(String[] args) throws RemoteException {
         new Thread(new RegistryNode(RegistryNode.PORT)).start();
-        ServerNode snode = new ServerNode(1234);
-        new LogNode(Logger.getDefault());
+        /*ServerNode snode = new ServerNode(1234);
+        /new LogNode(Logger.getDefault());
 //        new PlayerNode(1,2);
 //        new PlayerNode(3,2);
 //        new PlayerNode(6,6);
         //DragonNode dragon = new DragonNode(10, 10);
 
         for(int i = 0; i < DRAGON_COUNT; i++) {
-			/* Try picking a random spot */
             int x, y, attempt = 0;
             final int temp = i;
             do {
@@ -58,7 +57,7 @@ public class TestSetup2 {
                         e.printStackTrace();
                     }
                     try {
-                        new DragonNode(finalX, finalY);
+                        new DragonNode(null, finalX, finalY);
                     } catch (AlreadyAssignedIDException e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
@@ -82,15 +81,14 @@ public class TestSetup2 {
                         e.printStackTrace();
                     }
                 }
-            }).start();*/
+            }).start();
 
         }
 
-        /* Initialize a random number of players (between [MIN_PLAYER_COUNT..MAX_PLAYER_COUNT] */
         playerCount = (int)((MAX_PLAYER_COUNT - MIN_PLAYER_COUNT) * Math.random() + MIN_PLAYER_COUNT);
         for(int i = 0; i < playerCount; i++)
         {
-			/* Once again, pick a random spot */
+			/* Once again, pick a random spot
             int x, y, attempt = 0;
             final int temp = i;
             do {
@@ -107,5 +105,5 @@ public class TestSetup2 {
 
         }
 
-    }
+    }*/
 }

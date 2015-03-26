@@ -51,16 +51,6 @@ public class SynchronizedSocket implements ExtendedSocket,Serializable{
 	}
 
 	@Override
-	public NodeAddress determineAddress(NodeAddress.NodeType type) throws RemoteException {
-		return this.local.determineAddress(type);
-	}
-
-	@Override
-	public Optional<NodeAddress> findServer() throws RemoteException {
-		return this.local.findServer();
-	}
-
-	@Override
 	public void broadcast(Message message, NodeAddress.NodeType type) {
 		this.local.broadcast(message, type);
 	}

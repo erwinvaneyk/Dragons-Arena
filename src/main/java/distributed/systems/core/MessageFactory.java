@@ -14,7 +14,7 @@ public class MessageFactory {
 		return new Message(origin);
 	}
 
-	public Message createMessage(Message.Type type) {
+	public Message createMessage(String type) {
 		return new Message(origin)
 				.setMessageType(type);
 	}
@@ -24,13 +24,9 @@ public class MessageFactory {
 				.setOrigin(origin);
 	}
 
-	public LogMessage createLogMessage(String logMessage, LogType type) {
-		LogMessage message = new LogMessage(logMessage, type);
+	public LogMessage createLogMessage(Object logMessage, LogType type) {
+		LogMessage message = new LogMessage(logMessage.toString(), type);
 		message.setOrigin(origin);
 		return message;
-	}
-
-	public LogMessage createLogMessage(Message message) {
-		return new LogMessage(message);
 	}
 }

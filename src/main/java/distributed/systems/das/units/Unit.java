@@ -419,7 +419,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		    messageList.put((Integer)message.get("id"), message);
         }
         if (message.getContent().containsKey("damage")) {
-            System.out.println(this.getUnitID()+" got damage "+(Integer) message.get("damage"));
+            System.out.println(this.getUnitID()+" got damage "+ message.get("damage"));
             this.adjustHitPoints(-(Integer) message.get("damage"));
             if (this.lived==false) {
                 this.disconnect();
