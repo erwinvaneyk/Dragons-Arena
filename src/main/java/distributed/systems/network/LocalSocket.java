@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import distributed.systems.core.ExtendedSocket;
 import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.LogMessage;
 import distributed.systems.core.LogType;
@@ -19,13 +20,22 @@ import distributed.systems.core.Message;
 import distributed.systems.core.Socket;
 import distributed.systems.core.exception.AlreadyAssignedIDException;
 
-public class LocalSocket implements Socket,Serializable {
+/**
+ *
+ * Socket serving as an interface for single RMIRegistry
+ *
+ */
+public class LocalSocket implements ExtendedSocket,Serializable {
 
 	private String id;
 
-	private Registry registry;
+	private final Registry registry;
 
-	private static final String PROTOCOL = "localsocket://";
+	private final NodeAddress registryAddress;
+
+	private static final String PROTOCOL_LOCAL = "localsocket";
+
+	private static final String PROTOCOL_SEPARATOR = "://";
 
 	/**
 	 * Creates a socket connected to the default server, ip 127.0.0.1 and port 1234
@@ -38,9 +48,23 @@ public class LocalSocket implements Socket,Serializable {
 		return new LocalSocket(ip, port);
 	}
 
+	public static LocalSocket connectTo(NodeAddress address) {
+		return new LocalSocket(address);
+	}
+
 	protected LocalSocket(String ip, int port) {
 		try {
 			registry = LocateRegistry.getRegistry(ip, port);
+			registryAddress = new NodeAddress(ip, port);
+		} catch (RemoteException e) {
+			throw new RuntimeException("Could not connect LocalSocket to registry!", e);
+		}
+	}
+
+	protected LocalSocket(NodeAddress address) {
+		try {
+			registry = LocateRegistry.getRegistry(address.getPhysicalAddress().getIp(), address.getPhysicalAddress().getPort());
+			registryAddress = address;
 		} catch (RemoteException e) {
 			throw new RuntimeException("Could not connect LocalSocket to registry!", e);
 		}
@@ -49,7 +73,6 @@ public class LocalSocket implements Socket,Serializable {
 	@Override
 	public void register(String id) {
 		this.id = id;
-
 	}
 
 	@Override
@@ -66,42 +89,27 @@ public class LocalSocket implements Socket,Serializable {
 	}
 
 	@Override
-	public void sendMessage(Message message, String destination) {
-		String binding = destination.startsWith(PROTOCOL) ? destination.substring(PROTOCOL.length()) : destination;
-
+	public Message sendMessage(Message message, String destination) {
+		String binding = destination.startsWith(PROTOCOL_LOCAL + PROTOCOL_SEPARATOR) ? destination.substring(
+				(PROTOCOL_LOCAL + PROTOCOL_SEPARATOR).length()) : destination;
 		try {
-			message.setOriginId(this.id);
-			message.put("origin", PROTOCOL + this.id);
+			//message.setOriginId(this.id);
+			message.put("origin", PROTOCOL_LOCAL + PROTOCOL_SEPARATOR + this.id);
 			IMessageReceivedHandler handler = (IMessageReceivedHandler) registry.lookup(binding);
-            handler.onMessageReceived(message);
-//			handler.onMessageReceived(message);
+			return handler.onMessageReceived(message);
 		}
 		catch (NotBoundException | RemoteException e) {
-			e.printStackTrace();
-		}
-	}
-
-	@Override
-	public void logMessage(Message logMessage) {
-		try {
-			List<NodeAddress> logNodes = getNodes()
-					.stream()
-					.filter(node -> node.getType().equals(NodeAddress.NodeType.LOGGER))
-					.collect(toList());
-			logNodes.forEach(logger -> sendMessage(logMessage, logger.toString()));
-			// If there are no loggers, just output it to the screen.
-			if(logNodes.isEmpty()) {
-				System.out.println("No logger present: " + logMessage);
+			try {
+				throw new RuntimeException("Failed to send message: `" + message + "` to " + destination + " on registry "+ Arrays.toString(registry.list()), e);
+			}
+			catch (RemoteException e1) {
+				throw new RuntimeException(e1);
 			}
 		}
-		catch (RemoteException e) {
-			e.printStackTrace();
-		}
 	}
 
-	@Override
-	public void logMessage(String message, LogType type) {
-		logMessage(new LogMessage(message, type));
+	public Message sendMessage(Message message, NodeAddress destination) {
+		return sendMessage(message, destination.getName());
 	}
 
 	@Override
@@ -114,6 +122,19 @@ public class LocalSocket implements Socket,Serializable {
 		}
 	}
 
+	// TODO: seperate this to serversocket
+
+	@Override
+	public void logMessage(Message logMessage) {
+		sendMessage(logMessage, registryAddress);
+	}
+
+	@Override
+	public void logMessage(String message, LogType type) {
+		logMessage(new LogMessage(message, type));
+	}
+
+
 	@Override
 	public List<NodeAddress> getNodes() throws RemoteException {
 		return Arrays
@@ -122,13 +143,9 @@ public class LocalSocket implements Socket,Serializable {
 				.collect(toList());
 	}
 
+	@Override
 	public NodeAddress determineAddress(NodeAddress.NodeType type) throws RemoteException {
-		int highestId = getNodes()
-				.stream()
-				.filter(node -> node.getType().equals(type))
-				.mapToInt(NodeAddress::getId)
-				.max().orElse(-1);
-		return new NodeAddress(type, highestId + 1);
+		return null;
 	}
 
 	// Load Balancer
@@ -137,5 +154,30 @@ public class LocalSocket implements Socket,Serializable {
 				.stream()
 				.filter(NodeAddress::isServer)
 				.findAny();
+	}
+
+	public void broadcast(Message message, NodeAddress.NodeType type) {
+		try {
+			getNodes().stream()
+					.filter(address -> address.getType().equals(type))
+					.forEach(address -> sendMessage(message, address.toString()));
+		}
+		catch (RemoteException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void broadcast(Message message) {
+		try {
+			getNodes().stream().forEach(address -> sendMessage(message, address.toString()));
+		}
+		catch (RemoteException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public NodeAddress getRegistryAddress() {
+		return registryAddress;
 	}
 }

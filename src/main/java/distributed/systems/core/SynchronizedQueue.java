@@ -17,7 +17,7 @@ public class SynchronizedQueue {
 	}
 
 	public void add(Message message) {
-		removeMessages(message.getOriginId());
+		removeMessages(message.getOrigin().getName());
 		queue.add(message);
 	}
 
@@ -27,7 +27,7 @@ public class SynchronizedQueue {
 
 	private void removeMessages(String id) {
 		queue.stream().filter(el -> {
-			return el.getOriginId().equals(id);
+			return el.getOrigin().getName().equals(id);
 		}).forEach(queue::remove);
 	}
 

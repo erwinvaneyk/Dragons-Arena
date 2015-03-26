@@ -4,9 +4,11 @@ package distributed.systems.network.logging;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
+import distributed.systems.core.ExtendedSocket;
 import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.LogMessage;
 import distributed.systems.core.Message;
+import distributed.systems.core.MessageFactory;
 import distributed.systems.core.Socket;
 import distributed.systems.core.SynchronizedSocket;
 import distributed.systems.network.LocalSocket;
@@ -18,8 +20,9 @@ import distributed.systems.network.NodeAddress;
 public class LogNode extends UnicastRemoteObject implements IMessageReceivedHandler {
 
 	private final Logger logger;
-	private final Socket socket;
+	private final ExtendedSocket socket;
 	private final NodeAddress address;
+	private final MessageFactory messageFactory;
 
 	public static void main(String[] args) throws RemoteException {
 		new LogNode(Logger.getDefault());
@@ -32,15 +35,17 @@ public class LogNode extends UnicastRemoteObject implements IMessageReceivedHand
 		socket.register(address.toString());
 		socket.addMessageReceivedHandler(this);
 		this.logger = logger;
+		this.messageFactory = new MessageFactory(address);
 	}
 
 	@Override
-	public void onMessageReceived(Message message) throws RemoteException {
+	public Message onMessageReceived(Message message) throws RemoteException {
 		message.setReceivedTimestamp();
 		if(message instanceof LogMessage) {
 			logger.log((LogMessage) message);
 		} else {
-			logger.log(new LogMessage(message));
+			logger.log(messageFactory.createLogMessage(message));
 		}
+		return null;
 	}
 }
