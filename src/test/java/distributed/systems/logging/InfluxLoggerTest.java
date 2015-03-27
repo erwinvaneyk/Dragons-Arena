@@ -13,6 +13,7 @@ public class InfluxLoggerTest {
 	public void testInfluxDb() {
 		InfluxLogger influx = InfluxLogger.getInstance();
 		assertTrue(influx.checkConnection());
+		influx.log(new LogMessage("test",LogType.DEBUG));
 	}
 
 }

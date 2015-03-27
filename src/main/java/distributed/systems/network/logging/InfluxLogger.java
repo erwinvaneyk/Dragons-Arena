@@ -64,9 +64,11 @@ public class InfluxLogger implements Logger {
 
 	@Override
 	public void log(LogMessage message) {
+		String origin = message.getOrigin() != null ? message.getOrigin().getName() : "";
 		Serie serie = new Serie.Builder("log")
 				.columns("message","logtype","origin","timestamp")
-				.values(message.getLogMessage(), message.getLogType(), message.getTimestamp().getTime())
+				.values(message.getLogMessage(), message.getLogType(), origin,
+						message.getTimestamp().getTime())
 				.build();
 		influxDB.write(DATABASE_DATA, TimeUnit.MILLISECONDS, serie);
 
