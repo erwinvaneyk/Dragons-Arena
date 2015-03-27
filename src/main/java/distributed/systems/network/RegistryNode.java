@@ -26,9 +26,7 @@ public class RegistryNode implements Runnable {
 	}
 
 	public RegistryNode(int port) throws RemoteException {
-		System.out.println("Creating registry...");
 		registry = LocateRegistry.createRegistry(port);
-		System.out.println("Registry running at port " + port + "...");
 	}
 
 	public RegistryNode(Address address) throws RemoteException {

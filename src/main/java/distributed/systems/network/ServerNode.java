@@ -28,20 +28,11 @@ import org.apache.commons.lang.SerializationUtils;
  * Will also need to take care of the dragons (with fault tolerance)
  */
 @ToString
-public class ServerNode extends BasicNode implements IMessageReceivedHandler {
-
-	@Getter
-	private final ArrayList<ServerAddress> otherNodes = new ArrayList<>();
+public class ServerNode extends AbstractServerNode implements IMessageReceivedHandler {
 
 	@Getter
 	private BattleField battlefield;
 
-	// Own registry
-    private RegistryNode ownRegistry;
-	private NodeAddress currentBinding;
-
-	@Getter
-	private ServerSocket serverSocket;
     private HeartbeatService heartbeatService;
 	private NodeBalanceService nodeBalanceService;
 
@@ -76,7 +67,7 @@ public class ServerNode extends BasicNode implements IMessageReceivedHandler {
 		}
 
 		// setup services
-		heartbeatService = new ServerHeartbeatService(this, serverSocket, otherNodes);
+		heartbeatService = new ServerHeartbeatService(this, serverSocket).expectHeartbeatFrom(otherNodes);
 		nodeBalanceService = new NodeBalanceService(this);
 		addMessageHandler(heartbeatService);
 		addMessageHandler(nodeBalanceService);
@@ -88,50 +79,9 @@ public class ServerNode extends BasicNode implements IMessageReceivedHandler {
 		serverSocket.logMessage("Server (" + address + ") is up and running", LogType.INFO);
 	}
 
-
-	public ServerAddress getServerAddress() {
-		return (ServerAddress) address;
-	}
-
-	public int generateUniqueId(@NotNull NodeAddress oldAddress) {
-		ArrayList<NodeAddress> nodes = new ArrayList<>(getOtherNodes());
-		nodes.add(getAddress());
-		int highestId = nodes
-				.stream()
-				.filter(node -> node.getType().equals(oldAddress.getType()))
-				.mapToInt(NodeAddress::getId)
-				.max().orElse(Math.max(getAddress().getId(), 0)) + 1;
-		return highestId;
-	}
-
 	public void connect(NodeAddress server) {
-		ServerJoinHandler.connectToCluster(this, server);
+		super.connect(server);
 		battlefield = SyncBattlefieldHandler.syncBattlefield(this);
-	}
-
-	public void updateBindings() {
-		// Check if there is a difference
-		if (address.equals(currentBinding)) {
-			return;
-		}
-
-		// Remove old binding
-		try {
-			if(currentBinding != null) {
-				ownRegistry.getRegistry().unbind(currentBinding.getName());
-			}
-		}
-		catch (RemoteException | NotBoundException e) {
-			safeLogMessage("Trying to unbind a non-existent binding: " + currentBinding + " from " + ownRegistry, LogType.WARN);
-		}
-
-		// Add new binding
-		socket = LocalSocket.connectTo(address);
-		socket.register(address);
-
-		socket.addMessageReceivedHandler(this);
-		safeLogMessage("Successfully rebounded the binding " + currentBinding + " to " + address, LogType.DEBUG);
-		currentBinding = (NodeAddress) SerializationUtils.clone(address);
 	}
 
 	public void launchViewer() {
@@ -140,7 +90,5 @@ public class ServerNode extends BasicNode implements IMessageReceivedHandler {
 		} else {
 			safeLogMessage("Cannot launch battlefield-viewer; no battlefield available!", LogType.ERROR);
 		}
-
-
 	}
 }

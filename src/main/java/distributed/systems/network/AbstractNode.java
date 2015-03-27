@@ -18,7 +18,7 @@ import distributed.systems.network.messagehandlers.MessageHandler;
 import distributed.systems.network.services.SocketService;
 import lombok.Getter;
 
-public abstract class BasicNode extends UnicastRemoteObject implements IMessageReceivedHandler {
+public abstract class AbstractNode extends UnicastRemoteObject implements IMessageReceivedHandler {
 	// MessageHandlers
 	private final Map<String, MessageHandler> messageHandlers = new HashMap<>();
 
@@ -37,7 +37,7 @@ public abstract class BasicNode extends UnicastRemoteObject implements IMessageR
 	@Getter
 	protected MessageFactory messageFactory;
 
-	protected BasicNode() throws RemoteException {}
+	protected AbstractNode() throws RemoteException {}
 
 
 	public void addMessageHandler(MessageHandler messageHandler) {

@@ -5,6 +5,7 @@ import java.rmi.RemoteException;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.core.Socket;
+import distributed.systems.network.AbstractServerNode;
 import distributed.systems.network.ClientNode;
 import distributed.systems.network.LocalSocket;
 import distributed.systems.network.NodeAddress;
@@ -18,10 +19,10 @@ public class NodeBalanceService implements SocketService {
 
 	private static final int MAX_REDIRECTS = 4;
 
-	private final ServerNode me;
+	private final AbstractServerNode me;
 	private final ServerSocket serverSocket;
 
-	public NodeBalanceService(ServerNode me) {
+	public NodeBalanceService(AbstractServerNode me) {
 		this.me = me;
 		this.serverSocket = me.getServerSocket();
 	}

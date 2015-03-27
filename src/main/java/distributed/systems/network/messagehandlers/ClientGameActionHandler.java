@@ -2,10 +2,8 @@ package distributed.systems.network.messagehandlers;
 
 import java.rmi.RemoteException;
 
-import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
-import distributed.systems.network.BasicNode;
 import distributed.systems.network.ClientNode;
 
 public class ClientGameActionHandler implements MessageHandler {
