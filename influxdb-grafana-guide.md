@@ -20,3 +20,6 @@ Grafana is metrics dashboard and graph editor for, among others, InfluxDB.
 - For the InfluxDB dashboard: [http://localhost:8083](http://localhost:8083) (User management and database creation; Nothing interesting)
 - For the Grafana dashboard: [http://localhost:80](http://localhost:80) - Note: Grafana requires two databases to be present, namely `grafana` and `data`. You can either create them by hand on the InfluxDB dashboard or run the game. The game will automatically add the databases if they are not created yet.
 
+Enjoy!
+
+![Measure ALL the things](http://www.nedpoulter.com/wp-content/uploads/2014/04/picard-data-meme.png?b9f682)
