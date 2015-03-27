@@ -35,8 +35,6 @@ public class Player extends Unit implements Runnable, Serializable {
 	public static final int MIN_ATTACKPOINTS = 1;
 	public static final int MAX_ATTACKPOINTS = 10;
 
-
-
 	/**
 	 * Create a player, initialize both 
 	 * the hit and the attackpoints. 

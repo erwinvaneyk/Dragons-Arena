@@ -3,7 +3,6 @@ package distributed.systems.network;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
-
 import com.sun.istack.internal.NotNull;
 import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.LogType;
@@ -21,6 +20,8 @@ import lombok.Getter;
 import lombok.ToString;
 import org.apache.commons.lang.SerializationUtils;
 
+
+
 /**
  * A single server node
  *
@@ -36,13 +37,12 @@ public class ServerNode extends BasicNode implements IMessageReceivedHandler {
 	private BattleField battlefield;
 
 	// Own registry
-	private RegistryNode ownRegistry;
+    private RegistryNode ownRegistry;
 	private NodeAddress currentBinding;
 
 	@Getter
 	private ServerSocket serverSocket;
-
-	private HeartbeatService heartbeatService;
+    private HeartbeatService heartbeatService;
 	private NodeBalanceService nodeBalanceService;
 
 
@@ -88,6 +88,7 @@ public class ServerNode extends BasicNode implements IMessageReceivedHandler {
 		serverSocket.logMessage("Server (" + address + ") is up and running", LogType.INFO);
 	}
 
+
 	public ServerAddress getServerAddress() {
 		return (ServerAddress) address;
 	}
@@ -127,6 +128,7 @@ public class ServerNode extends BasicNode implements IMessageReceivedHandler {
 		// Add new binding
 		socket = LocalSocket.connectTo(address);
 		socket.register(address);
+
 		socket.addMessageReceivedHandler(this);
 		safeLogMessage("Successfully rebounded the binding " + currentBinding + " to " + address, LogType.DEBUG);
 		currentBinding = (NodeAddress) SerializationUtils.clone(address);
@@ -138,5 +140,7 @@ public class ServerNode extends BasicNode implements IMessageReceivedHandler {
 		} else {
 			safeLogMessage("Cannot launch battlefield-viewer; no battlefield available!", LogType.ERROR);
 		}
+
+
 	}
 }

@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.sun.istack.internal.NotNull;
+
 import distributed.systems.core.ExtendedSocket;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
@@ -44,6 +45,7 @@ public class ServerSocket implements Socket {
 	public Optional<ServerAddress> getNode(NodeAddress nodeAddress) {
 		int index = otherNodes.indexOf(nodeAddress);
 		return index > -1 ?  Optional.ofNullable(otherNodes.get(index)) : Optional.empty();
+
 	}
 
 	/**
@@ -94,5 +96,6 @@ public class ServerSocket implements Socket {
 
 	public void logMessage(String message, LogType type) {
 		logMessage(me.getMessageFactory().createLogMessage(message, type));
+
 	}
 }

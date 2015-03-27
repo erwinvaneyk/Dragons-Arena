@@ -18,92 +18,26 @@ import distributed.systems.network.logging.LogNode;
 import distributed.systems.network.logging.Logger;
 import lombok.extern.slf4j.Slf4j;
 @Slf4j
-public class TestSetup2 {/*
-    public static final int MIN_PLAYER_COUNT = 30;
-    public static final int MAX_PLAYER_COUNT = 60;
-    public static final int DRAGON_COUNT = 20;
-    public static final int TIME_BETWEEN_PLAYER_LOGIN = 5000;
-    public static int playerCount;
 
-    public static void main(String[] args) throws RemoteException {
-        new Thread(new RegistryNode(RegistryNode.PORT)).start();
-        /*ServerNode snode = new ServerNode(1234);
-        /new LogNode(Logger.getDefault());
-//        new PlayerNode(1,2);
-//        new PlayerNode(3,2);
-//        new PlayerNode(6,6);
-        //DragonNode dragon = new DragonNode(10, 10);
-
-        for(int i = 0; i < DRAGON_COUNT; i++) {
-            int x, y, attempt = 0;
-            final int temp = i;
-            do {
-                x = (int)(Math.random() * BattleField.MAP_WIDTH);
-                y = (int)(Math.random() * BattleField.MAP_HEIGHT);
-                attempt++;
-            } while (snode.getBattlefield().getUnit(x, y) != null && attempt < 10);
-
-            // If we didn't find an empty spot, we won't add a new dragon
-            if (snode.getBattlefield().getUnit(x, y) != null) break;
-
-            final int finalX = x;
-            final int finalY = y;
-
-            new Thread(new Runnable() {
-                public void run() {
-                    try {
-                        Thread.sleep(temp*100);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        new DragonNode(null, finalX, finalY);
-                    } catch (AlreadyAssignedIDException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }).start();
-			/* Create the new dragon in a separate
-			 * thread, making sure it does not
-			 * block the system.
-			 */
-/*            new Thread(new Runnable() {
-                public void run() {
-                    try {
-                        new DragonNode(finalX, finalY);
-                    } catch (AlreadyAssignedIDException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }).start();
-
-        }
-
-        playerCount = (int)((MAX_PLAYER_COUNT - MIN_PLAYER_COUNT) * Math.random() + MIN_PLAYER_COUNT);
-        for(int i = 0; i < playerCount; i++)
-        {
-			/* Once again, pick a random spot
-            int x, y, attempt = 0;
-            final int temp = i;
-            do {
-                x = (int)(Math.random() * BattleField.MAP_WIDTH);
-                y = (int)(Math.random() * BattleField.MAP_HEIGHT);
-                attempt++;
-            } while (snode.getBattlefield().getUnit(x, y) != null && attempt < 10);
-
-            // If we didn't find an empty spot, we won't add a new player
-            if (snode.getBattlefield().getUnit(x, y) != null) break;
-
-            final int finalX = x;
-            final int finalY = y;
-
-        }
-
-    }*/
+public class TestSetup2 {
+    public static void main(String[] args) throws RemoteException, InterruptedException {
+        // Server setup
+        ServerNode server1 = new ServerNode(1234,true);
+        //ServerNode server2 = new ServerNode(1235, false);
+        //ServerNode server3 = new ServerNode(1236, false);
+        //server3.getServerSocket().connectToCluster(server2.getAddress());*/
+        //server2.connect(server1.getServerAddress());
+        DragonNode dragonNode = new DragonNode(server1.getAddress(),10,10);
+        // Players added
+        PlayerNode player1 = new PlayerNode(server1.getAddress(),5,5);
+        PlayerNode player2 = new PlayerNode(server1.getAddress(),4,4);
+        //DragonNode dragonNode = new DragonNode(server1.getAddress(),0,0);
+        //System.out.println(server1.getBattlefield().equals(server2.getBattlefield()));
+        System.out.println(server1.getAddress());
+        //System.out.println(server2.getAddress());
+        System.out.println(player1.getAddress());
+        System.out.println(player2.getAddress());
+        server1.launchViewer();
+        //server2.launchViewer();
+    }
 }
