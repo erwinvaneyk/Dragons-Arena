@@ -13,6 +13,14 @@
 	</properties>
 
 	<dependencies>
+		<!-- statistics -->
+		<dependency>
+			<groupId>org.influxdb</groupId>
+			<artifactId>influxdb-java</artifactId>
+			<version>1.5</version>
+		</dependency>
+
+		<!-- common -->
 		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
@@ -25,7 +33,6 @@
 			<version>1.16.2</version>
 			<scope>provided</scope>
 		</dependency>
-		<!-- Logging -->
 
 		<!-- Logging -->
 		<dependency>
@@ -44,6 +51,12 @@
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-core</artifactId>
 			<version>1.1.2</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 

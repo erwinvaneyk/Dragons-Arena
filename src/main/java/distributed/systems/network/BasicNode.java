@@ -1,7 +1,5 @@
 package distributed.systems.network;
 
-import javax.xml.soap.Node;
-
 import java.rmi.NoSuchObjectException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -12,10 +10,10 @@ import java.util.concurrent.Executors;
 
 import distributed.systems.core.ExtendedSocket;
 import distributed.systems.core.IMessageReceivedHandler;
-import distributed.systems.core.LogMessage;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.core.MessageFactory;
+import distributed.systems.network.logging.InfluxLogger;
 import distributed.systems.network.messagehandlers.MessageHandler;
 import distributed.systems.network.services.SocketService;
 import lombok.Getter;
@@ -26,6 +24,8 @@ public abstract class BasicNode extends UnicastRemoteObject implements IMessageR
 
 	// Services
 	private final ExecutorService services = Executors.newCachedThreadPool();
+
+	private final InfluxLogger influxdbLogger = InfluxLogger.getInstance();
 
 	// Address
 	@Getter
@@ -50,15 +50,17 @@ public abstract class BasicNode extends UnicastRemoteObject implements IMessageR
 
 	@Override
 	public Message onMessageReceived(Message message) throws RemoteException {
+		long start = System.currentTimeMillis();
 		message.setReceivedTimestamp();
-
+		Message response = null;
 		MessageHandler messageHandler = messageHandlers.get(message.getMessageType());
 		if(messageHandler != null) {
-			return messageHandler.onMessageReceived(message);
+			response = messageHandler.onMessageReceived(message);
 		} else {
 			safeLogMessage("Unable to handle received message: " + message + ". Ignoring the message!", LogType.WARN);
-			return null;
 		}
+		influxdbLogger.logMessageDuration(message, address, System.currentTimeMillis() - start);
+		return response;
 	}
 
 	public void disconnect() {
