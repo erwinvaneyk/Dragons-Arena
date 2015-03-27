@@ -5,10 +5,9 @@ Grafana is metrics dashboard and graph editor for, among others, InfluxDB.
 
 ### Installation
 1. Download [Docker](https://www.docker.com/), as we use docker for an easy setup and deployment of the system.
-2. Open up your favorite console and navigate to root of this system.
-2. Load the Docker archive into your Docker Images: `docker load -i docker/influxdb-grafana.docker`. Note: that `docker/influxdb-grafana.docker` is the relative location of the Docker archive and may be different on your system.
-3. Run `docker images` to see if the image is actually added. Copy the **IMAGE ID**.
-4. (Optional) Tag the image `docker tag <IMAGE-ID> in4391/influxdb-grafana` to give it a readable name. Replace `<IMAGE-ID>` with the image id from step 3.
+2. Open up your favorite console and navigate to the folder `<project root>/docker/`.
+2. Create a docker image from the source: `docker build -t in4391/influxdb-grafana docker-influxdb-grafana`.
+3. Run `docker images` to see if the image `in4391/influxdb-grafana` is actually added.
 
 ### Running Influxdb and Grafana Docker image
 - First time: `docker run -d -p 80:80 -p 8083:8083 -p 8084:8084 -p 8086:8086 in4391/influxdb-grafana`. The `run` command **destroys** any previous process of this image and creates a new one. Note: that this will erase all data of any previous sesion.
