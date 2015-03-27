@@ -56,8 +56,8 @@ public class InfluxLogger implements Logger {
 	public void logMessageDuration(Message message, NodeAddress messageHandler, long duration) {
 		String origin = message.getOrigin() != null ? message.getOrigin().getName() : "";
 		Serie serie = new Serie.Builder("messagePerformance")
-				.columns("duration", "messagetype", "messagehandler", "origin")
-				.values(duration, message.getMessageType(), messageHandler.getName(), origin)
+				.columns("duration", "messagetype", "messagehandler", "origin", "time","receivedtime")
+				.values(duration, message.getMessageType(), messageHandler.getName(), origin, message.getTimestamp().getTime(), message.getReceivedTimestamp().getTime())
 				.build();
 		influxDB.write(DATABASE_DATA, TimeUnit.MILLISECONDS, serie);
 	}
@@ -66,7 +66,7 @@ public class InfluxLogger implements Logger {
 	public void log(LogMessage message) {
 		String origin = message.getOrigin() != null ? message.getOrigin().getName() : "";
 		Serie serie = new Serie.Builder("log")
-				.columns("message","logtype","origin","timestamp")
+				.columns("message","logtype","origin","time")
 				.values(message.getLogMessage(), message.getLogType(), origin,
 						message.getTimestamp().getTime())
 				.build();
