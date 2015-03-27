@@ -1,5 +1,6 @@
 package distributed.systems.example;
 
+
 import java.rmi.RemoteException;
 
 
@@ -16,7 +17,6 @@ public class TestSetup3 {
     public static final int DRAGON_COUNT = 20;
     public static final int TIME_BETWEEN_PLAYER_LOGIN = 5000;
     public static int playerCount;
-
 
     public static void main(String[] args) throws RemoteException, InterruptedException {
         // Server setup
@@ -57,6 +57,7 @@ public class TestSetup3 {
             }).start();
             Thread.sleep(500);
         }
+
         playerCount = (int)((MAX_PLAYER_COUNT - MIN_PLAYER_COUNT) * Math.random() + MIN_PLAYER_COUNT);
         for(int i = 0; i < playerCount; i++)
         {
@@ -93,3 +94,4 @@ public class TestSetup3 {
 
     }
 }
+

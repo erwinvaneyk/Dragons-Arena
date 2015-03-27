@@ -35,7 +35,6 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 	private final NodeAddress registryAddress;
 
 	private transient MessageFactory messageFactory;
-
 	/**
 	 * Creates a socket connected to the default server, ip 127.0.0.1 and port 1234
 	 */
@@ -90,12 +89,12 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 	}
 
 	@Override
+
 	public Message sendMessage(Message message, NodeAddress destination) {
 		try {
 			if(id != null) message.setOrigin(id);
 			IMessageReceivedHandler handler = (IMessageReceivedHandler) registry.lookup(destination.getName());
 			return handler.onMessageReceived(message);
-
 		}
 		catch (NotBoundException | RemoteException e) {
 			try {
@@ -136,7 +135,6 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 		logMessage(log);
 	}
 
-
 	@Override
 	public List<NodeAddress> getNodes() throws RemoteException {
 		return Arrays
@@ -171,4 +169,5 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 	public NodeAddress getRegistryAddress() {
 		return registryAddress;
 	}
+
 }

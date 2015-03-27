@@ -21,6 +21,7 @@ import lombok.ToString;
 import org.apache.commons.lang.SerializationUtils;
 
 
+
 /**
  * A single server node
  *
@@ -36,13 +37,12 @@ public class ServerNode extends BasicNode implements IMessageReceivedHandler {
 	private BattleField battlefield;
 
 	// Own registry
-	private RegistryNode ownRegistry;
+    private RegistryNode ownRegistry;
 	private NodeAddress currentBinding;
 
 	@Getter
 	private ServerSocket serverSocket;
-
-	private HeartbeatService heartbeatService;
+    private HeartbeatService heartbeatService;
 	private NodeBalanceService nodeBalanceService;
 
 
@@ -87,6 +87,7 @@ public class ServerNode extends BasicNode implements IMessageReceivedHandler {
 		// TODO: start a dragon (if necessary)
 		serverSocket.logMessage("Server (" + address + ") is up and running", LogType.INFO);
 	}
+
 
 	public ServerAddress getServerAddress() {
 		return (ServerAddress) address;
@@ -139,6 +140,7 @@ public class ServerNode extends BasicNode implements IMessageReceivedHandler {
 		} else {
 			safeLogMessage("Cannot launch battlefield-viewer; no battlefield available!", LogType.ERROR);
 		}
+
 
 	}
 }

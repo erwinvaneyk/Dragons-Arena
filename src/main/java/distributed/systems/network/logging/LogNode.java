@@ -34,7 +34,9 @@ public class LogNode extends BasicNode {
 		socket.register(address);
 		messageFactory = new MessageFactory(address);
 		// Logger
+
 		this.logger = logger;
+		this.messageFactory = new MessageFactory(address);
 	}
 
 	@Override
@@ -44,6 +46,7 @@ public class LogNode extends BasicNode {
 			logger.log((LogMessage) message);
 		} else {
 			logger.log(messageFactory.createLogMessage(message, LogType.DEBUG));
+
 		}
 		return null;
 	}

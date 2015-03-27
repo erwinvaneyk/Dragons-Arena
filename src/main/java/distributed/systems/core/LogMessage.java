@@ -7,6 +7,7 @@ import lombok.NonNull;
 @Data
 public class LogMessage extends Message {
 
+
 	public static final String MESSAGE_TYPE = "LOG";
 
 	private final String logMessage;
@@ -22,6 +23,7 @@ public class LogMessage extends Message {
     public LogType getLogType() {
         return logType;
     }
+
 
 	@Override
 	public String toString() {

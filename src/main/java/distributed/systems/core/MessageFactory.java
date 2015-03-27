@@ -2,8 +2,8 @@ package distributed.systems.core;
 
 import distributed.systems.network.NodeAddress;
 
-public class MessageFactory {
 
+public class MessageFactory {
 	private final NodeAddress origin;
 
 	public MessageFactory(NodeAddress origin) {
@@ -15,6 +15,7 @@ public class MessageFactory {
 	}
 
 	public Message createMessage(String type) {
+
 		return new Message(origin)
 				.setMessageType(type);
 	}
@@ -29,4 +30,5 @@ public class MessageFactory {
 		message.setOrigin(origin);
 		return message;
 	}
+
 }

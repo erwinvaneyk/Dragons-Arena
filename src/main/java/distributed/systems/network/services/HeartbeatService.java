@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+
 import distributed.systems.core.ExtendedSocket;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
@@ -83,6 +84,7 @@ public abstract class HeartbeatService implements SocketService {
 			socket.broadcast(message, NodeAddress.NodeType.SERVER);
 			ServerSocket serversocket = (ServerSocket) socket;
 			serversocket.getMe().getServerAddress().getClients().stream().forEach(node -> {
+
 				try {
 					socket.sendMessage(message, node);
 				}
@@ -90,11 +92,13 @@ public abstract class HeartbeatService implements SocketService {
 					socket.logMessage(
 							"Failed to send message to node `" + node + "`; message: " + message + ", because: "
 									+ e, LogType.ERROR);
+
 				}
 			});
 		}
 
 	}*/
+
 
 	@Override
 	public Message onMessageReceived(Message message) throws RemoteException {
@@ -105,13 +109,14 @@ public abstract class HeartbeatService implements SocketService {
 				.ifPresent(node -> {
 					node.setValue(TIMEOUT_DURATION / CHECK_INTERVAL);
 					socket.logMessage("Received a heartbeat from node `" + node.getKey().getName() + "` (" + nodes +").",
+
 							LogType.DEBUG);
 				});
 		return null;
 	}
-
 	@Override
 	public String getMessageType() {
 		return MESSAGE_TYPE;
 	}
+
 }

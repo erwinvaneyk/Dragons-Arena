@@ -18,6 +18,7 @@ public class Message implements Serializable {
 	@Getter
 	private String messageType = "DEFAULT";
 
+
 	@Getter
 	private final HashMap<String, Serializable> content = new HashMap<>();
 
@@ -34,6 +35,7 @@ public class Message implements Serializable {
 		this.timestamp = new Date();
 		this.origin = origin;
 	}
+
 
 	Message(String type) {
 		this.timestamp = new Date();
@@ -75,7 +77,6 @@ public class Message implements Serializable {
 	public String toString() {
 		return "[" + this.origin + "] Message(messageType=" + this.messageType + ", content=" + this.content
 				+ ", timestamp=" + this.timestamp + ", receivedTimestamp=" + this.receivedTimestamp + ")";
-
 	}
 
 

@@ -1,5 +1,6 @@
 package distributed.systems.network;
 
+
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -14,7 +15,9 @@ import distributed.systems.network.messagehandlers.ServerGameActionHandler;
 import distributed.systems.network.services.ClientHeartbeatService;
 import distributed.systems.network.services.HeartbeatService;
 import distributed.systems.network.services.NodeBalanceService;
+
 import lombok.Getter;
+
 
 
 public class DragonNode extends BasicNode implements ClientNode, Serializable {
@@ -27,9 +30,11 @@ public class DragonNode extends BasicNode implements ClientNode, Serializable {
 	private Dragon dragon;
 
 
+
 	public static void main(String[] args) throws RemoteException {
 		new DragonNode(null, 1, 1);
 	}
+
 
 
 
@@ -57,13 +62,16 @@ public class DragonNode extends BasicNode implements ClientNode, Serializable {
 		runService(heartbeatService);
 
 		// spawn dragon
+
 		this.dragon = new Dragon(x,y, this);
 		socket.logMessage("Dragon (" + address + ") created and running. Assigned to server: " + serverAddress, LogType.INFO);
 		dragon.start();
 	}
 
 	@Override
+
 	public Unit getUnit() {
 		return dragon;
 	}
+
 }

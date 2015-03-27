@@ -25,6 +25,7 @@ public class SynchronizedSocket implements ExtendedSocket,Serializable{
 		this.local.addMessageReceivedHandler(handler);
 	}
 
+
 	@Override
 	public Message sendMessage(Message message, NodeAddress destination) {
 		return this.local.sendMessage(message, destination);
