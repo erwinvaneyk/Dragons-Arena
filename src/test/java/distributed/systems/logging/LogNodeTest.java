@@ -6,11 +6,18 @@ import java.rmi.RemoteException;
 import java.util.Date;
 
 import distributed.systems.core.LogMessage;
+import distributed.systems.network.logging.InfluxLogger;
 import distributed.systems.network.logging.LogNode;
 import distributed.systems.network.logging.Logger;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class LogNodeTest {
+
+	@BeforeClass
+	public void setup() {
+		InfluxLogger.FLAG_USE_INFLUX = false;
+	}
 
 	/**
 	 * Logs should be ordered before being written to a file
