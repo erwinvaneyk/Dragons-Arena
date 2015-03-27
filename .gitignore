@@ -18,5 +18,5 @@ bin/
 *.iml
 target/
 .vagrant/
-data/
+docker/
 logs/

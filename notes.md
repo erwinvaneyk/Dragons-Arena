@@ -42,3 +42,6 @@ docker save -o <save image to path> <image name>
 docker load -i <path to image tar file>
 
 sudo docker run -d -p 80:80 -p 8083:8083 -p 8084:8084 -p 8086:8086 erwinvaneyk/version2
+
+docker stop $(docker ps -a -q)
+docker rm $(docker ps -a -q)

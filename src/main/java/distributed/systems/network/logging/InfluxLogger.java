@@ -5,31 +5,41 @@ import static java.util.stream.Collectors.toList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import distributed.systems.core.LogMessage;
 import distributed.systems.core.Message;
+import distributed.systems.network.Address;
 import distributed.systems.network.NodeAddress;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.Database;
+import org.influxdb.dto.Pong;
 import org.influxdb.dto.Serie;
 
-public class PerformanceLogger {
+public class InfluxLogger implements Logger {
 
 	private static final String DATABASE_DATA = "data";
 	private static final String DATABASE_GRAFANA = "grafana";
 	private final InfluxDB influxDB;
+	private final Address databaseLocation;
+	private final String username;
 
-	private static PerformanceLogger performanceLogging;
+	private static InfluxLogger performanceLogging;
 
-	public static PerformanceLogger getInstance() {
+	public static InfluxLogger getInstance() {
 		if(performanceLogging == null) {
-			performanceLogging = new PerformanceLogger();
+			performanceLogging = new InfluxLogger(new Address("localhost", 8086), "root", "root");
 		}
 		return performanceLogging;
 	}
 
-	public PerformanceLogger() {
-		influxDB = InfluxDBFactory.connect("http://localhost:8086", "root", "root");
+	public InfluxLogger(Address databaseLocation, String username, String password) {
+		this.databaseLocation = databaseLocation;
+		this.username = username;
 
+		// Connect to influx
+		influxDB = InfluxDBFactory.connect(databaseLocation.toString(), username, password);
+
+		// Create required databases if they are not present
 		List<String> databases = influxDB.describeDatabases().stream().map(Database::getName).collect(toList());
 		if(!databases.contains(DATABASE_DATA)) {
 			influxDB.createDatabase(DATABASE_DATA);
@@ -39,7 +49,9 @@ public class PerformanceLogger {
 		}
 	}
 
-
+	public boolean checkConnection() {
+		return (influxDB.ping().getStatus().equalsIgnoreCase("ok"));
+	}
 
 	public void logMessageDuration(Message message, NodeAddress messageHandler, long duration) {
 		String origin = message.getOrigin() != null ? message.getOrigin().getName() : "";
@@ -50,19 +62,13 @@ public class PerformanceLogger {
 		influxDB.write(DATABASE_DATA, TimeUnit.MILLISECONDS, serie);
 	}
 
-	public void logNumberOfServers(int servers) {
-		Serie serie = new Serie.Builder("NodeCount")
-				.columns("numberOfServers")
-				.values(servers)
-				.build();
-		influxDB.write(DATABASE_DATA, TimeUnit.MILLISECONDS, serie);
-	}
-
-	public void logLine(String line) {
+	@Override
+	public void log(LogMessage message) {
 		Serie serie = new Serie.Builder("log")
-				.columns("message")
-				.values(line)
+				.columns("message","logtype","origin","timestamp")
+				.values(message.getLogMessage(), message.getLogType(), message.getTimestamp().getTime())
 				.build();
 		influxDB.write(DATABASE_DATA, TimeUnit.MILLISECONDS, serie);
+
 	}
 }
