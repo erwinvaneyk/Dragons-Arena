@@ -1,4 +1,4 @@
-package distributed.systems.logging;
+package distributed.systems.network.logging;
 
 import static org.junit.Assert.assertTrue;
 
@@ -9,11 +9,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class InfluxLoggerTest {
-
-	@BeforeClass
-	public void setup() {
-		InfluxLogger.FLAG_USE_INFLUX = false;
-	}
 
 	@Test
 	public void testInfluxDb() {

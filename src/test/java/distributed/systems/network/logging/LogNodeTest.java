@@ -1,4 +1,4 @@
-package distributed.systems.logging;
+package distributed.systems.network.logging;
 
 import static org.mockito.Mockito.*;
 
@@ -6,18 +6,13 @@ import java.rmi.RemoteException;
 import java.util.Date;
 
 import distributed.systems.core.LogMessage;
-import distributed.systems.network.logging.InfluxLogger;
-import distributed.systems.network.logging.LogNode;
-import distributed.systems.network.logging.Logger;
+import distributed.systems.network.CleanRunner;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
+@RunWith(CleanRunner.class)
 public class LogNodeTest {
-
-	@BeforeClass
-	public void setup() {
-		InfluxLogger.FLAG_USE_INFLUX = false;
-	}
 
 	/**
 	 * Logs should be ordered before being written to a file
@@ -36,7 +31,7 @@ public class LogNodeTest {
 		when(message3.getTimestamp()).thenReturn(new Date(30));
 
 		// Setup lognode, prevent immediate flushing
-		LogNode lognode = new LogNode(7987, mockLogger);
+		LogNode lognode = new LogNode(CleanRunner.TEST_PORT_1, mockLogger);
 		lognode.setFlushThreshold(Long.MAX_VALUE);
 
 		// Send messages to lognode
