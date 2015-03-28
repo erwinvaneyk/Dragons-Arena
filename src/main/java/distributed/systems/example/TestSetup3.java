@@ -20,9 +20,10 @@ public class TestSetup3 {
 
     public static void main(String[] args) throws RemoteException, InterruptedException {
         // Server setup
-        ServerNode server1 = new ServerNode(1234, true);
+        ServerNode server1 = new ServerNode(1234);
+	    server1.startCluster();
 
-        ServerNode server2 = new ServerNode(1235, false);
+        ServerNode server2 = new ServerNode(1235);
         //ServerNode server3 = new ServerNode(1236, false);
         server2.connect(server1.getAddress());
         //server3.getServerSocket().connectToCluster(server2.getAddress());*/

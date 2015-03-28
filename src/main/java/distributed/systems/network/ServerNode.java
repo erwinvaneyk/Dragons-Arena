@@ -38,10 +38,10 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 
 
 	public static void main(String[] args) throws RemoteException {
-		new ServerNode(RegistryNode.PORT, false);
+		new ServerNode(RegistryNode.PORT);
 	}
 
-	public ServerNode(int port, boolean newCluster) throws RemoteException {
+	public ServerNode(int port) throws RemoteException {
 		// Parent requirements
 		ownRegistry = new RegistryNode(port);
 		address = new ServerAddress(port, NodeAddress.NodeType.SERVER);
@@ -55,17 +55,6 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 		// Setup server localSocket
 		serverSocket = new ServerSocket(this, otherNodes);
 
-		if (newCluster) {
-			serverSocket.logMessage("Starting new cluster, starting with id 0", LogType.DEBUG);
-			address.setId(0);
-			updateBindings();
-			// Setup battlefield
-			battlefield = new BattleField();
-			battlefield.setServerSocket(socket);
-			battlefield.setMessagefactory(messageFactory);
-			serverSocket.logMessage("Created the battlefield.", LogType.DEBUG);
-		}
-
 		// setup services
 		heartbeatService = new ServerHeartbeatService(this, serverSocket).expectHeartbeatFrom(otherNodes);
 		nodeBalanceService = new NodeBalanceService(this);
@@ -77,6 +66,17 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 
 		// TODO: start a dragon (if necessary)
 		serverSocket.logMessage("Server (" + address + ") is up and running", LogType.INFO);
+	}
+
+	public void startCluster() {
+		serverSocket.logMessage("Starting new cluster, starting with id 0", LogType.DEBUG);
+		address.setId(0);
+		updateBindings();
+		// Setup battlefield
+		battlefield = new BattleField();
+		battlefield.setServerSocket(socket);
+		battlefield.setMessagefactory(messageFactory);
+		serverSocket.logMessage("Created the battlefield.", LogType.DEBUG);
 	}
 
 	public void connect(NodeAddress server) {

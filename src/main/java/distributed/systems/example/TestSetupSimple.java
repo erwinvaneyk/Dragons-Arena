@@ -9,8 +9,9 @@ import distributed.systems.network.ServerNode;
 public class TestSetupSimple {
 
 	public static void main(String[] args) throws RemoteException {
-		ServerNode server1 = new ServerNode(2345, true);
-		ServerNode server2 = new ServerNode(2346, false);
+		ServerNode server1 = new ServerNode(2345);
+		server1.startCluster();
+		ServerNode server2 = new ServerNode(2346);
 		server2.connect(server1.getServerAddress());
 		System.out.println("ALL GOOD!!!!");
 	}
