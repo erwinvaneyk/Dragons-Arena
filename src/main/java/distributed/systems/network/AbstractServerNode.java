@@ -2,6 +2,7 @@ package distributed.systems.network;
 
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 
 import com.sun.istack.internal.NotNull;
@@ -67,5 +68,11 @@ public abstract class AbstractServerNode extends AbstractNode {
 		socket.addMessageReceivedHandler(this);
 		safeLogMessage("Successfully rebounded the binding " + currentBinding + " to " + address, LogType.DEBUG);
 		currentBinding = (NodeAddress) SerializationUtils.clone(address);
+	}
+
+	public void disconnect() throws RemoteException {
+		super.disconnect();
+		UnicastRemoteObject.unexportObject(this, true);
+		ownRegistry.disconnect();
 	}
 }

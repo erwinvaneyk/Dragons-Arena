@@ -16,7 +16,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(CleanRunner.class)
 public class ServerClusterTest {
-
+/*
 	@Test
 	public void ServerNodeCreationCheckFieldsTest() throws RemoteException {
 		ServerNode server1 = new ServerNode(CleanRunner.TEST_PORT_1);
@@ -32,9 +32,6 @@ public class ServerClusterTest {
 		System.out.println("after: " + server1.getOwnRegistry().toString());
 	}
 
-	/**
-	 * A server without a cluster should not be able to be contacted.
-	 */
 	@Test(expected = RuntimeException.class)
 	public void ServerNodeCreationMessageTest() throws RemoteException {
 		ServerNode server1 = new ServerNode(CleanRunner.TEST_PORT_2);
@@ -76,5 +73,5 @@ public class ServerClusterTest {
 		System.out.println("Before: " + server1.getOwnRegistry().toString());
 		server1.disconnect();
 		System.out.println("after: " + server1.getOwnRegistry().toString());
-	}
+	}*/
 }

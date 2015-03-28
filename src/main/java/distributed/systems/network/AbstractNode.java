@@ -63,18 +63,11 @@ public abstract class AbstractNode extends UnicastRemoteObject implements IMessa
 		return response;
 	}
 
-	public void disconnect() {
-		// Stop services
-		services.shutdownNow();
-
-		try {
-			// Stop exporting this object
-			UnicastRemoteObject.unexportObject(this, true);
-			safeLogMessage("Disconnected `" + address + "`.", LogType.INFO);
-		}
-		catch (NoSuchObjectException e) {
-			e.printStackTrace();
-		}
+	public void disconnect() throws RemoteException {
+		// Remove old binding
+		socket = LocalSocket.connectTo(address);
+		socket.unRegister();
+		UnicastRemoteObject.unexportObject(this, true);
 	}
 
 	public void safeLogMessage(String message, LogType type) {

@@ -27,7 +27,6 @@ public class LogNode extends AbstractServerNode {
 	private long flushThreshold = 10000;
 
 	private final Logger logger;
-	private final RegistryNode ownRegistry;
 	private final PriorityQueue<Message> orderingQueue;
 
 	public LogNode(int port, Logger logger) throws RemoteException {
