@@ -37,9 +37,9 @@ public class ServerSocket implements Socket {
 	private final AbstractServerNode me;
 
 
-	public ServerSocket(AbstractServerNode me, ArrayList<ServerAddress> otherNodes) {
+	public ServerSocket(AbstractServerNode me) {
 		this.me = me;
-		this.otherNodes = otherNodes;
+		this.otherNodes = me.getOtherNodes();
 	}
 
 	public Optional<ServerAddress> getNode(NodeAddress nodeAddress) {

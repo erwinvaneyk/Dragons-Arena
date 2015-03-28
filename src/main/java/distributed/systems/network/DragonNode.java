@@ -73,4 +73,8 @@ public class DragonNode extends AbstractNode implements ClientNode, Serializable
 		return dragon;
 	}
 
+	@Override
+	public NodeAddress.NodeType getNodeType() {
+		return NodeAddress.NodeType.DRAGON;
+	}
 }

@@ -32,11 +32,8 @@ public class LogNode extends AbstractServerNode {
 	private final PriorityQueue<Message> orderingQueue;
 
 	public LogNode(int port, Logger logger) throws RemoteException {
-		// Parent requirements
-		ownRegistry = new RegistryNode(port);
-		address = new ServerAddress(port, NodeAddress.NodeType.LOGGER);
+		super(port);
 		this.logger = logger;
-		this.messageFactory = new MessageFactory(address);
 
 		orderingQueue = new PriorityQueue<>(10, new Comparator<Message>() {
 			@Override
@@ -45,12 +42,8 @@ public class LogNode extends AbstractServerNode {
 			}
 		});
 
-		socket = LocalSocket.connectTo(address);
-		socket.register(address);
 		socket.addMessageReceivedHandler(this);
-		messageFactory = new MessageFactory(address);
 		socket.logMessage("Logger " + address + " is configured and ready for some heavy logging!", LogType.DEBUG);
-		serverSocket = new ServerSocket(this, otherNodes);
 	}
 
 	@Override
@@ -59,6 +52,11 @@ public class LogNode extends AbstractServerNode {
 		orderingQueue.add(message);
 		flushMessagesOlderThan(System.currentTimeMillis() - flushThreshold);
 		return null;
+	}
+
+	@Override
+	public NodeAddress.NodeType getNodeType() {
+		return NodeAddress.NodeType.LOGGER;
 	}
 
 	public void flushMessagesOlderThan(long timestamp) {

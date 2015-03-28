@@ -40,7 +40,7 @@ public class PlayerNode extends AbstractNode implements ClientNode, IMessageRece
 
 	public PlayerNode(NodeAddress server, int x, int y) throws RemoteException {
 		// Setup
-		address = new NodeAddress(-1, NodeAddress.NodeType.PLAYER);
+		address = new NodeAddress(-1, getNodeType());
 		serverAddress = server;
 		messageFactory = new MessageFactory(address);
 
@@ -73,5 +73,10 @@ public class PlayerNode extends AbstractNode implements ClientNode, IMessageRece
 	public Unit getUnit() {
 		return player;
 
+	}
+
+	@Override
+	public NodeAddress.NodeType getNodeType() {
+		return NodeAddress.NodeType.PLAYER;
 	}
 }

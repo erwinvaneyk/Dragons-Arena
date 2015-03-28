@@ -42,18 +42,11 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 	}
 
 	public ServerNode(int port) throws RemoteException {
-		// Parent requirements
-		ownRegistry = new RegistryNode(port);
-		address = new ServerAddress(port, NodeAddress.NodeType.SERVER);
-		socket = LocalSocket.connectTo(address);
-		socket.register(address);
-		messageFactory = new MessageFactory(address);
+		super(port);
 		// Setup message-handlers
-		addMessageHandler(new ServerJoinHandler(this));
-		addMessageHandler(new SyncBattlefieldHandler(this));
 		addMessageHandler(new LogHandler(this));
-		// Setup server localSocket
-		serverSocket = new ServerSocket(this, otherNodes);
+		addMessageHandler(new SyncBattlefieldHandler(this));
+		addMessageHandler(new ServerJoinHandler(this));
 
 		// setup services
 		heartbeatService = new ServerHeartbeatService(this, serverSocket).expectHeartbeatFrom(otherNodes);
@@ -89,5 +82,10 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 		} else {
 			safeLogMessage("Cannot launch battlefield-viewer; no battlefield available!", LogType.ERROR);
 		}
+	}
+
+	@Override
+	public NodeAddress.NodeType getNodeType() {
+		return NodeAddress.NodeType.SERVER;
 	}
 }

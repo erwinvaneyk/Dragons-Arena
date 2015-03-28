@@ -80,5 +80,7 @@ public abstract class AbstractNode extends UnicastRemoteObject implements IMessa
 		System.out.println("No socket present: " + message);
 	}
 
+	public abstract NodeAddress.NodeType getNodeType();
+
 	//public abstract void setAddress(NodeAddress newAddress);
 }

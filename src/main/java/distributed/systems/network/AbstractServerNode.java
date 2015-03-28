@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 import com.sun.istack.internal.NotNull;
 import distributed.systems.core.LogType;
+import distributed.systems.core.MessageFactory;
 import distributed.systems.network.messagehandlers.ServerJoinHandler;
 import lombok.Getter;
 import org.apache.commons.lang.SerializationUtils;
@@ -18,6 +19,16 @@ public abstract class AbstractServerNode extends AbstractNode {
 
 	@Getter
 	protected ServerSocket serverSocket;
+
+	public AbstractServerNode(int port) throws RemoteException {
+		// Parent requirements
+		ownRegistry = new RegistryNode(port);
+		address = new ServerAddress(port, this.getNodeType());
+		socket = LocalSocket.connectTo(address);
+		socket.register(address);
+		messageFactory = new MessageFactory(address);
+		serverSocket = new ServerSocket(this);
+	}
 
 	// Own registry
 	protected RegistryNode ownRegistry;
