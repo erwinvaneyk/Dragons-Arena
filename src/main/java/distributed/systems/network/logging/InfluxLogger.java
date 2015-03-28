@@ -12,10 +12,11 @@ import distributed.systems.network.NodeAddress;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.Database;
-import org.influxdb.dto.Pong;
 import org.influxdb.dto.Serie;
 
 public class InfluxLogger implements Logger {
+
+	public static boolean FLAG_USE_INFLUX = true;
 
 	private static final String DATABASE_DATA = "data";
 	private static final String DATABASE_GRAFANA = "grafana";
@@ -56,19 +57,26 @@ public class InfluxLogger implements Logger {
 	public void logMessageDuration(Message message, NodeAddress messageHandler, long duration) {
 		String origin = message.getOrigin() != null ? message.getOrigin().getName() : "";
 		Serie serie = new Serie.Builder("messagePerformance")
-				.columns("duration", "messagetype", "messagehandler", "origin")
-				.values(duration, message.getMessageType(), messageHandler.getName(), origin)
+				.columns("duration", "messagetype", "messagehandler", "origin", "time","receivedtime")
+				.values(duration, message.getMessageType(), messageHandler.getName(), origin, message.getTimestamp().getTime(), message.getReceivedTimestamp().getTime())
 				.build();
-		influxDB.write(DATABASE_DATA, TimeUnit.MILLISECONDS, serie);
+		writeToInflux(serie);
 	}
 
 	@Override
 	public void log(LogMessage message) {
+		String origin = message.getOrigin() != null ? message.getOrigin().getName() : "";
 		Serie serie = new Serie.Builder("log")
-				.columns("message","logtype","origin","timestamp")
-				.values(message.getLogMessage(), message.getLogType(), message.getTimestamp().getTime())
+				.columns("message","logtype","origin","time")
+				.values(message.getLogMessage(), message.getLogType(), origin,
+						message.getTimestamp().getTime())
 				.build();
-		influxDB.write(DATABASE_DATA, TimeUnit.MILLISECONDS, serie);
+		writeToInflux(serie);
+	}
 
+	private void writeToInflux(Serie serie) {
+		if(FLAG_USE_INFLUX) {
+			influxDB.write(DATABASE_DATA, TimeUnit.MILLISECONDS, serie);
+		}
 	}
 }

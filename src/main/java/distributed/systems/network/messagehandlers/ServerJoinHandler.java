@@ -8,6 +8,7 @@ import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.core.MessageFactory;
 import distributed.systems.core.Socket;
+import distributed.systems.network.AbstractServerNode;
 import distributed.systems.network.LocalSocket;
 import distributed.systems.network.NodeAddress;
 import distributed.systems.network.ServerAddress;
@@ -41,7 +42,7 @@ public class ServerJoinHandler implements MessageHandler {
 	 * - address as decided by the servers
 	 *
 	 */
-	public static void connectToCluster(ServerNode server, NodeAddress hostAddress) {
+	public static void connectToCluster(AbstractServerNode server, NodeAddress hostAddress) {
 		if(server.getOtherNodes().stream().anyMatch(node -> node.equals(hostAddress))) {
 			server.getServerSocket().logMessage("Node tried to connect to cluster, even though it already is connected!",
 					LogType.WARN);

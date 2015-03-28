@@ -18,7 +18,7 @@ import distributed.systems.network.messagehandlers.MessageHandler;
 import distributed.systems.network.services.SocketService;
 import lombok.Getter;
 
-public abstract class BasicNode extends UnicastRemoteObject implements IMessageReceivedHandler {
+public abstract class AbstractNode extends UnicastRemoteObject implements IMessageReceivedHandler {
 	// MessageHandlers
 	private final Map<String, MessageHandler> messageHandlers = new HashMap<>();
 
@@ -37,7 +37,7 @@ public abstract class BasicNode extends UnicastRemoteObject implements IMessageR
 	@Getter
 	protected MessageFactory messageFactory;
 
-	protected BasicNode() throws RemoteException {}
+	protected AbstractNode() throws RemoteException {}
 
 
 	public void addMessageHandler(MessageHandler messageHandler) {
@@ -63,18 +63,11 @@ public abstract class BasicNode extends UnicastRemoteObject implements IMessageR
 		return response;
 	}
 
-	public void disconnect() {
-		// Stop services
-		services.shutdownNow();
-
-		try {
-			// Stop exporting this object
-			UnicastRemoteObject.unexportObject(this, true);
-			safeLogMessage("Disconnected `" + address + "`.", LogType.INFO);
-		}
-		catch (NoSuchObjectException e) {
-			e.printStackTrace();
-		}
+	public void disconnect() throws RemoteException {
+		// Remove old binding
+		socket = LocalSocket.connectTo(address);
+		socket.unRegister();
+		UnicastRemoteObject.unexportObject(this, true);
 	}
 
 	public void safeLogMessage(String message, LogType type) {

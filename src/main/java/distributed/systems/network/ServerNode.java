@@ -28,29 +28,20 @@ import org.apache.commons.lang.SerializationUtils;
  * Will also need to take care of the dragons (with fault tolerance)
  */
 @ToString
-public class ServerNode extends BasicNode implements IMessageReceivedHandler {
-
-	@Getter
-	private final ArrayList<ServerAddress> otherNodes = new ArrayList<>();
+public class ServerNode extends AbstractServerNode implements IMessageReceivedHandler {
 
 	@Getter
 	private BattleField battlefield;
 
-	// Own registry
-    private RegistryNode ownRegistry;
-	private NodeAddress currentBinding;
-
-	@Getter
-	private ServerSocket serverSocket;
     private HeartbeatService heartbeatService;
 	private NodeBalanceService nodeBalanceService;
 
 
 	public static void main(String[] args) throws RemoteException {
-		new ServerNode(RegistryNode.PORT, false);
+		new ServerNode(RegistryNode.PORT);
 	}
 
-	public ServerNode(int port, boolean newCluster) throws RemoteException {
+	public ServerNode(int port) throws RemoteException {
 		// Parent requirements
 		ownRegistry = new RegistryNode(port);
 		address = new ServerAddress(port, NodeAddress.NodeType.SERVER);
@@ -64,74 +55,32 @@ public class ServerNode extends BasicNode implements IMessageReceivedHandler {
 		// Setup server localSocket
 		serverSocket = new ServerSocket(this, otherNodes);
 
-		if (newCluster) {
-			serverSocket.logMessage("Starting new cluster, starting with id 0", LogType.DEBUG);
-			address.setId(0);
-			updateBindings();
-			// Setup battlefield
-			battlefield = new BattleField();
-			battlefield.setServerSocket(socket);
-			battlefield.setMessagefactory(messageFactory);
-			serverSocket.logMessage("Created the battlefield.", LogType.DEBUG);
-		}
-
 		// setup services
-		heartbeatService = new ServerHeartbeatService(this, serverSocket, otherNodes);
+		heartbeatService = new ServerHeartbeatService(this, serverSocket).expectHeartbeatFrom(otherNodes);
 		nodeBalanceService = new NodeBalanceService(this);
 		addMessageHandler(heartbeatService);
 		addMessageHandler(nodeBalanceService);
 		addMessageHandler(new ServerGameActionHandler(this));
-		System.out.println(ownRegistry);
 		runService(heartbeatService);
 
 		// TODO: start a dragon (if necessary)
 		serverSocket.logMessage("Server (" + address + ") is up and running", LogType.INFO);
 	}
 
-
-	public ServerAddress getServerAddress() {
-		return (ServerAddress) address;
-	}
-
-	public int generateUniqueId(@NotNull NodeAddress oldAddress) {
-		ArrayList<NodeAddress> nodes = new ArrayList<>(getOtherNodes());
-		nodes.add(getAddress());
-		int highestId = nodes
-				.stream()
-				.filter(node -> node.getType().equals(oldAddress.getType()))
-				.mapToInt(NodeAddress::getId)
-				.max().orElse(Math.max(getAddress().getId(), 0)) + 1;
-		return highestId;
+	public void startCluster() {
+		serverSocket.logMessage("Starting new cluster, starting with id 0", LogType.DEBUG);
+		address.setId(0);
+		updateBindings();
+		// Setup battlefield
+		battlefield = new BattleField();
+		battlefield.setServerSocket(socket);
+		battlefield.setMessagefactory(messageFactory);
+		serverSocket.logMessage("Created the battlefield.", LogType.DEBUG);
 	}
 
 	public void connect(NodeAddress server) {
-		ServerJoinHandler.connectToCluster(this, server);
+		super.connect(server);
 		battlefield = SyncBattlefieldHandler.syncBattlefield(this);
-	}
-
-	public void updateBindings() {
-		// Check if there is a difference
-		if (address.equals(currentBinding)) {
-			return;
-		}
-
-		// Remove old binding
-		try {
-			if(currentBinding != null) {
-				ownRegistry.getRegistry().unbind(currentBinding.getName());
-			}
-		}
-		catch (RemoteException | NotBoundException e) {
-			safeLogMessage("Trying to unbind a non-existent binding: " + currentBinding + " from " + ownRegistry, LogType.WARN);
-		}
-
-		// Add new binding
-		socket = LocalSocket.connectTo(address);
-		socket.register(address);
-
-		socket.addMessageReceivedHandler(this);
-		safeLogMessage("Successfully rebounded the binding " + currentBinding + " to " + address, LogType.DEBUG);
-		currentBinding = (NodeAddress) SerializationUtils.clone(address);
 	}
 
 	public void launchViewer() {
@@ -140,7 +89,5 @@ public class ServerNode extends BasicNode implements IMessageReceivedHandler {
 		} else {
 			safeLogMessage("Cannot launch battlefield-viewer; no battlefield available!", LogType.ERROR);
 		}
-
-
 	}
 }

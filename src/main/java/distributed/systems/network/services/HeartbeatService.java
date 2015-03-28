@@ -1,19 +1,19 @@
 package distributed.systems.network.services;
 
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 
-import distributed.systems.core.ExtendedSocket;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
-import distributed.systems.core.MessageFactory;
 import distributed.systems.core.Socket;
-import distributed.systems.network.BasicNode;
+import distributed.systems.network.AbstractNode;
 import distributed.systems.network.NodeAddress;
 import distributed.systems.network.ServerAddress;
+import lombok.Getter;
 
 public abstract class HeartbeatService implements SocketService {
 
@@ -22,16 +22,24 @@ public abstract class HeartbeatService implements SocketService {
 	protected static final int TIMEOUT_DURATION = 15000;
 	protected static final int CHECK_INTERVAL = 5000;
 
-	protected final List<ServerAddress> heartbeatNodes;
+	protected final List<ServerAddress> watchNodes = new ArrayList<>();
 	protected final Socket socket;
-	protected final BasicNode me;
+	protected final AbstractNode me;
 	protected Map<ServerAddress, Integer> nodes = new ConcurrentHashMap<>();
 
-	public HeartbeatService(BasicNode me, Socket socket, List<ServerAddress> heartbeatNodes) {
-		this.heartbeatNodes = heartbeatNodes;
+	public HeartbeatService(AbstractNode me, Socket socket) {
 		this.socket = socket;
 		this.me = me;
-		updateNodes();
+	}
+
+	public HeartbeatService expectHeartbeatFrom(ServerAddress node) {
+		watchNodes.add(node);
+		return this;
+	}
+
+	public HeartbeatService expectHeartbeatFrom(List<ServerAddress> nodes) {
+		watchNodes.addAll(nodes);
+		return this;
 	}
 
 
@@ -39,7 +47,6 @@ public abstract class HeartbeatService implements SocketService {
 		me.safeLogMessage("Starting heartbeat process...", LogType.DEBUG);
 		try {
 			while(!Thread.currentThread().isInterrupted()) {
-				updateNodes();
 				doHeartbeat();
 				checkHeartbeats();
 				Thread.sleep(CHECK_INTERVAL);
@@ -47,12 +54,6 @@ public abstract class HeartbeatService implements SocketService {
 		} catch (InterruptedException e) {
 			socket.logMessage("Heartbeat service has been stopped", LogType.INFO);
 		}
-	}
-
-	private void updateNodes() {
-		heartbeatNodes.stream()
-				.filter(node -> !nodes.containsKey(node))
-				.forEach(node -> nodes.put(node, TIMEOUT_DURATION / CHECK_INTERVAL));
 	}
 
 	private void checkHeartbeats() {
@@ -70,7 +71,7 @@ public abstract class HeartbeatService implements SocketService {
 	protected abstract void removeNode(ServerAddress address);
 	/*
 		nodes.remove(address);
-		heartbeatNodes.remove(address);
+		watchNodes.remove(address);
 		socket.logMessage("Node `" + address.getName() + "` TIMED OUT, because it has not been sending any heartbeats!",
 				LogType.WARN);
 

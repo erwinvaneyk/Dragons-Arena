@@ -1,18 +1,16 @@
 package distributed.systems.network;
 
 
-import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
-import distributed.systems.core.ExtendedSocket;
+
 import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.LogType;
 import distributed.systems.core.MessageFactory;
 import distributed.systems.das.units.Player;
 import distributed.systems.das.units.Unit;
 import distributed.systems.network.messagehandlers.ClientGameActionHandler;
-import distributed.systems.network.messagehandlers.ServerGameActionHandler;
 import distributed.systems.network.services.ClientHeartbeatService;
 import distributed.systems.network.services.HeartbeatService;
 import distributed.systems.network.services.NodeBalanceService;
@@ -26,7 +24,7 @@ import lombok.Getter;
  * - Socket
  */
 
-public class PlayerNode extends BasicNode implements ClientNode, IMessageReceivedHandler {
+public class PlayerNode extends AbstractNode implements ClientNode, IMessageReceivedHandler {
 
 	private Player player;
 
@@ -52,7 +50,7 @@ public class PlayerNode extends BasicNode implements ClientNode, IMessageReceive
 		socket.register(address);
 		socket.addMessageReceivedHandler(this);
 		knownServers.add(new ServerAddress(serverAddress));
-		heartbeatService = new ClientHeartbeatService(this, socket, knownServers);
+		heartbeatService = new ClientHeartbeatService(this, socket).expectHeartbeatFrom(knownServers);
 
 		// Add message handlers
 		addMessageHandler(heartbeatService);

@@ -21,7 +21,8 @@ public class TestSetup {
 
 	public static void main(String[] args) throws RemoteException {
 		new Thread(new RegistryNode(RegistryNode.PORT)).start();
-		ServerNode server = new ServerNode(RegistryNode.PORT, false);
+		ServerNode server = new ServerNode(RegistryNode.PORT);
+		server.startCluster();
 		//new LogNode(Logger.getDefault());
 		new PlayerNode(server.getAddress(),1,2);
 		new PlayerNode(server.getAddress(),3,2);
