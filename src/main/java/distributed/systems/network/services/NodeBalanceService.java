@@ -56,7 +56,7 @@ public class NodeBalanceService implements SocketService {
 	public NodeAddress getLeastBusyServer() {
 		ServerAddress otherServer = me.getOtherNodes().stream()
 				.filter(NodeAddress::isServer)
-				.reduce((a, b) -> a.getClients().size() < b.getClients().size() ? a : b).orElseThrow(() -> new RuntimeException("No server could be found be the load balancer"));
+				.reduce((a, b) -> a.getClients().size() < b.getClients().size() ? a : b).orElse(me.getServerAddress());
 		return otherServer.getClients().size() < me.getServerAddress().getClients().size() ? otherServer : me.getAddress();
 	}
 

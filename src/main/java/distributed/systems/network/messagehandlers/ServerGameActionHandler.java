@@ -25,9 +25,6 @@ public class ServerGameActionHandler implements MessageHandler {
 	public Message onMessageReceived(Message message) throws RemoteException {
 		// TODO: task distribution
 		me.getSocket().logMessage("[" + me.getAddress() + "] received message: (" + message + ")", LogType.DEBUG);
-		System.out.println(message);
-		System.out.println(me.getAddress());
-		System.out.println(me.getBattlefield());
 		return me.getBattlefield().onMessageReceived(message);
 	}
 }

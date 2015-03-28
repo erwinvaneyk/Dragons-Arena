@@ -34,10 +34,10 @@ public class ServerSocket implements Socket {
 	private final ArrayList<ServerAddress> otherNodes;
 
 	@Getter
-	private final ServerNode me;
+	private final AbstractServerNode me;
 
 
-	public ServerSocket(ServerNode me, ArrayList<ServerAddress> otherNodes) {
+	public ServerSocket(AbstractServerNode me, ArrayList<ServerAddress> otherNodes) {
 		this.me = me;
 		this.otherNodes = otherNodes;
 	}
@@ -87,7 +87,13 @@ public class ServerSocket implements Socket {
 				.stream()
 				.filter(node -> node.getType().equals(NodeAddress.NodeType.LOGGER))
 				.collect(toList());
-		logNodes.forEach(logger -> sendMessage(logMessage, logger));
+		logNodes.forEach(logger -> {
+			try {
+				sendMessage(logMessage, logger);
+			} catch (RuntimeException e) {
+				System.out.println("Error occured while trying to log! We do not really care about logs anyway, moving on.. Reason: " + e);
+			}
+		});
 		// If there are no loggers, just output it to the screen.
 		if(logNodes.isEmpty()) {
 			System.out.println("No logger present: " + logMessage);

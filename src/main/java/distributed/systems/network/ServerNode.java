@@ -61,7 +61,6 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 		addMessageHandler(heartbeatService);
 		addMessageHandler(nodeBalanceService);
 		addMessageHandler(new ServerGameActionHandler(this));
-		System.out.println(ownRegistry);
 		runService(heartbeatService);
 
 		// TODO: start a dragon (if necessary)
