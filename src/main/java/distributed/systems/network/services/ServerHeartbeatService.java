@@ -1,11 +1,9 @@
 package distributed.systems.network.services;
 
-import java.util.List;
-
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.network.AbstractNode;
-import distributed.systems.network.NodeAddress;
+import distributed.systems.network.NodeType;
 import distributed.systems.network.ServerAddress;
 import distributed.systems.network.ServerSocket;
 
@@ -30,7 +28,7 @@ public class ServerHeartbeatService extends HeartbeatService {
 	public void doHeartbeat() {
 		Message message = me.getMessageFactory().createMessage(HeartbeatService.MESSAGE_TYPE);
 		// Send to other servers
-		socket.broadcast(message, NodeAddress.NodeType.SERVER);
+		socket.broadcast(message, NodeType.SERVER);
 		// Send to my clients
 		serversocket.getMe().getServerAddress().getClients().stream().forEach(node -> {
 			try {

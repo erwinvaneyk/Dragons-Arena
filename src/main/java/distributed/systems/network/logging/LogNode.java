@@ -2,21 +2,14 @@ package distributed.systems.network.logging;
 
 
 import java.rmi.RemoteException;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 
 import distributed.systems.core.LogMessage;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
-import distributed.systems.core.MessageFactory;
 import distributed.systems.network.AbstractServerNode;
-import distributed.systems.network.LocalSocket;
-import distributed.systems.network.NodeAddress;
-import distributed.systems.network.RegistryNode;
-import distributed.systems.network.ServerAddress;
-import distributed.systems.network.ServerSocket;
-import distributed.systems.network.messagehandlers.ServerJoinHandler;
+import distributed.systems.network.NodeType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -32,11 +25,8 @@ public class LogNode extends AbstractServerNode {
 	private final PriorityQueue<Message> orderingQueue;
 
 	public LogNode(int port, Logger logger) throws RemoteException {
-		// Parent requirements
-		ownRegistry = new RegistryNode(port);
-		address = new ServerAddress(port, NodeAddress.NodeType.LOGGER);
+		super(port);
 		this.logger = logger;
-		this.messageFactory = new MessageFactory(address);
 
 		orderingQueue = new PriorityQueue<>(10, new Comparator<Message>() {
 			@Override
@@ -45,12 +35,8 @@ public class LogNode extends AbstractServerNode {
 			}
 		});
 
-		socket = LocalSocket.connectTo(address);
-		socket.register(address);
 		socket.addMessageReceivedHandler(this);
-		messageFactory = new MessageFactory(address);
 		socket.logMessage("Logger " + address + " is configured and ready for some heavy logging!", LogType.DEBUG);
-		serverSocket = new ServerSocket(this, otherNodes);
 	}
 
 	@Override
@@ -59,6 +45,11 @@ public class LogNode extends AbstractServerNode {
 		orderingQueue.add(message);
 		flushMessagesOlderThan(System.currentTimeMillis() - flushThreshold);
 		return null;
+	}
+
+	@Override
+	public NodeType getNodeType() {
+		return NodeType.LOGGER;
 	}
 
 	public void flushMessagesOlderThan(long timestamp) {

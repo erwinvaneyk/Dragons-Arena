@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import distributed.systems.core.LogType;
+import distributed.systems.core.Message;
 import distributed.systems.core.MessageFactory;
 import distributed.systems.das.units.Dragon;
 import distributed.systems.das.units.Unit;
@@ -39,7 +40,7 @@ public class DragonNode extends AbstractNode implements ClientNode, Serializable
 
 	public DragonNode(NodeAddress server, int x, int y) throws RemoteException {
 		// Setup
-		address = new NodeAddress(-1, NodeAddress.NodeType.DRAGON);
+		address = new NodeAddress(-1, NodeType.DRAGON);
 		serverAddress = server;
 		messageFactory = new MessageFactory(address);
 
@@ -73,4 +74,13 @@ public class DragonNode extends AbstractNode implements ClientNode, Serializable
 		return dragon;
 	}
 
+	@Override
+	public Message sendMessageToServer(Message message) {
+		return socket.sendMessage(message, this.getServerAddress());
+	}
+
+	@Override
+	public NodeType getNodeType() {
+		return NodeType.DRAGON;
+	}
 }

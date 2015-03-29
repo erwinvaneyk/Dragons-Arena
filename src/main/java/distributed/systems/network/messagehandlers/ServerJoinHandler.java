@@ -78,7 +78,7 @@ public class ServerJoinHandler implements MessageHandler {
 			// Determine id for new server if necessary
 			if(newServer.getId() < 0) { // Indicates that server has no id yet
 				String oldServerId = newServer.toString();
-				newServer.setId(me.generateUniqueId(newServer));
+				newServer.setId(me.generateUniqueId(newServer.getType()));
 				response.put("address", newServer);
 				message.put("address", newServer);
 				me.getServerSocket().logMessage(

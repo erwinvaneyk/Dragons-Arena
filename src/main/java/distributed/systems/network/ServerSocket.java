@@ -2,23 +2,13 @@ package distributed.systems.network;
 
 import static java.util.stream.Collectors.toList;
 
-import javax.xml.soap.Node;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import com.sun.istack.internal.NotNull;
-
-import distributed.systems.core.ExtendedSocket;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
-import distributed.systems.core.MessageFactory;
 import distributed.systems.core.Socket;
-import distributed.systems.das.BattleField;
 import lombok.Getter;
 
 /**
@@ -37,9 +27,9 @@ public class ServerSocket implements Socket {
 	private final AbstractServerNode me;
 
 
-	public ServerSocket(AbstractServerNode me, ArrayList<ServerAddress> otherNodes) {
+	public ServerSocket(AbstractServerNode me) {
 		this.me = me;
-		this.otherNodes = otherNodes;
+		this.otherNodes = me.getOtherNodes();
 	}
 
 	public Optional<ServerAddress> getNode(NodeAddress nodeAddress) {
@@ -68,7 +58,7 @@ public class ServerSocket implements Socket {
 		});
 	}
 
-	public void broadcast(Message message, NodeAddress.NodeType type) {
+	public void broadcast(Message message, NodeType type) {
 		otherNodes.stream()
 				.filter(node -> node.getType().equals(type))
 				.forEach(node -> {
@@ -85,7 +75,7 @@ public class ServerSocket implements Socket {
 	public void logMessage(Message logMessage) {
 		List<NodeAddress> logNodes = otherNodes
 				.stream()
-				.filter(node -> node.getType().equals(NodeAddress.NodeType.LOGGER))
+				.filter(node -> node.getType().equals(NodeType.LOGGER))
 				.collect(toList());
 		logNodes.forEach(logger -> {
 			try {

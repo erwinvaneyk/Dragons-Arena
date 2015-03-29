@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 import com.sun.istack.internal.NotNull;
 import distributed.systems.core.LogType;
+import distributed.systems.core.MessageFactory;
 import distributed.systems.network.messagehandlers.ServerJoinHandler;
 import lombok.Getter;
 import org.apache.commons.lang.SerializationUtils;
@@ -17,24 +18,32 @@ public abstract class AbstractServerNode extends AbstractNode {
 	protected final ArrayList<ServerAddress> otherNodes = new ArrayList<>();
 
 	@Getter
-	protected ServerSocket serverSocket;
+	protected final ServerSocket serverSocket;
 
 	// Own registry
-	protected RegistryNode ownRegistry;
+	protected final RegistryNode ownRegistry;
 	private NodeAddress currentBinding;
 
-	protected AbstractServerNode() throws RemoteException {}
+	public AbstractServerNode(int port) throws RemoteException {
+		// Parent requirements
+		ownRegistry = new RegistryNode(port);
+		address = new ServerAddress(port, this.getNodeType());
+		socket = LocalSocket.connectTo(address);
+		socket.register(address);
+		messageFactory = new MessageFactory(address);
+		serverSocket = new ServerSocket(this);
+	}
 
 	public void connect(NodeAddress server) {
 		ServerJoinHandler.connectToCluster(this, server);
 	}
 
-	public int generateUniqueId(@NotNull NodeAddress oldAddress) {
+	public int generateUniqueId(@NotNull NodeType type) {
 		ArrayList<NodeAddress> nodes = new ArrayList<>(otherNodes);
 		nodes.add(getAddress());
 		int highestId = nodes
 				.stream()
-				.filter(node -> node.getType().equals(oldAddress.getType()))
+				.filter(node -> node.getType().equals(type))
 				.mapToInt(NodeAddress::getId)
 				.max().orElse(Math.max(getAddress().getId(), 0)) + 1;
 		return highestId;
@@ -74,5 +83,13 @@ public abstract class AbstractServerNode extends AbstractNode {
 		super.disconnect();
 		UnicastRemoteObject.unexportObject(this, true);
 		ownRegistry.disconnect();
+	}
+
+	public void startCluster() {
+		// TODO: say goodbye to othernodes
+		otherNodes.clear();
+		serverSocket.logMessage("Starting new cluster, starting with id 0", LogType.DEBUG);
+		address.setId(0);
+		updateBindings();
 	}
 }

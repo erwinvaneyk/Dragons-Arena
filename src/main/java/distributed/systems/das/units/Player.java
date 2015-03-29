@@ -6,8 +6,10 @@ import distributed.systems.core.exception.AlreadyAssignedIDException;
 import distributed.systems.das.BattleField;
 import distributed.systems.das.GameState;
 import distributed.systems.network.ClientNode;
+import distributed.systems.network.logging.InfluxLogger;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * A Player is, as the name implies, a playing 
@@ -21,6 +23,7 @@ import lombok.Setter;
  *   
  * @author Pieter Anemaet, Boaz Pat-El
  */
+@ToString(callSuper = true)
 @SuppressWarnings("serial")
 public class Player extends Unit implements Runnable, Serializable {
 	/* Reaction speed of the player
@@ -86,6 +89,7 @@ public class Player extends Unit implements Runnable, Serializable {
 		this.running = true;
 
 		while(GameState.getRunningState() && this.running) {
+			long start = System.currentTimeMillis();
 			try {			
 				/* Sleep while the player is considering its next move */
 				Thread.currentThread().sleep((int)(timeBetweenTurns * 500 * GameState.GAME_SPEED));
@@ -152,8 +156,9 @@ public class Player extends Unit implements Runnable, Serializable {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
+			InfluxLogger.getInstance().logUnitRoundDuration(this, this.node.getServerAddress(), System.currentTimeMillis() - start);
 		}
-		clientSocket.unRegister();
+		//clientSocket.unRegister();
 	}
 
 }

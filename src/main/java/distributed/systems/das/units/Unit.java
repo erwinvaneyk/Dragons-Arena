@@ -10,12 +10,13 @@ import distributed.systems.das.GameState;
 import distributed.systems.das.MessageRequest;
 import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.Message;
-import distributed.systems.core.Socket;
 import distributed.systems.core.exception.AlreadyAssignedIDException;
 import distributed.systems.core.exception.IDNotAssignedException;
 import distributed.systems.network.ClientNode;
+import distributed.systems.network.NodeAddress;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * Base class for all players whom can 
@@ -25,12 +26,15 @@ import lombok.Setter;
  *  
  * @author Pieter Anemaet, Boaz Pat-El
  */
+@ToString
 public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	private static final long serialVersionUID = -4550572524008491161L;
 
-	@Getter
-	private transient final ClientNode node;
+	protected transient final ClientNode node;
 	private transient final MessageFactory messageFactory;
+
+	@Getter @Setter
+	private NodeAddress address;
 
 	// Position of the unit
 	protected int x, y;
@@ -44,9 +48,6 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
 	// Identifier of the unit
 	private String unitID;
-
-	// The communication socket between this client and the board
-	protected transient ExtendedSocket clientSocket;
 	
 	// Map messages from their ids
 	private Map<Integer, Message> messageList;
@@ -106,8 +107,8 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
 		this.unitID = node.getAddress().getName();
 		this.node = node;
-		this.clientSocket = this.node.getSocket();
-		this.messageFactory = new MessageFactory(node.getAddress());
+		this.messageFactory = this.node.getMessageFactory();
+		this.address = node.getAddress();
         this.lived = true;
 
 	}
@@ -115,7 +116,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	/**
 	 * Adjust the hitpoints to a certain level. 
 	 * Useful for healing or dying purposes.
-	 * 
+	 *
 	 * @param modifier is to be added to the
 	 * hitpoint count.
 	 */
@@ -156,8 +157,8 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		}
 		
 		// Send a spawn message
-        if(this.lived==true){
-	        clientSocket.sendMessage(damageMessage,  node.getServerAddress());
+        if(this.lived){
+	        node.sendMessageToServer(damageMessage);
         }
 	}
 	
@@ -182,8 +183,8 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
 		// Send a spawn message
 
-        if (this.lived==true) {
-	        clientSocket.sendMessage(healMessage,  node.getServerAddress());
+        if (this.lived) {
+	        node.sendMessageToServer(healMessage);
         }
 	}
 
@@ -260,8 +261,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
 		// Send a spawn message
 		try {
-
-			clientSocket.sendMessage(spawnMessage, node.getServerAddress());
+			node.sendMessageToServer(spawnMessage);
 		} catch (IDNotAssignedException e) {
 			System.err.println("No server found while spawning unit at location (" + x + ", " + y + ")");
 			return false;
@@ -290,8 +290,8 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		getMessage.put("id", id);
 
 		// Send the getUnit message
-        if (this.lived==true) {
-	        clientSocket.sendMessage(getMessage, node.getServerAddress());
+        if (this.lived) {
+	        node.sendMessageToServer(getMessage);
         }
 		// Wait for the reply
 		while(!messageList.containsKey(id)) {
@@ -330,7 +330,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
         // Send the getUnit message
         if (this.lived==true) {
-	        clientSocket.sendMessage(getMessage, node.getServerAddress());
+	        node.sendMessageToServer(getMessage);
         }
 
 		// Wait for the reply
@@ -363,7 +363,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
 
 		// Send the removeUnit message
-		clientSocket.sendMessage(removeMessage, node.getServerAddress());
+		node.sendMessageToServer(removeMessage);
 	}
 	protected void moveUnit(int x, int y)
 	{
@@ -380,8 +380,8 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		moveMessage.put("unit", this);
 
 		// Send the getUnit message
-        if (this.lived==true) {
-	        clientSocket.sendMessage(moveMessage, node.getServerAddress());
+        if (this.lived) {
+	        node.sendMessageToServer(moveMessage);
         }
 
 		// Wait for the reply
@@ -447,9 +447,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	public void disconnect() {
 		running = false;
 		// #Hack for clientsockets not unregister-ing
-		clientSocket.unRegister();
-
-        stopRunnerThread();
+		stopRunnerThread();
 	}
 
 	/**
@@ -477,7 +475,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
         test.put("id",id);
         test.put("unit",this);
         this.disconnect++;
-        clientSocket.sendMessage(test, node.getServerAddress());
+	    node.sendMessageToServer(test);
 
     }
 }

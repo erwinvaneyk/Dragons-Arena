@@ -1,11 +1,11 @@
 package distributed.systems.core;
 
 import distributed.systems.network.NodeAddress;
+import distributed.systems.network.NodeType;
 
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.List;
-import java.util.Optional;
 
 public class SynchronizedSocket implements ExtendedSocket,Serializable{
 
@@ -52,7 +52,7 @@ public class SynchronizedSocket implements ExtendedSocket,Serializable{
 	}
 
 	@Override
-	public void broadcast(Message message, NodeAddress.NodeType type) {
+	public void broadcast(Message message, NodeType type) {
 		this.local.broadcast(message, type);
 	}
 
