@@ -1,6 +1,5 @@
 package distributed.systems.network;
 
-import java.rmi.NoSuchObjectException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
@@ -80,7 +79,7 @@ public abstract class AbstractNode extends UnicastRemoteObject implements IMessa
 		System.out.println("No socket present: " + message);
 	}
 
-	public abstract NodeAddress.NodeType getNodeType();
+	public abstract NodeType getNodeType();
 
 	//public abstract void setAddress(NodeAddress newAddress);
 }

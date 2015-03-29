@@ -2,21 +2,14 @@ package distributed.systems.network.logging;
 
 
 import java.rmi.RemoteException;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 
 import distributed.systems.core.LogMessage;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
-import distributed.systems.core.MessageFactory;
 import distributed.systems.network.AbstractServerNode;
-import distributed.systems.network.LocalSocket;
-import distributed.systems.network.NodeAddress;
-import distributed.systems.network.RegistryNode;
-import distributed.systems.network.ServerAddress;
-import distributed.systems.network.ServerSocket;
-import distributed.systems.network.messagehandlers.ServerJoinHandler;
+import distributed.systems.network.NodeType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -55,8 +48,8 @@ public class LogNode extends AbstractServerNode {
 	}
 
 	@Override
-	public NodeAddress.NodeType getNodeType() {
-		return NodeAddress.NodeType.LOGGER;
+	public NodeType getNodeType() {
+		return NodeType.LOGGER;
 	}
 
 	public void flushMessagesOlderThan(long timestamp) {

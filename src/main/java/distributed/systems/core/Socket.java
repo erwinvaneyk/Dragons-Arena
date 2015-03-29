@@ -1,8 +1,7 @@
 package distributed.systems.core;
 
-import java.util.List;
-
 import distributed.systems.network.NodeAddress;
+import distributed.systems.network.NodeType;
 
 public interface Socket {
 
@@ -12,7 +11,7 @@ public interface Socket {
 
 	public void logMessage(String message, LogType type);
 
-	public void broadcast(Message message, NodeAddress.NodeType type);
+	public void broadcast(Message message, NodeType type);
 
 	public void broadcast(Message message);
 }

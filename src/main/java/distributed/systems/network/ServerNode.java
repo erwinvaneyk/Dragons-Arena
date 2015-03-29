@@ -1,12 +1,9 @@
 package distributed.systems.network;
 
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import com.sun.istack.internal.NotNull;
+
 import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.LogType;
-import distributed.systems.core.MessageFactory;
 import distributed.systems.das.BattleField;
 import distributed.systems.das.presentation.BattleFieldViewer;
 import distributed.systems.network.messagehandlers.ServerGameActionHandler;
@@ -18,8 +15,6 @@ import distributed.systems.network.services.NodeBalanceService;
 import distributed.systems.network.services.ServerHeartbeatService;
 import lombok.Getter;
 import lombok.ToString;
-import org.apache.commons.lang.SerializationUtils;
-
 
 
 /**
@@ -61,9 +56,7 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 	}
 
 	public void startCluster() {
-		serverSocket.logMessage("Starting new cluster, starting with id 0", LogType.DEBUG);
-		address.setId(0);
-		updateBindings();
+		super.startCluster();
 		// Setup battlefield
 		battlefield = new BattleField();
 		battlefield.setServerSocket(socket);
@@ -85,7 +78,7 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 	}
 
 	@Override
-	public NodeAddress.NodeType getNodeType() {
-		return NodeAddress.NodeType.SERVER;
+	public NodeType getNodeType() {
+		return NodeType.SERVER;
 	}
 }

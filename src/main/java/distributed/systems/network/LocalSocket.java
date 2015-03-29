@@ -144,7 +144,7 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 	}
 
 	@Deprecated
-	public void broadcast(Message message, NodeAddress.NodeType type) {
+	public void broadcast(Message message, NodeType type) {
 		try {
 			getNodes().stream()
 					.filter(address -> address.getType().equals(type))

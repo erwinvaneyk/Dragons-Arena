@@ -9,8 +9,8 @@ import distributed.systems.network.AbstractServerNode;
 import distributed.systems.network.ClientNode;
 import distributed.systems.network.LocalSocket;
 import distributed.systems.network.NodeAddress;
+import distributed.systems.network.NodeType;
 import distributed.systems.network.ServerAddress;
-import distributed.systems.network.ServerNode;
 import distributed.systems.network.ServerSocket;
 
 public class NodeBalanceService implements SocketService {
@@ -78,7 +78,7 @@ public class NodeBalanceService implements SocketService {
 				return serverSocket.sendMessage(message, redirect);
 			}
 
-			client.setId(me.generateUniqueId(client));
+			client.setId(me.generateUniqueId(client.getType()));
 			client.setPhysicalAddress(me.getAddress().getPhysicalAddress());
 			me.updateBindings();
 			response.put("address", client);
@@ -86,7 +86,7 @@ public class NodeBalanceService implements SocketService {
 			serverSocket.getOtherNodes().add(new ServerAddress(client));
 			me.getServerAddress().getClients().add(client);
 			// Propagate message
-			serverSocket.broadcast(message.put("forwarded", true).put("server", me.getAddress()), NodeAddress.NodeType.SERVER);
+			serverSocket.broadcast(message.put("forwarded", true).put("server", me.getAddress()), NodeType.SERVER);
 			return response;
 		} else {
 			ServerAddress owner = (ServerAddress) message.get("server");

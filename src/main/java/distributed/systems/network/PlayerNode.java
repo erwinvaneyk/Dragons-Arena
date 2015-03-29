@@ -76,7 +76,7 @@ public class PlayerNode extends AbstractNode implements ClientNode, IMessageRece
 	}
 
 	@Override
-	public NodeAddress.NodeType getNodeType() {
-		return NodeAddress.NodeType.PLAYER;
+	public NodeType getNodeType() {
+		return NodeType.PLAYER;
 	}
 }

@@ -13,10 +13,6 @@ public class NodeAddress implements Serializable {
 
 	public static final String SEPARATOR = "-";
 
-	public enum NodeType {
-		SERVER, PLAYER, DRAGON, LOGGER
-	}
-
 	private NodeType type;
 
 	private int id = -1;

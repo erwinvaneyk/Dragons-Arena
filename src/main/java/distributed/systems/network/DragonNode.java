@@ -39,7 +39,7 @@ public class DragonNode extends AbstractNode implements ClientNode, Serializable
 
 	public DragonNode(NodeAddress server, int x, int y) throws RemoteException {
 		// Setup
-		address = new NodeAddress(-1, NodeAddress.NodeType.DRAGON);
+		address = new NodeAddress(-1, NodeType.DRAGON);
 		serverAddress = server;
 		messageFactory = new MessageFactory(address);
 
@@ -74,7 +74,7 @@ public class DragonNode extends AbstractNode implements ClientNode, Serializable
 	}
 
 	@Override
-	public NodeAddress.NodeType getNodeType() {
-		return NodeAddress.NodeType.DRAGON;
+	public NodeType getNodeType() {
+		return NodeType.DRAGON;
 	}
 }
