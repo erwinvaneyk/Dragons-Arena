@@ -9,6 +9,7 @@ import distributed.systems.network.ClientNode;
 import distributed.systems.network.logging.InfluxLogger;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * A Player is, as the name implies, a playing 
@@ -22,6 +23,7 @@ import lombok.Setter;
  *   
  * @author Pieter Anemaet, Boaz Pat-El
  */
+@ToString(callSuper = true)
 @SuppressWarnings("serial")
 public class Player extends Unit implements Runnable, Serializable {
 	/* Reaction speed of the player
@@ -154,9 +156,9 @@ public class Player extends Unit implements Runnable, Serializable {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			InfluxLogger.getInstance().logUnitRoundDuration(this, System.currentTimeMillis() - start);
+			InfluxLogger.getInstance().logUnitRoundDuration(this, this.node.getServerAddress(), System.currentTimeMillis() - start);
 		}
-		clientSocket.unRegister();
+		//clientSocket.unRegister();
 	}
 
 }

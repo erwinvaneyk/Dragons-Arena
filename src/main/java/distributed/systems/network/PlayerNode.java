@@ -7,6 +7,7 @@ import java.util.List;
 
 import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.LogType;
+import distributed.systems.core.Message;
 import distributed.systems.core.MessageFactory;
 import distributed.systems.das.units.Player;
 import distributed.systems.das.units.Unit;
@@ -26,13 +27,13 @@ import lombok.Getter;
 
 public class PlayerNode extends AbstractNode implements ClientNode, IMessageReceivedHandler {
 
-	private Player player;
+	private transient Player player;
 
-	private List<ServerAddress> knownServers = new ArrayList<>();
+	private transient List<ServerAddress> knownServers = new ArrayList<>();
 
 	@Getter
 	private NodeAddress serverAddress;
-	private HeartbeatService heartbeatService;
+	private transient HeartbeatService heartbeatService;
 
 	public static void main(String[] args) throws RemoteException {
 		new PlayerNode(null, 1, 1);
@@ -73,6 +74,11 @@ public class PlayerNode extends AbstractNode implements ClientNode, IMessageRece
 	public Unit getUnit() {
 		return player;
 
+	}
+
+	@Override
+	public Message sendMessageToServer(Message message) {
+		return socket.sendMessage(message, this.getServerAddress());
 	}
 
 	@Override

@@ -19,12 +19,12 @@ import lombok.Getter;
 
 public abstract class AbstractNode extends UnicastRemoteObject implements IMessageReceivedHandler {
 	// MessageHandlers
-	private final Map<String, MessageHandler> messageHandlers = new HashMap<>();
+	private final transient Map<String, MessageHandler> messageHandlers = new HashMap<>();
 
 	// Services
-	private final ExecutorService services = Executors.newCachedThreadPool();
+	private final transient ExecutorService services = Executors.newCachedThreadPool();
 
-	private final InfluxLogger influxdbLogger = InfluxLogger.getInstance();
+	private final transient InfluxLogger influxdbLogger = InfluxLogger.getInstance();
 
 	// Address
 	@Getter
@@ -34,7 +34,7 @@ public abstract class AbstractNode extends UnicastRemoteObject implements IMessa
 	protected ExtendedSocket socket;
 
 	@Getter
-	protected MessageFactory messageFactory;
+	protected transient MessageFactory messageFactory;
 
 	protected AbstractNode() throws RemoteException {}
 

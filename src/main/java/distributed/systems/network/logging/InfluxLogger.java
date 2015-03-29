@@ -75,10 +75,10 @@ public class InfluxLogger implements Logger {
 		writeToInflux(serie);
 	}
 
-	public void logUnitRoundDuration(Unit unit, long duration) {
+	public void logUnitRoundDuration(Unit unit, NodeAddress server, long duration) {
 		Serie serie = new Serie.Builder("unitRoundDuration")
 				.columns("duration", "unit", "server", "time")
-				.values(duration, unit.getNode().getAddress().getName(), unit.getNode().getServerAddress().getName(), System.currentTimeMillis())
+				.values(duration, unit.getUnitID(), server.getName(), System.currentTimeMillis())
 				.build();
 		writeToInflux(serie);
 	}

@@ -3,24 +3,21 @@ package distributed.systems.das;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 import distributed.systems.core.ExtendedSocket;
 import distributed.systems.core.MessageFactory;
-import distributed.systems.core.SynchronizedQueue;
 import distributed.systems.das.units.Dragon;
 import distributed.systems.das.units.Player;
 import distributed.systems.das.units.Unit;
 import distributed.systems.das.units.Unit.UnitType;
 import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.Message;
-import distributed.systems.core.Socket;
 import distributed.systems.core.exception.IDNotAssignedException;
 import distributed.systems.network.NodeAddress;
-import distributed.systems.network.ServerNode;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
-import lombok.Synchronized;
 
 /**
  * The actual battlefield where the fighting takes place.
@@ -187,7 +184,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 		map[x][y] = null;
 		units.remove(unitToRemove);
         for (int i=0; i<Lqueue.size();i++){
-            if (((Unit)Lqueue.get(i).get("unit")).getUnitID()==unitToRemove.getUnitID()){
+            if (Objects.equals(((Unit) Lqueue.get(i).get("unit")).getUnitID(), unitToRemove.getUnitID())){
                 Lqueue.remove(i); }
         }
 	}
@@ -203,7 +200,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 
     public void onMessageReceivedinit(Message msg){
         synchronized(Lqueue) {
-            if (((Unit) msg.get("unit")).isAdjacent() == true) {
+            if (((Unit) msg.get("unit")).isAdjacent()) {
                 Lqueue.add(msg);
                 System.out.println(Lqueue.size());
                 return;
@@ -215,7 +212,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 
     public void adjacentfilter(Message msg) {
         if (msg.getContent().containsKey("unit") && ((Unit)msg.get("unit")).getUnitID().contains("PLAYER")){
-            if (((Unit) msg.get("unit")).isAdjacent() == true) {
+            if (((Unit) msg.get("unit")).isAdjacent()) {
                 synchronized(Lqueue) {
                     System.out.println("-------------------------------add to the Lqueue -------------------------");
                     ((Unit) msg.get("unit")).setAdjacent(false);
@@ -306,7 +303,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
                     notification.put("request", MessageRequest.notification);
                     notification.put("damage", msg.get("damage"));
                     notification.put("from", origin);
-                    target = unit.getNode().getAddress();
+                    target = unit.getAddress();
                 }
 
 				/* Copy the id of the message so that the unit knows 
@@ -335,7 +332,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
                     notification.put("request",MessageRequest.notification);
                     notification.put("heal",unit.getHitPoints());
                     notification.put("from", origin);
-                    target = unit.getNode().getAddress();
+                    target = unit.getAddress();
                 }
 				/* Copy the id of the message so that the unit knows 
 				 * what message the battlefield responded to. 
@@ -377,9 +374,6 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 		}
         return null;
 	}
-
-
-
 
 
 	/**
@@ -440,20 +434,17 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
                     LinkedList<Message> temp = (LinkedList<Message>) Lqueue.clone();
                     Lqueue.clear();
                     new Thread(
-                            new Runnable() {
-                                @Override
-                                public void run() {
-                                    for(int i= 0; i< temp.size(); i++){
-                                        Message releaseMessage = messagefactory.createMessage();
-                                        NodeAddress target = ((Unit) temp.get(i).get("unit")).getNode().getAddress();
-                                        releaseMessage.put("request",MessageRequest.release);
-                                        releaseMessage.put("release",true);
-                                        releaseMessage.put("x",((Unit)temp.get(i).get("unit")).getX());
-                                        releaseMessage.put("y",((Unit)temp.get(i).get("unit")).getY());
-                                        serverSocket.sendMessage(releaseMessage, target);
-                                    }
-                                }
-                            }
+		                    () -> {
+			                    for (Message aTemp : temp) {
+				                    Message releaseMessage = messagefactory.createMessage();
+				                    NodeAddress target = ((Unit) aTemp.get("unit")).getAddress();
+				                    releaseMessage.put("request", MessageRequest.release);
+				                    releaseMessage.put("release", true);
+				                    releaseMessage.put("x", ((Unit) aTemp.get("unit")).getX());
+				                    releaseMessage.put("y", ((Unit) aTemp.get("unit")).getY());
+				                    serverSocket.sendMessage(releaseMessage, target);
+			                    }
+		                    }
                     ).start();
                 }
             }},500,5000);
@@ -461,26 +452,22 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 
     public void StartLexectueThread() {
         new Thread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        while(true){
-                            try {
-                                Thread.sleep(10);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            synchronized(Lqueue) {
-                                if (Lqueue.size()>0) {
-                                    onMessageReceived(Lqueue.getFirst());
-                                    Lqueue.removeFirst();
-                                }
-                            }
+		        () -> {
+		            while(true){
+		                try {
+		                    Thread.sleep(10);
+		                } catch (InterruptedException e) {
+		                    e.printStackTrace();
+		                }
+		                synchronized(Lqueue) {
+		                    if (Lqueue.size()>0) {
+		                        onMessageReceived(Lqueue.getFirst());
+		                        Lqueue.removeFirst();
+		                    }
+		                }
 
-                        }
-                    }
-                }
+		            }
+		        }
         ).start();
     }
-
 }

@@ -8,6 +8,7 @@ import distributed.systems.das.BattleField;
 import distributed.systems.das.GameState;
 import distributed.systems.network.ClientNode;
 import distributed.systems.network.logging.InfluxLogger;
+import lombok.ToString;
 
 /**
  * A dragon is a non-playing character, which can't
@@ -20,6 +21,7 @@ import distributed.systems.network.logging.InfluxLogger;
  *   
  * @author Pieter Anemaet, Boaz Pat-El
  */
+@ToString(callSuper = true)
 @SuppressWarnings("serial")
 public class Dragon extends Unit implements Runnable, Serializable {
 	/* Reaction speed of the dragon
@@ -128,9 +130,9 @@ public class Dragon extends Unit implements Runnable, Serializable {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			InfluxLogger.getInstance().logUnitRoundDuration(this, System.currentTimeMillis() - start);
+			InfluxLogger.getInstance().logUnitRoundDuration(this, this.node.getServerAddress(), System.currentTimeMillis() - start);
 		}
-		clientSocket.unRegister();
+		//node.unRegister();
 
 	}
 

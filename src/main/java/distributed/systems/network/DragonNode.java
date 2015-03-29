@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import distributed.systems.core.LogType;
+import distributed.systems.core.Message;
 import distributed.systems.core.MessageFactory;
 import distributed.systems.das.units.Dragon;
 import distributed.systems.das.units.Unit;
@@ -71,6 +72,11 @@ public class DragonNode extends AbstractNode implements ClientNode, Serializable
 
 	public Unit getUnit() {
 		return dragon;
+	}
+
+	@Override
+	public Message sendMessageToServer(Message message) {
+		return socket.sendMessage(message, this.getServerAddress());
 	}
 
 	@Override
