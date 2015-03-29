@@ -361,13 +361,6 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 				this.removeUnit((Integer)msg.get("x"), (Integer)msg.get("y"));
 				return null;
             }
-            case testconnection:{
-                for (Unit unit1 : units) {
-                    if (unit1.getUnitID().equals(MessageRequest.testconnection)) {
-
-                    }
-                }
-            }
 		}
 
 		try {

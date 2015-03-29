@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import distributed.systems.core.LogMessage;
 import distributed.systems.core.Message;
+import distributed.systems.das.units.Unit;
 import distributed.systems.network.Address;
 import distributed.systems.network.NodeAddress;
 import org.influxdb.InfluxDB;
@@ -70,6 +71,14 @@ public class InfluxLogger implements Logger {
 				.columns("message","logtype","origin","time")
 				.values(message.getLogMessage(), message.getLogType(), origin,
 						message.getTimestamp().getTime())
+				.build();
+		writeToInflux(serie);
+	}
+
+	public void logUnitRoundDuration(Unit unit, long duration) {
+		Serie serie = new Serie.Builder("unitRoundDuration")
+				.columns("duration", "unit", "server", "time")
+				.values(duration, unit.getNode().getAddress().getName(), unit.getNode().getServerAddress().getName(), System.currentTimeMillis())
 				.build();
 		writeToInflux(serie);
 	}

@@ -6,6 +6,7 @@ import distributed.systems.core.exception.AlreadyAssignedIDException;
 import distributed.systems.das.BattleField;
 import distributed.systems.das.GameState;
 import distributed.systems.network.ClientNode;
+import distributed.systems.network.logging.InfluxLogger;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -86,6 +87,7 @@ public class Player extends Unit implements Runnable, Serializable {
 		this.running = true;
 
 		while(GameState.getRunningState() && this.running) {
+			long start = System.currentTimeMillis();
 			try {			
 				/* Sleep while the player is considering its next move */
 				Thread.currentThread().sleep((int)(timeBetweenTurns * 500 * GameState.GAME_SPEED));
@@ -152,6 +154,7 @@ public class Player extends Unit implements Runnable, Serializable {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
+			InfluxLogger.getInstance().logUnitRoundDuration(this, System.currentTimeMillis() - start);
 		}
 		clientSocket.unRegister();
 	}
