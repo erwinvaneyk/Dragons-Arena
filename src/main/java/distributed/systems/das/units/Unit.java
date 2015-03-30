@@ -464,18 +464,6 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		}
 		
 	}
-    /**
-     * customer function to test connection
-     */
-    public void testconnection(){
 
-        Message test = messageFactory.createMessage();
-        int id = localMessageCounter++;
-        test.put("request",MessageRequest.testconnection);
-        test.put("id",id);
-        test.put("unit",this);
-        this.disconnect++;
-	    node.sendMessageToServer(test);
-
-    }
+	protected abstract void doAction();
 }
