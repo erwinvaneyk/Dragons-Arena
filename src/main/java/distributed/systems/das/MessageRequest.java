@@ -19,5 +19,8 @@ public enum MessageRequest {
 	reply,
 	ADJinit,
 	release,
-	getNearest, getAdjacent
+	getNearest,
+    getAdjacent,
+    update
+
 }

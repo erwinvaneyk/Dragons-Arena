@@ -1,5 +1,6 @@
 package distributed.systems.das;
 
+
 import static java.util.stream.Collectors.toList;
 
 import java.io.Serializable;
@@ -11,17 +12,21 @@ import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.stream.Stream;
-
 import distributed.systems.core.ExtendedSocket;
-import distributed.systems.core.MessageFactory;
-import distributed.systems.das.units.Unit;
-import distributed.systems.das.units.Unit.UnitType;
 import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.Message;
+import distributed.systems.core.MessageFactory;
 import distributed.systems.core.exception.IDNotAssignedException;
+import distributed.systems.das.units.Dragon;
+import distributed.systems.das.units.Player;
+import distributed.systems.das.units.Unit;
+import distributed.systems.das.units.Unit.UnitType;
 import distributed.systems.network.NodeAddress;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
+
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * The actual battlefield where the fighting takes place.
@@ -92,6 +97,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 	 */
 	private boolean spawnUnit(Unit unit, int x, int y)
 	{
+
         synchronized (this) {
 			if (map[x][y] != null)
 				return false;
@@ -247,13 +253,27 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
         final Message notification = messagefactory.createMessage();
         NodeAddress origin = msg.getOrigin();
 		MessageRequest request = (MessageRequest)msg.get("request");
+		Unit tempunit;
+        final int[] currenthp = new int[1];
+        boolean result;
+        Message updatemessage = null;
 		switch(request)
 		{
 			case spawnUnit:
-                this.spawnUnit((Unit) msg.get("unit"), (Integer) msg.get("x"), (Integer) msg.get("y"));
+                result = this.spawnUnit((Unit) msg.get("unit"), (Integer) msg.get("x"), (Integer) msg.get("y"));
                 reply= messagefactory.createMessage();
                 reply.put("request", MessageRequest.ADJinit);
                 reply.put("adjacent", map[(Integer) msg.get("x")][(Integer) msg.get("y")].isAdjacent());
+                if (result ==true){
+                    int x = (Integer)msg.get("x");
+                    int y = (Integer)msg.get("y");
+                    updatemessage=messagefactory.createMessage();
+                    updatemessage.put("request", MessageRequest.update);
+                    updatemessage.put("type", MessageRequest.spawnUnit);
+                    updatemessage.put("x", msg.get("x"));
+                    updatemessage.put("y", msg.get("y"));
+                    updatemessage.put("unit",(Unit)msg.get("unit"));
+                }
                 break;
 			case putUnit:
 				this.putUnit((Unit)msg.get("unit"), (Integer)msg.get("x"), (Integer)msg.get("y"));
@@ -302,6 +322,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 				int y = (Integer)msg.get("y");
                 int ox = (Integer)msg.get("ox");
                 int oy = (Integer)msg.get("oy");
+
                 synchronized (map){
                     map[ox][oy].setAdjacent(adjacent(ox,oy));
                 }
@@ -310,13 +331,18 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
                 reply.put("adjacent",map[ox][oy].isAdjacent());
 				Optional<Unit> optUnit = this.getUnit(x, y);
 				optUnit.ifPresent(unit -> {
-					unit.adjustHitPoints( -(Integer)msg.get("damage") );
+                    currenthp[0] = unit.adjustHitPoints(-(Integer) msg.get("damage"));
                     notification.put("request", MessageRequest.notification);
                     notification.put("damage", msg.get("damage"));
                     notification.put("from", origin);
 					serverSocket.sendMessage(notification, unit.getAddress());
                 });
-
+                updatemessage = messagefactory.createMessage();
+                updatemessage.put("request", MessageRequest.update);
+                updatemessage.put("type", MessageRequest.dealDamage);
+                updatemessage.put("x", msg.get("x"));
+                updatemessage.put("y", msg.get("y"));
+                updatemessage.put("hp", currenthp[0]);
 				/* Copy the id of the message so that the unit knows 
 				 * what message the battlefield responded to. 
 				 */
@@ -338,12 +364,18 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
                 reply.put("id", msg.get("id"));
                 reply.put("adjacent",map[ox][oy].isAdjacent());
 				optUnit.ifPresent(unit -> {
-					unit.adjustHitPoints( (Integer)msg.get("healed") );
+                    unit.adjustHitPoints( (Integer)msg.get("healed") );
                     notification.put("request",MessageRequest.notification);
                     notification.put("heal",unit.getHitPoints());
                     notification.put("from", origin);
 					serverSocket.sendMessage(notification, unit.getAddress());
 				});
+                updatemessage = messagefactory.createMessage();
+                updatemessage.put("request", MessageRequest.update);
+                updatemessage.put("type", MessageRequest.healDamage);
+                updatemessage.put("x", x);
+                updatemessage.put("y", y);
+                updatemessage.put("hp", this.getUnit(x,y).get().getHitPoints());
 				/* Copy the id of the message so that the unit knows 
 				 * what message the battlefield responded to. 
 				 */
@@ -351,7 +383,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 			}
 			case moveUnit:{
 				reply = messagefactory.createMessage();
-				this.moveUnit((Unit)msg.get("unit"), (Integer)msg.get("x"), (Integer)msg.get("y"));
+				result = this.moveUnit((Unit)msg.get("unit"), (Integer)msg.get("x"), (Integer)msg.get("y"));
 				/* Copy the id of the message so that the unit knows 
 				 * what message the battlefield responded to. 
 				 */
@@ -362,11 +394,73 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
                 reply.put("request", MessageRequest.reply);
 				reply.put("id", msg.get("id"));
                 reply.put("adjacent", map[x][y].isAdjacent());
+                if (result == true){
+                    updatemessage = messagefactory.createMessage();
+                    updatemessage.put("request", MessageRequest.update);
+                    updatemessage.put("type", MessageRequest.moveUnit);
+                    updatemessage.put("ox", ox);
+                    updatemessage.put("oy", oy);
+                    updatemessage.put("tx", x);
+                    updatemessage.put("ty", y);
+                }
+
 				break;
             }
 			case removeUnit:{
+                int x = (Integer)msg.get("x");
+                int y = (Integer)msg.get("y");
 				this.removeUnit((Integer)msg.get("x"), (Integer)msg.get("y"));
-				return null;
+                updatemessage = messagefactory.createMessage();
+                updatemessage.put("request", MessageRequest.update);
+                updatemessage.put("type", MessageRequest.removeUnit);
+                updatemessage.put("x", x);
+                updatemessage.put("y", y);
+				return updatemessage;
+            }
+            case update:{
+                MessageRequest updatetype = (MessageRequest)msg.get("type");
+                switch(updatetype){
+                    case spawnUnit:{
+                        this.spawnUnit((Unit) msg.get("unit"), (Integer) msg.get("x"), (Integer) msg.get("y"));
+                        if(this.getUnit((Integer) msg.get("x"),(Integer) msg.get("y"))!=null){
+                        }
+                        break;
+
+                    }
+                    case healDamage:{
+                        int x = (Integer)msg.get("x");
+                        int y = (Integer)msg.get("y");
+                        Optional<Unit> optUnit = this.getUnit(x, y);
+                        optUnit.ifPresent(unit -> unit.setHitPoints((Integer) msg.get("hp")));
+                        break;
+                    }
+                    case dealDamage:{
+                        int x = (Integer)msg.get("x");
+                        int y = (Integer)msg.get("y");
+                        Optional<Unit> optUnit = this.getUnit(x, y);
+                        optUnit.ifPresent(unit -> unit.setHitPoints((Integer)msg.get("hp")));
+                        break;
+                    }
+                    case moveUnit:{
+                        int tx = (Integer)msg.get("tx");
+                        int ty = (Integer)msg.get("ty");
+                        int ox = (Integer)msg.get("ox");
+                        int oy = (Integer)msg.get("oy");
+                        if(this.getUnit(ox,oy)!=null){
+                            System.out.println("locate the ox and oy unit");
+                        }
+                        this.moveUnit(this.getUnit(ox,oy).get(), tx, ty);
+                        break;
+                    }
+                    case removeUnit:{
+                        System.out.println("In Battle Field ,I got a removeUnit Update message ");
+                        int x = (Integer)msg.get("x");
+                        int y = (Integer)msg.get("y");
+                        this.removeUnit(x, y);
+                        break;
+                    }
+
+                }
             }
 			case getAdjacent: {
 				reply = messagefactory.createMessage();
@@ -405,7 +499,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 			// Could happen if the target already logged out
 			idnae.printStackTrace();
 		}
-        return null;
+        return updatemessage;
 	}
 
 

@@ -4,12 +4,12 @@ package distributed.systems.example;
  * Created by mashenjun on 22-3-15.
  */
 
-import java.rmi.RemoteException;
-
 import distributed.systems.network.DragonNode;
 import distributed.systems.network.PlayerNode;
 import distributed.systems.network.ServerNode;
 import lombok.extern.slf4j.Slf4j;
+
+import java.rmi.RemoteException;
 @Slf4j
 
 public class TestSetup2 {

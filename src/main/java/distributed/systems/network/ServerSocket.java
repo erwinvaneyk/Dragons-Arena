@@ -1,15 +1,16 @@
 package distributed.systems.network;
 
-import static java.util.stream.Collectors.toList;
+import distributed.systems.core.LogType;
+import distributed.systems.core.Message;
+import distributed.systems.core.Socket;
+import distributed.systems.das.MessageRequest;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import distributed.systems.core.LogType;
-import distributed.systems.core.Message;
-import distributed.systems.core.Socket;
-import lombok.Getter;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Deals with connections and messages between servers (communication between multiple RMIRegistries)
@@ -42,6 +43,9 @@ public class ServerSocket implements Socket {
 	 * Currently only for servers
 	 */
 	public Message sendMessage(Message message, NodeAddress destination) {
+        if (message.get("request")!=null && message.get("request").equals(MessageRequest.spawnUnit)){
+            System.out.println("IN Server Socket "+this.me.getAddress()+" send a spawn message to "+destination.getName());
+        }
 		Socket socket = LocalSocket.connectTo(destination);
 		return socket.sendMessage(message, destination);
 	}
@@ -59,6 +63,9 @@ public class ServerSocket implements Socket {
 	}
 
 	public void broadcast(Message message, NodeType type) {
+        if (message.get("request")!=null && message.get("request").equals(MessageRequest.spawnUnit)) {
+            System.out.println("In the ServerSocket " + this.getMe().getAddress().getName() + "send a broadcast message");
+        }
 		otherNodes.stream()
 				.filter(node -> node.getType().equals(type))
 				.forEach(node -> {

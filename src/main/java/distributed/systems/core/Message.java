@@ -1,11 +1,11 @@
 package distributed.systems.core;
 
+import distributed.systems.network.NodeAddress;
+import lombok.Getter;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
-
-import distributed.systems.network.NodeAddress;
-import lombok.Getter;
 
 /**
  * Message-object that will be passed between nodes.
@@ -78,6 +78,4 @@ public class Message implements Serializable {
 		return "[" + this.origin + "] Message(messageType=" + this.messageType + ", content=" + this.content
 				+ ", timestamp=" + this.timestamp + ", receivedTimestamp=" + this.receivedTimestamp + ")";
 	}
-
-
 }
