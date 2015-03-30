@@ -19,8 +19,8 @@ public class TestSetupSimple {
 		// Players
 		PlayerNode player1 = new PlayerNode(server1.getAddress(),5,5);
 		PlayerNode player2 = new PlayerNode(server1.getAddress(),2,2);
-		LogNode logger = new LogNode(2347, Logger.getDefault());
-		logger.connect(server1.getAddress());
+		//LogNode logger = new LogNode(2347, Logger.getDefault());
+		//logger.connect(server1.getAddress());
 
 		server1.launchViewer();
 		System.out.println("ALL GOOD!!!!");

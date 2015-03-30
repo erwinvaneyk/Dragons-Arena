@@ -12,10 +12,13 @@ public class RandomPlayer extends Player {
 	}
 
 	protected void doAction() {
+		doRandomMove();
+	}
+
+	protected void doRandomMove() {
 		Direction direction;
 		UnitType adjacentUnitType;
 		int targetX = 0, targetY = 0;
-
 		// Randomly choose one of the four wind directions to move to if there are no units present
 		direction = Direction.values()[ (int)(Direction.values().length * Math.random()) ];
 

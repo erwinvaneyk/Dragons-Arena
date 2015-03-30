@@ -12,6 +12,7 @@ import distributed.systems.core.MessageFactory;
 import distributed.systems.das.units.Player;
 import distributed.systems.das.units.Unit;
 import distributed.systems.das.units.impl.RandomPlayer;
+import distributed.systems.das.units.impl.SimplePlayer;
 import distributed.systems.network.messagehandlers.ClientGameActionHandler;
 import distributed.systems.network.services.ClientHeartbeatService;
 import distributed.systems.network.services.HeartbeatService;
@@ -64,7 +65,7 @@ public class PlayerNode extends AbstractNode implements ClientNode, IMessageRece
 		runService(heartbeatService);
 
 		// spawn player
-		this.player = new RandomPlayer(x,y, this);
+		this.player = new SimplePlayer(x,y, this);
 		socket.logMessage("Player (" + address + ") created and running. Assigned to server: " + serverAddress, LogType.INFO);
 		player.start();
 	}

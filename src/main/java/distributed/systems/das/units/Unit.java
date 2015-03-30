@@ -2,9 +2,10 @@ package distributed.systems.das.units;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
-import distributed.systems.core.ExtendedSocket;
 import distributed.systems.core.MessageFactory;
 import distributed.systems.das.GameState;
 import distributed.systems.das.MessageRequest;
@@ -317,7 +318,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		return (UnitType) result.get("type");
 	}
 
-	protected Unit getUnit(int x, int y)
+	protected Optional<Unit> getUnit(int x, int y)
 	{
 		Message getMessage =  messageFactory.createMessage(), result;
 		int id = localMessageCounter++;
@@ -329,7 +330,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		getMessage.put("id", id);
 
         // Send the getUnit message
-        if (this.lived==true) {
+        if (this.lived) {
 	        node.sendMessageToServer(getMessage);
         }
 
@@ -349,7 +350,70 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		messageList.put(id, null);
 
 
-		return (Unit) result.get("unit");	
+		return Optional.ofNullable((Unit) result.get("unit"));
+	}
+
+	protected List<Unit> getAdjacentUnits() {
+		Message getMessage =  messageFactory.createMessage(), result;
+		int id = localMessageCounter++;
+		getMessage.put("request", MessageRequest.getAdjacent);
+		getMessage.put("x", x);
+		getMessage.put("y", y);
+		getMessage.put("id", id);
+
+		// Send the getUnit message
+		if (this.lived) {
+			node.sendMessageToServer(getMessage);
+		}
+
+		// Wait for the reply
+		while(!messageList.containsKey(id)) {
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {
+			}
+
+			// Quit if the game window has closed
+			if (!GameState.getRunningState())
+				return null;
+		}
+
+		result = messageList.get(id);
+		messageList.put(id, null);
+
+
+		return (List<Unit>) result.get("adjacentUnits");
+	}
+
+	protected Optional<Unit> getNearest(UnitType type) {
+		Message getMessage =  messageFactory.createMessage(), result;
+		int id = localMessageCounter++;
+		getMessage.put("request", MessageRequest.getAdjacent);
+		getMessage.put("x", x);
+		getMessage.put("y", y);
+		getMessage.put("id", id);
+
+		// Send the getUnit message
+		if (this.lived) {
+			node.sendMessageToServer(getMessage);
+		}
+
+		// Wait for the reply
+		while(!messageList.containsKey(id)) {
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {
+			}
+
+			// Quit if the game window has closed
+			if (!GameState.getRunningState())
+				return null;
+		}
+
+		result = messageList.get(id);
+		messageList.put(id, null);
+
+		return Optional.ofNullable((Unit) result.get("unit"));
 	}
 
 	protected void removeUnit(int x, int y)
@@ -420,7 +484,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
         if (message.getContent().containsKey("damage")) {
             this.adjustHitPoints(-(Integer) message.get("damage"));
-            if (this.lived==false){
+            if (!this.lived){
                 this.removeUnit(this.getX(),this.getY());
                 try {
                     Thread.sleep(500);
@@ -431,7 +495,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
             }
         }
         if (message.getContent().containsKey("healed")){
-            if(this.lived==true){
+            if(this.lived){
                 this.adjustHitPoints((Integer) message.get("healed"));
             }
 
@@ -469,5 +533,9 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 
 	public UnitType getType() {
 		return UnitType.undefined;
+	}
+
+	public int distanceTo(int x,int y) {
+		return Math.abs(this.x - x) + Math.abs(this.y - y);
 	}
 }
