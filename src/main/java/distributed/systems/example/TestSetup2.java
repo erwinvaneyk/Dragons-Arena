@@ -4,19 +4,12 @@ package distributed.systems.example;
  * Created by mashenjun on 22-3-15.
  */
 
-import java.rmi.RemoteException;
-
-import distributed.systems.core.exception.AlreadyAssignedIDException;
-import distributed.systems.das.BattleField;
-import distributed.systems.das.units.Dragon;
-import distributed.systems.das.units.Player;
 import distributed.systems.network.DragonNode;
 import distributed.systems.network.PlayerNode;
-import distributed.systems.network.RegistryNode;
 import distributed.systems.network.ServerNode;
-import distributed.systems.network.logging.LogNode;
-import distributed.systems.network.logging.Logger;
 import lombok.extern.slf4j.Slf4j;
+
+import java.rmi.RemoteException;
 @Slf4j
 
 public class TestSetup2 {

@@ -44,16 +44,14 @@ public class TestSetup3 {
             final int finalX = x;
             final int finalY = y;
 
-            new Thread(new Runnable() {
-                public void run() {
-                    try {
-                        new DragonNode(server1.getAddress(), finalX, finalY);
-                    } catch (AlreadyAssignedIDException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
-                    }
+            new Thread(() -> {
+                try {
+                    new DragonNode(server1.getAddress(), finalX, finalY);
+                } catch (AlreadyAssignedIDException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (RemoteException e) {
+                    e.printStackTrace();
                 }
             }).start();
             Thread.sleep(500);

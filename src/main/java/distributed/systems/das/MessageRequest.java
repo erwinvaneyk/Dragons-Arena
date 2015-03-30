@@ -7,5 +7,20 @@ package distributed.systems.das;
  * @author Pieter Anemaet, Boaz Pat-El
  */
 public enum MessageRequest {
-    spawnUnit, getUnit, moveUnit, putUnit, removeUnit, getType, dealDamage, healDamage,testconnection, notification, reply, ADJinit, release, update
+    spawnUnit,
+	getUnit,
+	moveUnit,
+	putUnit,
+	removeUnit,
+	getType,
+	dealDamage,
+	healDamage,
+	notification,
+	reply,
+	ADJinit,
+	release,
+	getNearest,
+    getAdjacent,
+    update
+
 }
