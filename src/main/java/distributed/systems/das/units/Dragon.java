@@ -101,4 +101,7 @@ public abstract class Dragon extends Unit implements Runnable {
 
 	}
 
+	public UnitType getType() {
+		return UnitType.dragon;
+	}
 }

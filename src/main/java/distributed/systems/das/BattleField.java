@@ -276,11 +276,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 				 */
                 reply.put("request",MessageRequest.reply);
 				reply.put("id", msg.get("id"));
-				if (getUnit(x, y) instanceof Player)
-					reply.put("type", UnitType.player);
-				else if (getUnit(x, y) instanceof Dragon)
-					reply.put("type", UnitType.dragon);
-				else reply.put("type", UnitType.undefined);
+				reply.put("type", getUnit(x, y).getType());
 				break;
 			}
 			case dealDamage:

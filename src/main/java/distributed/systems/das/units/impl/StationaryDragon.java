@@ -1,10 +1,12 @@
 package distributed.systems.das.units.impl;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import distributed.systems.core.exception.AlreadyAssignedIDException;
 import distributed.systems.das.BattleField;
 import distributed.systems.das.units.Dragon;
+import distributed.systems.das.units.Unit;
 import distributed.systems.network.ClientNode;
 
 public class StationaryDragon extends Dragon {
@@ -14,40 +16,40 @@ public class StationaryDragon extends Dragon {
 	}
 
 	protected void doAction() {
-		ArrayList<Direction> adjacentPlayers = new ArrayList<>();
-		// Decide what players are near
-		if (getY() > 0)
-			if ( getType( getX(), getY() - 1 ) == UnitType.player )
-				adjacentPlayers.add(Direction.up);
-		if (getY() < BattleField.MAP_WIDTH - 1)
-			if ( getType( getX(), getY() + 1 ) == UnitType.player )
-				adjacentPlayers.add(Direction.down);
-		if (getX() > 0)
-			if ( getType( getX() - 1, getY() ) == UnitType.player )
-				adjacentPlayers.add(Direction.left);
-		if (getX() < BattleField.MAP_WIDTH - 1)
-			if ( getType( getX() + 1, getY() ) == UnitType.player )
-				adjacentPlayers.add(Direction.right);
-
 		// Pick a random player to attack
-		if (adjacentPlayers.size() == 0)
-			return; // There are no players to attack
-		Direction playerToAttack = adjacentPlayers.get( (int)(Math.random() * adjacentPlayers.size()) );
+		List<Unit> adjacentPlayers = getAdjacentPlayers();
 
-		// Attack the player
-		switch (playerToAttack) {
-			case up:
-				this.dealDamage( getX(), getY() - 1, this.getAttackPoints() );
-				break;
-			case right:
-				this.dealDamage( getX() + 1, getY(), this.getAttackPoints() );
-				break;
-			case down:
-				this.dealDamage( getX(), getY() + 1, this.getAttackPoints() );
-				break;
-			case left:
-				this.dealDamage( getX() - 1, getY(), this.getAttackPoints() );
-				break;
+		if (adjacentPlayers.size() > 0) {
+			Unit playerToAttack = adjacentPlayers.get( (int)(Math.random() * adjacentPlayers.size()) );
+			// Attack the player
+			playerToAttack.dealDamage(playerToAttack.getX(), playerToAttack.getY(), this.getAttackPoints());
 		}
+	}
+
+	// TODO: move to function in battlefield
+	private List<Unit> getAdjacentPlayers() {
+		List<Unit> adjacentPlayers = new ArrayList<>();
+		// Decide what players are near
+		if (getY() > 0) {
+			Unit unit = getUnit(getX(), getY() - 1);
+			if (unit.getType() == UnitType.player)
+				adjacentPlayers.add(unit);
+		}
+		if (getY() < BattleField.MAP_WIDTH - 1) {
+			Unit unit = getUnit(getX(), getY() + 1);
+			if (unit.getType() == UnitType.player)
+				adjacentPlayers.add(unit);
+		}
+		if (getX() > 0) {
+			Unit unit = getUnit(getX() - 1, getY());
+			if (unit.getType() == UnitType.player)
+				adjacentPlayers.add(unit);
+		}
+		if (getX() < BattleField.MAP_WIDTH - 1) {
+			Unit unit = getUnit(getX() + 1, getY() - 1);
+			if (unit.getType() == UnitType.player)
+				adjacentPlayers.add(unit);
+		}
+		return adjacentPlayers;
 	}
 }

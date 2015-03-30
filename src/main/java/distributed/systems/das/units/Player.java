@@ -103,4 +103,8 @@ public abstract class Player extends Unit implements Runnable {
 		}
 		//clientSocket.unRegister();
 	}
+
+	public UnitType getType() {
+		return UnitType.player;
+	}
 }

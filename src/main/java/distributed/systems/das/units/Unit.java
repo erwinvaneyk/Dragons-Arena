@@ -466,4 +466,8 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	}
 
 	protected abstract void doAction();
+
+	public UnitType getType() {
+		return UnitType.undefined;
+	}
 }
