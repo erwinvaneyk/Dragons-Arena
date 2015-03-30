@@ -7,6 +7,7 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.Optional;
 
 import javax.swing.JPanel;
 
@@ -106,7 +107,8 @@ public class BattleFieldViewer extends JPanel implements Runnable {
 		/* Draw the field, rectangle-wise */
 		for(int i = 0; i < BattleField.MAP_WIDTH; i++, x += xRatio, y = 0)
 			for(int j = 0; j < BattleField.MAP_HEIGHT; j++, y += yRatio) {
-				u = bf.getUnit(i, j);
+				u = bf.getUnit(i, j).orElse(null);
+
 				if (u == null) continue; // Nothing to draw in this sector
 
 				if (u instanceof Dragon)

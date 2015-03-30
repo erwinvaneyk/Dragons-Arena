@@ -11,6 +11,7 @@ import distributed.systems.core.Message;
 import distributed.systems.core.MessageFactory;
 import distributed.systems.das.units.Dragon;
 import distributed.systems.das.units.Unit;
+import distributed.systems.das.units.impl.StationaryDragon;
 import distributed.systems.network.messagehandlers.ClientGameActionHandler;
 import distributed.systems.network.services.ClientHeartbeatService;
 import distributed.systems.network.services.HeartbeatService;
@@ -63,7 +64,7 @@ public class DragonNode extends AbstractNode implements ClientNode, Serializable
 
 		// spawn dragon
 
-		this.dragon = new Dragon(x,y, this);
+		this.dragon = new StationaryDragon(x,y, this);
 		socket.logMessage("Dragon (" + address + ") created and running. Assigned to server: " + serverAddress, LogType.INFO);
 		dragon.start();
 	}
