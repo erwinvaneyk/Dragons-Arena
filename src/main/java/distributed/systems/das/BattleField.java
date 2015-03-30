@@ -1,12 +1,17 @@
 package distributed.systems.das;
 
+import static java.util.stream.Collectors.toList;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.stream.Stream;
+
 import distributed.systems.core.ExtendedSocket;
 import distributed.systems.core.MessageFactory;
 import distributed.systems.das.units.Unit;
@@ -134,12 +139,16 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 	{
 		assert x >= 0 && x < map.length;
 		assert y >= 0 && y < map[0].length;
-
 		return Optional.ofNullable(map[x][y]);
 	}
 
 	public Optional<Unit> getNearest(UnitType type, int originX, int originY) {
-		return units.stream().filter(t -> t.getType() == type).reduce((a, b) -> {
+		List<Unit> dragons = units.stream().filter(t -> type == null || t.getType() == type).collect(toList());
+		System.out.println(dragons);
+		if(dragons.size() == 1) {
+			return Optional.of(dragons.get(0));
+		}
+		return dragons.stream().reduce((a, b) -> {
 			int valueA = Math.abs(originX - a.getX()) + Math.abs(originY - a.getY());
 			int valueB = Math.abs(originX - b.getX()) + Math.abs(originY - b.getY());
 			return valueA - valueB > 0 ? b : a;
@@ -366,10 +375,10 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 				reply.put("id", msg.get("id"));
 				reply.put("request", MessageRequest.reply);
 				ArrayList<Unit> adjacentUnits = new ArrayList<>();
-				getUnit(x - 1, y).ifPresent(adjacentUnits::add);
-				getUnit(x + 1, y).ifPresent(adjacentUnits::add);
-				getUnit(x, y - 1).ifPresent(adjacentUnits::add);
-				getUnit(x, y + 1).ifPresent(adjacentUnits::add);
+				if(x - 1 > 0) getUnit(x - 1, y).ifPresent(adjacentUnits::add);
+				if(x + 1 < BattleField.MAP_WIDTH) getUnit(x + 1, y).ifPresent(adjacentUnits::add);
+				if(y - 1 > 0) getUnit(x, y - 1).ifPresent(adjacentUnits::add);
+				if(y + 1 < BattleField.MAP_HEIGHT) getUnit(x, y + 1).ifPresent(adjacentUnits::add);
 				reply.put("adjacentUnits", adjacentUnits);
 				break;
 			}
@@ -380,6 +389,8 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 				reply.put("request", MessageRequest.reply);
 				int x = (Integer)msg.get("x");
 				int y = (Integer)msg.get("y");
+				System.out.println(getNearest(unit, x, y));
+				System.out.println(this.units);
 				reply.put("unit", getNearest(unit, x, y).orElse(null));
 				break;
 			}

@@ -24,7 +24,7 @@ public class StationaryDragon extends Dragon {
 		if (adjacentPlayers.size() > 0) {
 			Unit playerToAttack = adjacentPlayers.get( (int)(Math.random() * adjacentPlayers.size()) );
 			// Attack the player
-			playerToAttack.dealDamage(playerToAttack.getX(), playerToAttack.getY(), this.getAttackPoints());
+			dealDamage(playerToAttack.getX(), playerToAttack.getY(), this.getAttackPoints());
 		}
 	}
 }

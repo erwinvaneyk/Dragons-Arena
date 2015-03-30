@@ -388,7 +388,8 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	protected Optional<Unit> getNearest(UnitType type) {
 		Message getMessage =  messageFactory.createMessage(), result;
 		int id = localMessageCounter++;
-		getMessage.put("request", MessageRequest.getAdjacent);
+		getMessage.put("request", MessageRequest.getNearest);
+		getMessage.put("type", type);
 		getMessage.put("x", x);
 		getMessage.put("y", y);
 		getMessage.put("id", id);

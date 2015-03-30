@@ -4,6 +4,7 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 import distributed.systems.core.LogMessage;
 import distributed.systems.core.LogType;
@@ -54,7 +55,7 @@ public class SimplePlayer extends RandomPlayer {
 			}
 			else {
 				// Move to dragon using (not so) advanced path-finding
-				moveTowards(dragon.getX(), getY(), adjacentUnit);
+				moveTowards(dragon.getX(), dragon.getY(), adjacentUnit);
 			}
 		} else {
 			// No dragon around? Move mindlessly around :)
@@ -66,17 +67,17 @@ public class SimplePlayer extends RandomPlayer {
 
 	// Very dumb path-finding, try to move in a straight line to the target
 	private boolean moveTowards(int x, int y, List<Unit> adjacentUnits) {
-		int newX = (int) Math.signum(this.x - x);
-		int newY = (int) Math.signum(this.y - y);
+		int newX = (int) Math.signum(x - this.x);
+		int newY = (int) Math.signum(y - this.y);
 		// Straight line
 		if ((newX == 0 || newY == 0) && locationIsFree(this.x + newX, this.y + newY, adjacentUnits)) {
 			this.moveUnit(this.x + newX,this.y + newY);
 		} else {
 			// Diagonal line
-			if(locationIsFree(this.x, this.y + newY, adjacentUnits)) {
-				this.moveUnit(this.x + newX,this.y + newY);
-			} else if(locationIsFree(this.x + newX, this.y, adjacentUnits)) {
-				this.moveUnit(this.x + newX,this.y + newY);
+			if(locationIsFree(this.x + newX, this.y, adjacentUnits)) {
+				this.moveUnit(this.x + newX ,this.y);
+			} else if(locationIsFree(this.x, this.y + newY, adjacentUnits)) {
+				this.moveUnit(this.x, this.y + newY);
 			} else {
 				return false;
 			}
