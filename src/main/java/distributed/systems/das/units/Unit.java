@@ -1,22 +1,21 @@
 package distributed.systems.das.units;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-
-import distributed.systems.core.ExtendedSocket;
-import distributed.systems.core.MessageFactory;
-import distributed.systems.das.GameState;
-import distributed.systems.das.MessageRequest;
 import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.Message;
+import distributed.systems.core.MessageFactory;
 import distributed.systems.core.exception.AlreadyAssignedIDException;
 import distributed.systems.core.exception.IDNotAssignedException;
+import distributed.systems.das.GameState;
+import distributed.systems.das.MessageRequest;
 import distributed.systems.network.ClientNode;
 import distributed.systems.network.NodeAddress;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Base class for all players whom can 
@@ -153,6 +152,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
             damageMessage.put("oy",this.getY());
 			damageMessage.put("damage", damage);
 			damageMessage.put("id", id);
+            damageMessage.put("update",true);
 
 		}
 		
@@ -178,6 +178,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
             healMessage.put("oy",this.getY());
 			healMessage.put("healed", healed);
 			healMessage.put("id", id);
+            healMessage.put("update", true);
 
 		}
 
@@ -233,6 +234,10 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		return hitPoints;
 	}
 
+    public void setHitPoints( int hitPoints) {
+        this.hitPoints = hitPoints;
+    }
+
 	/**
 	 * @return the attack points
 	 */
@@ -258,6 +263,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		spawnMessage.put("y", y);
 		spawnMessage.put("unit", this);
 		spawnMessage.put("id", id);
+        spawnMessage.put("update", true);
 
 		// Send a spawn message
 		try {
@@ -360,6 +366,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		removeMessage.put("x", x);
 		removeMessage.put("y", y);
 		removeMessage.put("id", id);
+        removeMessage.put("update",true);
 
 
 		// Send the removeUnit message
@@ -378,6 +385,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
         moveMessage.put("ox",this.getX());
         moveMessage.put("oy",this.getY());
 		moveMessage.put("unit", this);
+        moveMessage.put("update",true);
 
 		// Send the getUnit message
         if (this.lived) {

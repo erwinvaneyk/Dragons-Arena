@@ -1,10 +1,11 @@
 package distributed.systems.network.messagehandlers;
 
-import java.rmi.RemoteException;
-
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
+import distributed.systems.network.NodeType;
 import distributed.systems.network.ServerNode;
+
+import java.rmi.RemoteException;
 
 public class ServerGameActionHandler implements MessageHandler {
 
@@ -24,7 +25,22 @@ public class ServerGameActionHandler implements MessageHandler {
 	@Override
 	public Message onMessageReceived(Message message) throws RemoteException {
 		// TODO: task distribution
-		me.getSocket().logMessage("[" + me.getAddress() + "] received message: (" + message + ")", LogType.DEBUG);
-		return me.getBattlefield().onMessageReceived(message);
+		me.getSocket().logMessage("[" + me.getAddress() + "] received message: ("  + message + ")", LogType.DEBUG);
+
+		Message response = me.getBattlefield().onMessageReceived(message);
+
+        if (response!=null){
+            System.out.println("currently, "+me.getAddress().getName()+" the other nodes are "+ response.toString());
+            if(message.get("update").equals(true)){
+                System.out.println("I send a update message handler "+ me.getAddress().getName()+" "+ this.me.getOtherNodes().toString());
+                message.put("update", false);
+                me.getServerSocket().broadcast(response, NodeType.SERVER);
+            }
+            else {
+                System.out.println("I receive a update message handler "+ me.getAddress().getName());
+            }
+
+        }
+        return response;
 	}
 }

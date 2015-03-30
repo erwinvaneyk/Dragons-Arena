@@ -1,6 +1,9 @@
 package distributed.systems.network;
 
-import static java.util.stream.Collectors.toList;
+import distributed.systems.core.*;
+import distributed.systems.core.exception.AlreadyAssignedIDException;
+import distributed.systems.das.MessageRequest;
+import lombok.ToString;
 
 import java.io.Serializable;
 import java.rmi.AlreadyBoundException;
@@ -11,14 +14,7 @@ import java.rmi.registry.Registry;
 import java.util.Arrays;
 import java.util.List;
 
-import distributed.systems.core.ExtendedSocket;
-import distributed.systems.core.IMessageReceivedHandler;
-import distributed.systems.core.LogMessage;
-import distributed.systems.core.LogType;
-import distributed.systems.core.Message;
-import distributed.systems.core.MessageFactory;
-import distributed.systems.core.exception.AlreadyAssignedIDException;
-import lombok.ToString;
+import static java.util.stream.Collectors.toList;
 
 /**
  *
@@ -145,7 +141,12 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 
 	@Deprecated
 	public void broadcast(Message message, NodeType type) {
+        if (message.get("request")!=null && message.get("request").equals(MessageRequest.spawnUnit)) {
+            System.out.println("In the LocalSocket " + this.registryAddress.getName() + " send a broadcast message <"+message.get("x")+","+message.get("y")+">" );
+
+        }
 		try {
+            System.out.println("In the LocalSocket, broadcast "+ getNodes().toString());
 			getNodes().stream()
 					.filter(address -> address.getType().equals(type))
 					.forEach(address -> sendMessage(message, address));
