@@ -150,7 +150,6 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 
 	public Optional<Unit> getNearest(UnitType type, int originX, int originY) {
 		List<Unit> dragons = units.stream().filter(t -> type == null || t.getType() == type).collect(toList());
-		System.out.println(dragons);
 		if(dragons.size() == 1) {
 			return Optional.of(dragons.get(0));
 		}
@@ -483,8 +482,6 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 				reply.put("request", MessageRequest.reply);
 				int x = (Integer)msg.get("x");
 				int y = (Integer)msg.get("y");
-				System.out.println(getNearest(unit, x, y));
-				System.out.println(this.units);
 				reply.put("unit", getNearest(unit, x, y).orElse(null));
 				break;
 			}

@@ -56,6 +56,7 @@ public class ServerSocket implements Socket {
 				sendMessage(message, node);
 			}
 			catch (RuntimeException e) {
+				e.printStackTrace();
 				logMessage("Failed to send message to node `" + node + "`; message: " + message + ", because: " + e,
 						LogType.ERROR);
 			}
@@ -73,6 +74,7 @@ public class ServerSocket implements Socket {
 						sendMessage(message, node);
 					}
 					catch (RuntimeException e) {
+						e.printStackTrace();
 						logMessage("Failed to send message to node `" + node + "`; message: " + message + ", because: "
 								+ e, LogType.ERROR);
 					}

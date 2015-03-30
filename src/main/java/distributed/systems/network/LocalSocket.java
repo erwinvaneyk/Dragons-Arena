@@ -93,12 +93,13 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 			return handler.onMessageReceived(message);
 		}
 		catch (NotBoundException | RemoteException e) {
+			String errorMessage = "Failed to send message: `" + message + "` to " + destination;
 			try {
-				throw new RuntimeException("Failed to send message: `" + message + "` to " + destination + " on registry "+ Arrays.toString(registry.list()), e);
+				errorMessage += " on registry "+ Arrays.toString(registry.list());
+			} catch (RemoteException e1) {
+				errorMessage += " on undefined registry";
 			}
-			catch (RemoteException e1) {
-				throw new RuntimeException(e1);
-			}
+			throw new RuntimeException(errorMessage, e);
 		}
 	}
 
@@ -112,11 +113,13 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 		}
 	}
 
-	// TODO: seperate this to serversocket
-
 	@Override
 	public void logMessage(Message logMessage) {
-		sendMessage(logMessage, registryAddress);
+		try {
+			sendMessage(logMessage, registryAddress);
+		} catch (Exception e) {
+			System.out.println("No registry-server present: " + logMessage);
+		}
 	}
 
 	@Override

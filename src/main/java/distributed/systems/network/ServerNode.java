@@ -15,6 +15,7 @@ import distributed.systems.network.services.NodeBalanceService;
 import distributed.systems.network.services.ServerHeartbeatService;
 import lombok.Getter;
 import lombok.ToString;
+import lombok.NonNull;
 
 
 /**
@@ -42,31 +43,44 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 		addMessageHandler(new LogHandler(this));
 		addMessageHandler(new SyncBattlefieldHandler(this));
 		addMessageHandler(new ServerJoinHandler(this));
+		addMessageHandler(new ServerGameActionHandler(this));
 
 		// setup services
 		heartbeatService = new ServerHeartbeatService(this, serverSocket).expectHeartbeatFrom(otherNodes);
 		nodeBalanceService = new NodeBalanceService(this);
 		addMessageHandler(heartbeatService);
 		addMessageHandler(nodeBalanceService);
-		addMessageHandler(new ServerGameActionHandler(this));
-		runService(heartbeatService);
-
-		// TODO: start a dragon (if necessary)
-		serverSocket.logMessage("Server (" + address + ") is up and running", LogType.INFO);
+		serverSocket.logMessage("Server (" + address + ") is ready to join or create a cluster", LogType.INFO);
 	}
 
 	public void startCluster() {
 		super.startCluster();
 		// Setup battlefield
-		battlefield = new BattleField();
-		battlefield.setServerSocket(socket);
-		battlefield.setMessagefactory(messageFactory);
-		serverSocket.logMessage("Created the battlefield.", LogType.DEBUG);
+		battlefield = createBattlefield();
+		startServices();
+		serverSocket.logMessage("New cluster has been created", LogType.INFO);
 	}
 
 	public void connect(NodeAddress server) {
-		super.connect(server);
-		battlefield = SyncBattlefieldHandler.syncBattlefield(this);
+		try {
+			super.connect(server);
+			battlefield = SyncBattlefieldHandler.syncBattlefield(this);
+			startServices();
+		} catch (RuntimeException e) {
+			serverSocket.logMessage("Could not connect to cluster at " + server, LogType.ERROR);
+		}
+	}
+
+	private BattleField createBattlefield() {
+		BattleField battlefield = new BattleField();
+		battlefield.setServerSocket(socket);
+		battlefield.setMessagefactory(messageFactory);
+		serverSocket.logMessage("Created the battlefield.", LogType.DEBUG);
+		return battlefield;
+	}
+
+	private void startServices() {
+		runService(heartbeatService);
 	}
 
 	public void launchViewer() {
