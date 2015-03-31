@@ -14,55 +14,16 @@ import distributed.systems.network.NodeAddress;
 import distributed.systems.network.ServerAddress;
 import distributed.systems.network.ServerNode;
 
-public class ServerJoinHandler implements MessageHandler {
+public class ServerConnectHandler implements MessageHandler {
 
 	public static final String MESSAGE_TYPE = "HANDSHAKE";
 
-	private final ServerNode me;
+	private final AbstractServerNode me;
 	private final MessageFactory messageFactory;
 
-	public ServerJoinHandler(ServerNode node) {
+	public ServerConnectHandler(AbstractServerNode node) {
 		this.me = node;
 		this.messageFactory = me.getMessageFactory();
-	}
-
-
-	/**
-	 * Sender:      New Server
-	 * Receiver:    Existing server in cluster
-	 * Result:      server is added
-	 *
-	 * Message to cluster:
-	 * - MessageType: HANDSHAKE
-	 * - address:   address of the new server
-	 *
-	 * Return message
-	 * - MessageType: HANDSHAKE
-	 * - servers: all servers including self
-	 * - address as decided by the servers
-	 *
-	 */
-	public static void connectToCluster(AbstractServerNode server, NodeAddress hostAddress) {
-		if(server.getOtherNodes().stream().anyMatch(node -> node.equals(hostAddress))) {
-			server.getServerSocket().logMessage("Node tried to connect to cluster, even though it already is connected!",
-					LogType.WARN);
-			return;
-		}
-		Socket socket = LocalSocket.connectTo(hostAddress);
-		Message response = socket.sendMessage(
-				server.getMessageFactory().createMessage(MESSAGE_TYPE).put("address", server.getServerAddress()),
-				hostAddress);
-		// TODO: error handling
-
-		// Assume all is good
-		ArrayList<ServerAddress> otherServers = (ArrayList<ServerAddress>) response.get("servers");
-		ServerAddress verifiedAddress = (ServerAddress) response.get("address");
-		server.getAddress().setId(verifiedAddress.getId());
-		server.updateBindings();
-		server.getOtherNodes().addAll(otherServers);
-		server.getServerSocket().logMessage(
-				"Server `" + server.getAddress() + "` successfully connected to the cluster, other nodes found: "
-						+ server.getOtherNodes(), LogType.INFO);
 	}
 
 	public Message onMessageReceived(Message message) {
@@ -83,17 +44,14 @@ public class ServerJoinHandler implements MessageHandler {
 				message.put("address", newServer);
 				me.getServerSocket().logMessage(
 						"Assigned ID to new server, renamed `" + oldServerId + "` to `" + newServer + "`, otherNodes: " + me
-								.getOtherNodes()
-								+ ".", LogType.DEBUG);
+								.getOtherNodes() + ".", LogType.DEBUG);
 			}
 			// Propagate
 			message.put("forwarded", true);
 			me.getServerSocket().broadcast(message);
 		}
 		// Add new server to list
-		me.getOtherNodes().add(new ServerAddress(newServer));
-		me.getServerSocket()
-				.logMessage("Added node to list of connected nodes, now the list is: " + me.getOtherNodes() + ".", LogType.DEBUG);
+		me.addServer(new ServerAddress(newServer));
 		return response;
 	}
 

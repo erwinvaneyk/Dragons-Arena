@@ -19,7 +19,6 @@ public class ClientHeartbeatService extends HeartbeatService {
 
 	// TODO: do some cleanup, moving the clients of a disconnected server to other servers
 	protected void removeNode(ServerAddress address) {
-		nodes.remove(address);
 		watchNodes.remove(address);
 		socket.logMessage("Node `" + address.getName() + "` TIMED OUT, because it has not been sending any heartbeats!",
 				LogType.WARN);

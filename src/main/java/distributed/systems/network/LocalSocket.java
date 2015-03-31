@@ -6,6 +6,7 @@ import distributed.systems.das.MessageRequest;
 import lombok.ToString;
 
 import java.io.Serializable;
+import java.rmi.AccessException;
 import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -13,6 +14,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 
@@ -84,22 +86,34 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 		}
 	}
 
-	@Override
-
-	public Message sendMessage(Message message, NodeAddress destination) {
+	private Optional<IMessageReceivedHandler> lookup(String binding) {
 		try {
-			if(id != null) message.setOrigin(id);
-			IMessageReceivedHandler handler = (IMessageReceivedHandler) registry.lookup(destination.getName());
-			return handler.onMessageReceived(message);
+			return Optional.ofNullable((IMessageReceivedHandler) registry.lookup(binding));
+		} catch (NotBoundException | RemoteException e) {
+			return Optional.empty();
 		}
-		catch (NotBoundException | RemoteException e) {
-			String errorMessage = "Failed to send message: `" + message + "` to " + destination;
+	}
+
+	@Override
+	public Message sendMessage(Message message, NodeAddress destination) {
+		Optional<IMessageReceivedHandler> handler = lookup(destination.getName());
+		if(id != null) {
+			message.setOrigin(id);
+		}
+		if(!handler.isPresent()) {
+			String errorMessage = "Attempting to send message to non-registered node: " + destination;
 			try {
-				errorMessage += " on registry "+ Arrays.toString(registry.list());
-			} catch (RemoteException e1) {
-				errorMessage += " on undefined registry";
+				errorMessage += " on " + Arrays.toString(registry.list());
+			} catch (RemoteException e) {
+				errorMessage += " on unknown registry.";
 			}
-			throw new RuntimeException(errorMessage, e);
+			throw new ClusterException(errorMessage + " with message: \"" + message + "\"");
+		} else {
+			try {
+				return handler.get().onMessageReceived(message);
+			} catch (RemoteException e) {
+				throw new RuntimeException("Failed to send message: `" + message + "` to " + destination, e);
+			}
 		}
 	}
 
@@ -119,6 +133,7 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 			sendMessage(logMessage, registryAddress);
 		} catch (Exception e) {
 			System.out.println("No registry-server present: " + logMessage);
+			e.printStackTrace();
 		}
 	}
 
@@ -144,12 +159,7 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 
 	@Deprecated
 	public void broadcast(Message message, NodeType type) {
-        if (message.get("request")!=null && message.get("request").equals(MessageRequest.spawnUnit)) {
-            System.out.println("In the LocalSocket " + this.registryAddress.getName() + " send a broadcast message <"+message.get("x")+","+message.get("y")+">" );
-
-        }
 		try {
-            System.out.println("In the LocalSocket, broadcast "+ getNodes().toString());
 			getNodes().stream()
 					.filter(address -> address.getType().equals(type))
 					.forEach(address -> sendMessage(message, address));

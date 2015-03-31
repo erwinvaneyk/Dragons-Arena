@@ -22,10 +22,9 @@ public abstract class HeartbeatService implements SocketService {
 	protected static final int TIMEOUT_DURATION = 15000;
 	protected static final int CHECK_INTERVAL = 5000;
 
-	protected final List<ServerAddress> watchNodes = new ArrayList<>();
+	protected final Map<ServerAddress, Integer> watchNodes = new ConcurrentHashMap<>();
 	protected final Socket socket;
 	protected final AbstractNode me;
-	protected Map<ServerAddress, Integer> nodes = new ConcurrentHashMap<>();
 
 	public HeartbeatService(AbstractNode me, Socket socket) {
 		this.socket = socket;
@@ -33,12 +32,12 @@ public abstract class HeartbeatService implements SocketService {
 	}
 
 	public HeartbeatService expectHeartbeatFrom(ServerAddress node) {
-		watchNodes.add(node);
+		watchNodes.put(node, TIMEOUT_DURATION / CHECK_INTERVAL);
 		return this;
 	}
 
 	public HeartbeatService expectHeartbeatFrom(List<ServerAddress> nodes) {
-		watchNodes.addAll(nodes);
+		nodes.stream().forEach(this::expectHeartbeatFrom);
 		return this;
 	}
 
@@ -58,11 +57,11 @@ public abstract class HeartbeatService implements SocketService {
 
 	private void checkHeartbeats() {
 		// Count down nodes
-		nodes.entrySet().stream().forEach(node -> {
+		watchNodes.entrySet().stream().forEach(node -> {
 			if(node.getValue() < 0) {
 				removeNode(node.getKey());
 			} else {
-				nodes.put(node.getKey(), node.getValue() - 1);
+				watchNodes.put(node.getKey(), node.getValue() - 1);
 			}
 		});
 	}
@@ -104,13 +103,12 @@ public abstract class HeartbeatService implements SocketService {
 	@Override
 	public Message onMessageReceived(Message message) throws RemoteException {
 		NodeAddress origin = message.getOrigin();
-		nodes.entrySet().stream()
+		watchNodes.entrySet().stream()
 				.filter(node -> node.getKey().equals(origin))
 				.findAny()
 				.ifPresent(node -> {
 					node.setValue(TIMEOUT_DURATION / CHECK_INTERVAL);
-					socket.logMessage("Received a heartbeat from node `" + node.getKey().getName() + "` (" + nodes +").",
-
+					socket.logMessage("Received a heartbeat from node `" + node.getKey().getName() + ".",
 							LogType.DEBUG);
 				});
 		return null;

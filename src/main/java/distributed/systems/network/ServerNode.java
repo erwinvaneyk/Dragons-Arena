@@ -8,14 +8,13 @@ import distributed.systems.das.BattleField;
 import distributed.systems.das.presentation.BattleFieldViewer;
 import distributed.systems.network.messagehandlers.ServerGameActionHandler;
 import distributed.systems.network.messagehandlers.LogHandler;
-import distributed.systems.network.messagehandlers.ServerJoinHandler;
+import distributed.systems.network.messagehandlers.ServerConnectHandler;
 import distributed.systems.network.messagehandlers.SyncBattlefieldHandler;
 import distributed.systems.network.services.HeartbeatService;
 import distributed.systems.network.services.NodeBalanceService;
 import distributed.systems.network.services.ServerHeartbeatService;
 import lombok.Getter;
 import lombok.ToString;
-import lombok.NonNull;
 
 
 /**
@@ -29,8 +28,8 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 	@Getter
 	private BattleField battlefield;
 
-    private HeartbeatService heartbeatService;
-	private NodeBalanceService nodeBalanceService;
+    private final HeartbeatService heartbeatService;
+	private final NodeBalanceService nodeBalanceService;
 
 
 	public static void main(String[] args) throws RemoteException {
@@ -42,11 +41,11 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 		// Setup message-handlers
 		addMessageHandler(new LogHandler(this));
 		addMessageHandler(new SyncBattlefieldHandler(this));
-		addMessageHandler(new ServerJoinHandler(this));
+		addMessageHandler(new ServerConnectHandler(this));
 		addMessageHandler(new ServerGameActionHandler(this));
 
 		// setup services
-		heartbeatService = new ServerHeartbeatService(this, serverSocket).expectHeartbeatFrom(otherNodes);
+		heartbeatService = new ServerHeartbeatService(this, serverSocket);
 		nodeBalanceService = new NodeBalanceService(this);
 		addMessageHandler(heartbeatService);
 		addMessageHandler(nodeBalanceService);
@@ -66,9 +65,16 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 			super.connect(server);
 			battlefield = SyncBattlefieldHandler.syncBattlefield(this);
 			startServices();
-		} catch (RuntimeException e) {
-			serverSocket.logMessage("Could not connect to cluster at " + server, LogType.ERROR);
+			heartbeatService.expectHeartbeatFrom(otherNodes);
+		} catch (ClusterException e) {
+			serverSocket.logMessage("Could not connect server to cluster at " + server, LogType.ERROR);
 		}
+		serverSocket.logMessage("Connected server to the cluster of " + ownRegistry, LogType.INFO);
+	}
+
+	public void addServer(ServerAddress server) {
+		super.addServer(server);
+		heartbeatService.expectHeartbeatFrom(server);
 	}
 
 	private BattleField createBattlefield() {

@@ -95,8 +95,10 @@ public class ServerSocket implements Socket {
 			}
 		});
 		// If there are no loggers, just output it to the screen.
-		if(logNodes.isEmpty()) {
-			System.out.println("No logger present: " + logMessage);
+		if(me.getNodeType() == NodeType.LOGGER) {
+			sendMessage(logMessage, me.getServerAddress());
+		} else if(logNodes.isEmpty()) {
+			System.out.println("No logger found: " + logMessage);
 		}
 	}
 

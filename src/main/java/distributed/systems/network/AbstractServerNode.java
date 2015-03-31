@@ -7,8 +7,10 @@ import java.util.ArrayList;
 
 import com.sun.istack.internal.NotNull;
 import distributed.systems.core.LogType;
+import distributed.systems.core.Message;
 import distributed.systems.core.MessageFactory;
-import distributed.systems.network.messagehandlers.ServerJoinHandler;
+import distributed.systems.core.Socket;
+import distributed.systems.network.messagehandlers.ServerConnectHandler;
 import lombok.Getter;
 import org.apache.commons.lang.SerializationUtils;
 
@@ -35,7 +37,24 @@ public abstract class AbstractServerNode extends AbstractNode {
 	}
 
 	public void connect(NodeAddress server) {
-		ServerJoinHandler.connectToCluster(this, server);
+		if(otherNodes.stream().anyMatch(node -> node.equals(server))) {
+			serverSocket.logMessage("Node tried to connect to cluster, even though it already is connected!",
+					LogType.WARN);
+			return;
+		}
+		Socket socket = LocalSocket.connectTo(server);
+		Message response = socket.sendMessage(
+				messageFactory.createMessage(ServerConnectHandler.MESSAGE_TYPE).put("address", getServerAddress()), server);
+		// TODO: error handling
+
+		// Assume all is good
+		ArrayList<ServerAddress> otherServers = (ArrayList<ServerAddress>) response.get("servers");
+		ServerAddress verifiedAddress = (ServerAddress) response.get("address");
+		address.setId(verifiedAddress.getId());
+		updateBindings();
+		otherNodes.addAll(otherServers);
+		serverSocket.logMessage("Server `" + address + "` successfully connected to the cluster, other nodes found: "
+						+ otherNodes, LogType.INFO);
 	}
 
 	public int generateUniqueId(@NotNull NodeType type) {
@@ -83,6 +102,10 @@ public abstract class AbstractServerNode extends AbstractNode {
 		super.disconnect();
 		UnicastRemoteObject.unexportObject(this, true);
 		ownRegistry.disconnect();
+	}
+
+	public void addServer(ServerAddress server) {
+		otherNodes.add(server);
 	}
 
 	public void startCluster() {
