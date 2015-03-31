@@ -33,7 +33,7 @@ public class ServerConnectHandler implements MessageHandler {
 		if(message.get("forwarded") == null) {
 			ServerNode meServer = (ServerNode) me;
 
-			ArrayList<NodeState> servers = new ArrayList<>(me.getConnectedNodes().keySet()); //TODO add loggers
+			ArrayList<NodeState> servers = new ArrayList<>(me.getConnectedNodes()); //TODO add loggers
 			servers.add(me.getNodeState());
 			System.out.println(servers);
 			response = messageFactory.createMessage(message.getMessageType())
@@ -44,16 +44,15 @@ public class ServerConnectHandler implements MessageHandler {
 				String oldServerId = newAddress.toString();
 				newAddress.setId(me.generateUniqueId(newAddress.getType()));
 				if(newAddress.getType().equals(NodeType.SERVER)) {
-					newServer = new ServerState(meServer.getServerState().getBattleField(), newAddress,
-							newAddress.getType());
+					newServer = new ServerState(meServer.getServerState().getBattleField(), newAddress);
 				} else {
-					newServer = new NodeState(newAddress, newAddress.getType());
+					newServer = new NodeState(newAddress);
 				}
 				message.put("newServer", newServer);
 				response.put("newServer", newServer);
 				me.getServerSocket().logMessage(
 						"Assigned ID to new server, renamed `" + oldServerId + "` to `" + newAddress
-								+ "`, other servers: " + me.getConnectedNodes().keySet() + ".", LogType.DEBUG);
+								+ "`, other servers: " + me.getConnectedNodes() + ".", LogType.DEBUG);
 			}
 			// Propagate
 			message.put("forwarded", true);

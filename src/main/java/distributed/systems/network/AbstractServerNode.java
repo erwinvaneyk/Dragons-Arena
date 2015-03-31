@@ -5,7 +5,9 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import com.sun.istack.internal.NotNull;
 import distributed.systems.core.LogType;
@@ -19,7 +21,7 @@ import org.apache.commons.lang.SerializationUtils;
 public abstract class AbstractServerNode extends AbstractNode {
 
 	@Getter
-	private Map<NodeState, Long> connectedNodes = new HashMap<>();
+	private Set<NodeState> connectedNodes = new HashSet<>();
 
 	@Getter
 	protected NodeState nodeState;
@@ -35,7 +37,7 @@ public abstract class AbstractServerNode extends AbstractNode {
 		// Parent requirements
 		ownRegistry = new RegistryNode(port);
 		NodeAddress address = new NodeAddress(port, this.getNodeType());
-		nodeState = new NodeState(address, getNodeType());
+		nodeState = new NodeState(address);
 		socket = LocalSocket.connectTo(address);
 		socket.register(address);
 		messageFactory = new MessageFactory(nodeState);
@@ -43,7 +45,7 @@ public abstract class AbstractServerNode extends AbstractNode {
 	}
 
 	public void connect(NodeAddress server) {
-		if(connectedNodes.keySet().stream().anyMatch(s -> s.getAddress().equals(server))) {
+		if(connectedNodes.stream().anyMatch(s -> s.getAddress().equals(server))) {
 			serverSocket.logMessage("Node tried to connect to cluster, even though it already is connected!",
 					LogType.WARN);
 			return;
@@ -61,7 +63,7 @@ public abstract class AbstractServerNode extends AbstractNode {
 		updateBindings();
 		otherServers.stream().forEach(this::addServer);
 		serverSocket.logMessage("Server `" + getAddress() + "` successfully connected to the cluster, other nodes found: "
-				+ connectedNodes.keySet(), LogType.INFO);
+				+ connectedNodes, LogType.INFO);
 	}
 
 	public int generateUniqueId(@NotNull NodeType type) {
@@ -107,10 +109,17 @@ public abstract class AbstractServerNode extends AbstractNode {
 	}
 
 	public void addServer(NodeState node) {
-		nodeState.getConnectedNodes().add(node.getAddress());
-		connectedNodes.put(node, System.currentTimeMillis());
-		safeLogMessage("Added node: " + node.getAddress() + " to server. nodeStateNodes: " + nodeState.getConnectedNodes()
-						+ ", connectedNodes: " + connectedNodes, LogType.DEBUG);
+		if(!node.getAddress().equals(getNodeState().getAddress())) {
+			nodeState.getConnectedNodes().add(node.getAddress());
+			connectedNodes.remove(node);
+			connectedNodes.add(node);
+			System.out.println(node + " => " + connectedNodes + " & " + nodeState.getConnectedNodes());
+			safeLogMessage(
+					"Added node: " + node.getAddress() + " to server. nodeStateNodes: " + nodeState.getConnectedNodes()
+							+ ", connectedNodes: " + connectedNodes, LogType.DEBUG);
+		} else {
+			safeLogMessage("Attempted to at itself to connected-nodes", LogType.WARN);
+		}
 	}
 
 	public void startCluster() {

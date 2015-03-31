@@ -39,6 +39,6 @@ public class ServerGameActionHandler implements MessageHandler {
             }
 
         }
-        return response;
+        return null;
 	}
 }

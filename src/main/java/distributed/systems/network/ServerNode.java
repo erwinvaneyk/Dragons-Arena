@@ -68,7 +68,7 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 			nodeState.getConnectedNodes().addAll(oldState.getConnectedNodes());
 			startServices();
 			heartbeatService.expectHeartbeatFrom(
-					getConnectedNodes().keySet().stream().map(NodeState::getAddress).collect(toList()));
+					getConnectedNodes().stream().map(NodeState::getAddress).collect(toList()));
 		} catch (ClusterException e) {
 			serverSocket.logMessage("Could not connect server to cluster at " + server, LogType.ERROR);
 		}
@@ -81,13 +81,13 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 	}
 
 	public void addClient(@NonNull NodeAddress client) {
+		getServerState().getClients().remove(client);
 		getServerState().getClients().add(client);
 		heartbeatService.expectHeartbeatFrom(client);
 	}
 
 	public void updateOtherServerState(@NonNull ServerState that) {
-		nodeState.getConnectedNodes().add(that.getAddress());
-		getConnectedNodes().put(that, System.currentTimeMillis());
+		addServer(that);
 		System.out.println("Updated connectedNodes: " + getConnectedNodes() );
 	}
 

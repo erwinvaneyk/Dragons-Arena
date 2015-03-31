@@ -47,7 +47,7 @@ public class PlayerNode extends AbstractNode implements ClientNode, IMessageRece
 		// Setup
 		address = new NodeAddress(-1, getNodeType());
 		serverAddress = server;
-		messageFactory = new MessageFactory(new NodeState(address, NodeType.PLAYER));
+		messageFactory = new MessageFactory(new NodeState(address));
 
 		// Join server
 		serverAddress = NodeBalanceService.joinServer(this, serverAddress);

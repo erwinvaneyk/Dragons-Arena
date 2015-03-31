@@ -59,7 +59,7 @@ public class LogNode extends AbstractServerNode {
 		try {
 			super.connect(server);
 			runService(heartbeatService);
-			heartbeatService.expectHeartbeatFrom(this.getConnectedNodes().keySet().stream().map(NodeState::getAddress).collect(toList()));
+			heartbeatService.expectHeartbeatFrom(this.getConnectedNodes().stream().map(NodeState::getAddress).collect(toList()));
 		} catch (ClusterException e) {
 			log(messageFactory.createLogMessage("Could not connect logger to cluster at " + server, LogType.ERROR));
 		}

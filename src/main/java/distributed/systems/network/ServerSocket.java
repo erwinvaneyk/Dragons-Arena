@@ -39,7 +39,7 @@ public class ServerSocket implements Socket {
 	}
 
 	public void broadcast(Message message) {
-		me.getConnectedNodes().keySet().stream().forEach(node -> {
+		me.getConnectedNodes().stream().forEach(node -> {
 			try {
 				sendMessage(message, node.getAddress());
 			}
@@ -55,7 +55,9 @@ public class ServerSocket implements Socket {
         if (message.get("request")!=null && message.get("request").equals(MessageRequest.spawnUnit)) {
             System.out.println("In the ServerSocket " + this.getMe().getAddress().getName() + "send a broadcast message");
         }
-		me.getConnectedNodes().keySet().stream().map(NodeState::getAddress)
+		System.out.println("broadcast: " + me.getConnectedNodes().size() + " ---> " + me.getConnectedNodes().stream().map(node -> node.getAddress()).collect(toList()));
+
+		me.getConnectedNodes().stream().map(NodeState::getAddress)
 				.filter(node -> node.getType().equals(type))
 				.forEach(node -> {
 					try {
@@ -70,9 +72,9 @@ public class ServerSocket implements Socket {
 	}
 
 	public void logMessage(Message logMessage) {
-		List<NodeState> logNodes = me.getConnectedNodes().keySet()
+		List<NodeState> logNodes = me.getConnectedNodes()
 				.stream()
-				.filter(node -> node.getNodeType().equals(NodeType.LOGGER))
+				.filter(node -> node.getAddress().getType().equals(NodeType.LOGGER))
 				.collect(toList());
 		logNodes.forEach(logger -> {
 			try {

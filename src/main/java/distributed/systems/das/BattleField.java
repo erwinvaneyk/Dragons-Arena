@@ -393,7 +393,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
                 reply.put("request", MessageRequest.reply);
 				reply.put("id", msg.get("id"));
                 reply.put("adjacent", map[x][y].isAdjacent());
-                if (result == true){
+                if (result){
                     updatemessage = messagefactory.createMessage();
                     updatemessage.put("request", MessageRequest.update);
                     updatemessage.put("type", MessageRequest.moveUnit);
@@ -445,8 +445,9 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
                         int ty = (Integer)msg.get("ty");
                         int ox = (Integer)msg.get("ox");
                         int oy = (Integer)msg.get("oy");
-	                    Optional<Unit> subject = this.getUnit(ox, oy);
-                        this.moveUnit(subject.get(), tx, ty);
+	                    this.getUnit(ox, oy).ifPresent(unit -> {
+		                    this.moveUnit(unit, tx, ty);
+	                    });
                         break;
                     }
                     case removeUnit:{

@@ -40,7 +40,7 @@ public class DragonNode extends AbstractNode implements ClientNode, Serializable
 		// Setup
 		address = new NodeAddress(-1, NodeType.DRAGON);
 		serverAddress = server;
-		messageFactory = new MessageFactory(new NodeState(address, NodeType.DRAGON));
+		messageFactory = new MessageFactory(new NodeState(address));
 
 		// Join server
 		serverAddress = NodeBalanceService.joinServer(this, serverAddress);

@@ -29,8 +29,8 @@ public class SyncBattlefieldHandler implements MessageHandler {
 	public static BattleField syncBattlefield(ServerNode me) {
 		Message message = me.getMessageFactory().createMessage(MESSAGE_TYPE);
 
-		List<Message> battlefields = me.getConnectedNodes().keySet().stream()
-				.filter(node -> node.getNodeType().equals(NodeType.SERVER))
+		List<Message> battlefields = me.getConnectedNodes().stream()
+				.filter(node -> node.getAddress().getType().equals(NodeType.SERVER))
 				.flatMap(server -> {
 					me.getServerSocket().logMessage("Requesting battlefield from `" + server + "`.", LogType.DEBUG);
 					try {

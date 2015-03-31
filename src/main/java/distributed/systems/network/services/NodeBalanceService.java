@@ -54,7 +54,7 @@ public class NodeBalanceService implements SocketService {
 	}
 
 	public ServerState getLeastBusyServer() {
-		ServerState otherServer = me.getConnectedNodes().keySet().stream()
+		ServerState otherServer = me.getConnectedNodes().stream()
 				.filter(node -> node instanceof ServerState)
 				.map(node -> (ServerState) node)
 				.reduce((a, b) -> a.getClients().size() < b.getClients().size() ? a : b).orElse(me.getServerState());
