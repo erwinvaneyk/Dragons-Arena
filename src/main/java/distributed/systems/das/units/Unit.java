@@ -1,15 +1,6 @@
 package distributed.systems.das.units;
 
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import distributed.systems.core.MessageFactory;
-import distributed.systems.das.GameState;
-import distributed.systems.das.MessageRequest;
 import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.Message;
 import distributed.systems.core.MessageFactory;
@@ -18,7 +9,6 @@ import distributed.systems.core.exception.IDNotAssignedException;
 import distributed.systems.das.GameState;
 import distributed.systems.das.MessageRequest;
 import distributed.systems.network.ClientNode;
-import distributed.systems.network.NodeAddress;
 import distributed.systems.network.PlayerState;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,7 +16,9 @@ import lombok.ToString;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Base class for all players whom can 

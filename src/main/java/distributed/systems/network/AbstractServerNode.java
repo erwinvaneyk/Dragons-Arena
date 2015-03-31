@@ -1,17 +1,5 @@
 package distributed.systems.network;
 
-import static java.util.stream.Collectors.toList;
-
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
-import java.rmi.server.UnicastRemoteObject;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.sun.istack.internal.NotNull;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
@@ -21,10 +9,19 @@ import distributed.systems.network.messagehandlers.ServerConnectHandler;
 import lombok.Getter;
 import org.apache.commons.lang.SerializationUtils;
 
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 public abstract class AbstractServerNode extends AbstractNode {
 
 	@Getter
-	private Set<NodeState> connectedNodes = new HashSet<>();
+    private CopyOnWriteArrayList<NodeState> connectedNodes = new CopyOnWriteArrayList<>();
+	//private Set<NodeState> connectedNodes = new HashSet<>();
 
 	@Getter
 	protected NodeState nodeState;
