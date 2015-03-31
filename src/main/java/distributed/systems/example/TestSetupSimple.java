@@ -26,21 +26,21 @@ public class TestSetupSimple {
 		//logger.connect(server1.getAddress());
 		ServerNode server2 = new ServerNode(2346);
 		server2.connect(server1.getAddress());
-		ServerNode server3 = new ServerNode(2347);
+		/*ServerNode server3 = new ServerNode(2347);
 		server3.connect(server1.getAddress());
 		ServerNode server4 = new ServerNode(2348);
 		server4.connect(server3.getAddress());
-		System.out.println("Server 0: " + server1.getNodeState() + " -> " + server1.getConnectedNodes());
 		System.out.println("Server 1: " + server2.getNodeState() + " -> " + server2.getConnectedNodes());
 		System.out.println("Server 2: " + server3.getNodeState() + " -> " + server3.getConnectedNodes());
-		System.out.println("Server 3: " + server4.getNodeState() + " -> " + server4.getConnectedNodes());
+		System.out.println("Server 3: " + server4.getNodeState() + " -> " + server4.getConnectedNodes());*/
 		//Players
-		//PlayerNode player1 = new PlayerNode(server1.getAddress(),10,10);
-		//PlayerNode player2 = new PlayerNode(server1.getAddress(),15,15);
+		PlayerNode player1 = new PlayerNode(server1.getAddress(),10,10);
+		PlayerNode player2 = new PlayerNode(server1.getAddress(),15,15);
 		//DragonNode dragonNode = new DragonNode(server1.getAddress(), 2,3);
+		System.out.println("Server 0: " + server1.getNodeState() + " -> " + server1.getConnectedNodes());
 
-		//server1.launchViewer();
-        //server2.launchViewer();
+		server1.launchViewer();
+        server2.launchViewer();
 		System.out.println("ALL GOOD!!!!");
 	}
 }

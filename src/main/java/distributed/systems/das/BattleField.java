@@ -445,10 +445,8 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
                         int ty = (Integer)msg.get("ty");
                         int ox = (Integer)msg.get("ox");
                         int oy = (Integer)msg.get("oy");
-                        if(this.getUnit(ox,oy)!=null){
-                            System.out.println("locate the ox and oy unit");
-                        }
-                        this.moveUnit(this.getUnit(ox,oy).get(), tx, ty);
+	                    Optional<Unit> subject = this.getUnit(ox, oy);
+                        this.moveUnit(subject.get(), tx, ty);
                         break;
                     }
                     case removeUnit:{

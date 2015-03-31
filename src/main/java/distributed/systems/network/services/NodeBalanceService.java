@@ -44,7 +44,7 @@ public class NodeBalanceService implements SocketService {
 		} else {
 			// Join this server
 			NodeAddress myNewAddress = (NodeAddress) response.get("address");
-			serverAddress = ((ServerState) response.get("server")).getAddress();
+			serverAddress = ((NodeAddress) response.get("server"));
 			socket = LocalSocket.connectTo(serverAddress);
 			me.getAddress().setId(myNewAddress.getId());
 			me.getAddress().setPhysicalAddress(myNewAddress.getPhysicalAddress());
@@ -88,13 +88,14 @@ public class NodeBalanceService implements SocketService {
 			me.addClient(client);
 			// Propagate message
 			response.put("address", client);
-			response.put("server", me.getNodeState());
+			response.put("server", me.getNodeState().getAddress());
 			serverSocket.broadcast(message.put("forwarded", true).put("server", me.getAddress()), NodeType.SERVER);
 			return response;
 		} else {
 			// Deal with propagated message
-			ServerState owner = (ServerState) message.get("server");
-			me.updateOtherServerState(owner);
+			ServerState owner = (ServerState) message.get("fromServer");
+			if(owner != null)
+				me.updateOtherServerState(owner);
 			return null;
 		}
 	}
