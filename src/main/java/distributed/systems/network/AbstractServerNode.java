@@ -1,11 +1,14 @@
 package distributed.systems.network;
 
+import static java.util.stream.Collectors.toList;
+
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -69,6 +72,12 @@ public abstract class AbstractServerNode extends AbstractNode {
 	public int generateUniqueId(@NotNull NodeType type) {
 		ArrayList<NodeAddress> nodes = new ArrayList<>(nodeState.getConnectedNodes());//otherNodes);
 		nodes.add(getAddress());
+		Set<NodeState> potentialClients = new HashSet<>(getConnectedNodes());
+		potentialClients.add(getNodeState());
+		potentialClients.stream()
+				.filter(node -> node.getAddress().getType().equals(NodeType.SERVER))
+				.map(node -> ((ServerState) node).getClients())
+				.forEach(nodes::addAll);
 		int highestId = nodes
 				.stream()
 				.filter(node -> node.getType().equals(type))

@@ -36,11 +36,13 @@ public class TestSetupSimple {
 		//Players
 		PlayerNode player1 = new PlayerNode(server1.getAddress(),10,10);
 		PlayerNode player2 = new PlayerNode(server1.getAddress(),15,15);
-		//DragonNode dragonNode = new DragonNode(server1.getAddress(), 2,3);
+		new PlayerNode(server1.getAddress(),1,1);
+		new PlayerNode(server1.getAddress(),2,1);
+		DragonNode dragonNode = new DragonNode(server1.getAddress(), 2,3);
 		System.out.println("Server 0: " + server1.getNodeState() + " -> " + server1.getConnectedNodes());
 
 		server1.launchViewer();
-        server2.launchViewer();
+        //server2.launchViewer();
 		System.out.println("ALL GOOD!!!!");
 	}
 }

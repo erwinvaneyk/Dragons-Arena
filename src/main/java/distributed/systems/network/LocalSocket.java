@@ -78,7 +78,7 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 			logMessage("Bounded " + id.getName() + " on registry of " + registryAddress.getPhysicalAddress() + ". Now contains: " + Arrays.toString(registry.list()), LogType.DEBUG);
 		}
 		catch (AlreadyBoundException e) {
-			throw new AlreadyAssignedIDException();
+			throw new AlreadyAssignedIDException("ID: " + id + " was already assigned!", e);
 		}
 		catch (RemoteException e) {
 			e.printStackTrace();
