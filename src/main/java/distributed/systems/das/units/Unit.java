@@ -19,6 +19,7 @@ import distributed.systems.das.GameState;
 import distributed.systems.das.MessageRequest;
 import distributed.systems.network.ClientNode;
 import distributed.systems.network.NodeAddress;
+import distributed.systems.network.PlayerState;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -42,8 +43,8 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	protected transient final ClientNode node;
 	private transient final MessageFactory messageFactory;
 
-	@Getter @Setter
-	private NodeAddress address;
+	@Getter
+	private PlayerState playerState;
 
 	// Position of the unit
 	protected int x, y;
@@ -116,7 +117,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		this.unitID = node.getAddress().getName();
 		this.node = node;
 		this.messageFactory = this.node.getMessageFactory();
-		this.address = node.getAddress();
+		this.playerState = node.getPlayerState();
         this.lived = true;
 
 	}
@@ -457,8 +458,6 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
         moveMessage.put("ox",this.getX());
         moveMessage.put("oy",this.getY());
 		moveMessage.put("id", id);
-        moveMessage.put("ox",this.getX());
-        moveMessage.put("oy",this.getY());
 		moveMessage.put("unit", this);
         moveMessage.put("update",true);
 

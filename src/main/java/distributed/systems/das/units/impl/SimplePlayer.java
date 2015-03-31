@@ -38,6 +38,7 @@ public class SimplePlayer extends RandomPlayer {
 		if(adjacentHurtPlayers.size() > 0) {
 			Unit playerToHeal = adjacentHurtPlayers.get((int) (Math.random() * adjacentHurtPlayers.size()));
 			healDamage(playerToHeal.getX(), playerToHeal.getY(), getAttackPoints());
+			node.sendMessageToServer(new LogMessage("Healing human at position (" + playerToHeal.getX() + "," + playerToHeal.getY() + ")", LogType.INFO));
 			return;
 		}
 

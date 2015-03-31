@@ -299,7 +299,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
                     notification.put("request", MessageRequest.notification);
                     notification.put("damage", msg.get("damage"));
                     notification.put("from", origin);
-					serverSocket.sendMessage(notification, unit.getAddress());
+					serverSocket.sendMessage(notification, unit.getPlayerState().getAddress());
                 });
                 updatemessage = messagefactory.createMessage();
                 updatemessage.put("request", MessageRequest.update);
@@ -332,7 +332,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
                     notification.put("request",MessageRequest.notification);
                     notification.put("heal",unit.getHitPoints());
                     notification.put("from", origin);
-					serverSocket.sendMessage(notification, unit.getAddress());
+					serverSocket.sendMessage(notification, unit.getPlayerState().getAddress());
 				});
                 updatemessage = messagefactory.createMessage();
                 updatemessage.put("request", MessageRequest.update);

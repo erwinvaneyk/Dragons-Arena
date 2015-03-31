@@ -12,9 +12,11 @@ import distributed.systems.network.messagehandlers.ServerGameActionHandler;
 import distributed.systems.network.messagehandlers.LogHandler;
 import distributed.systems.network.messagehandlers.ServerConnectHandler;
 import distributed.systems.network.messagehandlers.SyncBattlefieldHandler;
+import distributed.systems.network.messagehandlers.SynchronizedGameActionHandler;
 import distributed.systems.network.services.HeartbeatService;
 import distributed.systems.network.services.NodeBalanceService;
 import distributed.systems.network.services.ServerHeartbeatService;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 
@@ -29,6 +31,9 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 
     private final HeartbeatService heartbeatService;
 	private final NodeBalanceService nodeBalanceService;
+
+	@Getter
+	private final SynchronizedGameActionHandler synchronizedGameActionHandler;
 
 
 	public static void main(String[] args) throws RemoteException {
@@ -46,6 +51,8 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 		// setup services
 		heartbeatService = new ServerHeartbeatService(this, serverSocket);
 		nodeBalanceService = new NodeBalanceService(this);
+		synchronizedGameActionHandler = new SynchronizedGameActionHandler(this);
+		addMessageHandler(synchronizedGameActionHandler);
 		addMessageHandler(heartbeatService);
 		addMessageHandler(nodeBalanceService);
 		serverSocket.logMessage("Server (" + getAddress() + ") is ready to join or create a cluster", LogType.INFO);

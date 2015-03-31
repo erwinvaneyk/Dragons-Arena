@@ -23,12 +23,9 @@ import lombok.Getter;
 
 public class DragonNode extends AbstractNode implements ClientNode, Serializable {
 
+	private final PlayerState playerState;
 	private List<NodeAddress> knownServers = new ArrayList<>();
-	@Getter
-	private NodeAddress address;
 
-	@Getter
-	private NodeAddress serverAddress;
 	private HeartbeatService heartbeatService;
 	private Dragon dragon;
 
@@ -38,12 +35,13 @@ public class DragonNode extends AbstractNode implements ClientNode, Serializable
 
 	public DragonNode(NodeAddress server, int x, int y) throws RemoteException {
 		// Setup
-		address = new NodeAddress(-1, NodeType.DRAGON);
-		serverAddress = server;
+		NodeAddress address = new NodeAddress(-1, NodeType.DRAGON);
+		playerState = new PlayerState(address, server);
 		messageFactory = new MessageFactory(new NodeState(address));
 
 		// Join server
-		serverAddress = NodeBalanceService.joinServer(this, serverAddress);
+		NodeAddress serverAddress = NodeBalanceService.joinServer(this, server);
+		playerState.setServerAddress(serverAddress);
 		socket = LocalSocket.connectTo(serverAddress);
 		socket.register(address);
 		socket.addMessageReceivedHandler(this);
@@ -67,7 +65,16 @@ public class DragonNode extends AbstractNode implements ClientNode, Serializable
 	}
 
 	@Override
+	public NodeAddress getServerAddress() {
+		return playerState.getServerAddress();
+	}
 
+	@Override
+	public NodeAddress getAddress() {
+		return playerState.getAddress();
+	}
+
+	@Override
 	public Unit getUnit() {
 		return dragon;
 	}
@@ -75,6 +82,11 @@ public class DragonNode extends AbstractNode implements ClientNode, Serializable
 	@Override
 	public Message sendMessageToServer(Message message) {
 		return socket.sendMessage(message, this.getServerAddress());
+	}
+
+	@Override
+	public PlayerState getPlayerState() {
+		return playerState;
 	}
 
 	@Override

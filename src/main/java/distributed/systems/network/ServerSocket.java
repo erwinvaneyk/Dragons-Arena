@@ -52,11 +52,6 @@ public class ServerSocket implements Socket {
 	}
 
 	public void broadcast(Message message, NodeType type) {
-        if (message.get("request")!=null && message.get("request").equals(MessageRequest.spawnUnit)) {
-            System.out.println("In the ServerSocket " + this.getMe().getAddress().getName() + "send a broadcast message");
-        }
-		System.out.println("broadcast: " + me.getConnectedNodes().size() + " ---> " + me.getConnectedNodes().stream().map(node -> node.getAddress()).collect(toList()));
-
 		me.getConnectedNodes().stream().map(NodeState::getAddress)
 				.filter(node -> node.getType().equals(type))
 				.forEach(node -> {

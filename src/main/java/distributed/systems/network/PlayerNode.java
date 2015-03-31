@@ -30,27 +30,34 @@ import lombok.Getter;
 public class PlayerNode extends AbstractNode implements ClientNode, IMessageReceivedHandler {
 
 	private transient Player player;
-	@Getter
-	private NodeAddress address;
+
+	private final PlayerState playerState;
 
 	private transient List<NodeAddress> knownServers = new ArrayList<>();
 
-	@Getter
-	private NodeAddress serverAddress;
 	private transient HeartbeatService heartbeatService;
 
 	public static void main(String[] args) throws RemoteException {
 		new PlayerNode(null, 1, 1);
 	}
 
+	public NodeAddress getServerAddress() {
+		return playerState.getServerAddress();
+	}
+
+	public NodeAddress getAddress() {
+		return playerState.getAddress();
+	}
+
 	public PlayerNode(NodeAddress server, int x, int y) throws RemoteException {
 		// Setup
-		address = new NodeAddress(-1, getNodeType());
-		serverAddress = server;
-		messageFactory = new MessageFactory(new NodeState(address));
+		NodeAddress address = new NodeAddress(-1, getNodeType());
+		playerState = new PlayerState(address, server);
+		messageFactory = new MessageFactory(playerState);
 
 		// Join server
-		serverAddress = NodeBalanceService.joinServer(this, serverAddress);
+		NodeAddress serverAddress = NodeBalanceService.joinServer(this, server);
+		playerState.setServerAddress(serverAddress);
 		socket = LocalSocket.connectTo(serverAddress);
 		socket.register(address);
 		socket.addMessageReceivedHandler(this);
@@ -72,8 +79,6 @@ public class PlayerNode extends AbstractNode implements ClientNode, IMessageRece
 		player.start();
 	}
 
-
-
 	@Override
 	public Unit getUnit() {
 		return player;
@@ -83,6 +88,11 @@ public class PlayerNode extends AbstractNode implements ClientNode, IMessageRece
 	@Override
 	public Message sendMessageToServer(Message message) {
 		return socket.sendMessage(message, this.getServerAddress());
+	}
+
+	@Override
+	public PlayerState getPlayerState() {
+		return playerState;
 	}
 
 	@Override

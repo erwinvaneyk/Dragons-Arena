@@ -2,6 +2,7 @@ package distributed.systems.network.messagehandlers;
 
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
+import distributed.systems.das.MessageRequest;
 import distributed.systems.network.NodeType;
 import distributed.systems.network.ServerNode;
 
@@ -26,25 +27,28 @@ public class ServerGameActionHandler implements MessageHandler {
 	public Message onMessageReceived(Message message) throws RemoteException {
 		me.getSocket().logMessage("[" + me.getAddress() + "] received message: ("  + message + ")", LogType.DEBUG);
 
-		Message response = me.getServerState().getBattleField().onMessageReceived(message);
-		// TODO: check for nearby units -> SERVERS
+		boolean isAllowed = true;
+		MessageRequest request = (MessageRequest)message.get("request");
+		if(MessageRequest.moveUnit.equals(request)) {
+			SynchronizedGameActionHandler synchronizedHandler = me.getSynchronizedGameActionHandler();
+			isAllowed = synchronizedHandler.synchronizeAction(message);
+		}
 
-		// TODO: send synchronizedAction to the SERVERS, return boolean if allowed to do action
+		if(isAllowed) {
+			Message response = me.getServerState().getBattleField().onMessageReceived(message);
+			// Notify other servers
+			if (response != null) {
+				System.out.println("currently, " + me.getAddress().getName() + " the other nodes are ");
+				if (message.get("update").equals(true)) {
+					message.put("update", false);
+					me.getServerSocket().broadcast(response, NodeType.SERVER);
+				}
+				else {
+					System.out.println("I receive a update message handler " + me.getAddress().getName());
+				}
 
-		// TODO: if true, do action update client and other servers.
-
-		// Notify other servers
-        if (response!=null){
-            System.out.println("currently, "+me.getAddress().getName()+" the other nodes are ");
-            if(message.get("update").equals(true)){
-                message.put("update", false);
-                me.getServerSocket().broadcast(response, NodeType.SERVER);
-            }
-            else {
-                System.out.println("I receive a update message handler "+ me.getAddress().getName());
-            }
-
-        }
+			}
+		}
         return null;
 	}
 }
