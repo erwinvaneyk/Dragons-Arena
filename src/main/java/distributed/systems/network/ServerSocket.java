@@ -12,17 +12,12 @@ import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 
+import javax.xml.soap.Node;
+
 /**
  * Deals with connections and messages between servers (communication between multiple RMIRegistries)
  */
 public class ServerSocket implements Socket {
-
-
-	/**
-	 * Connections to other servers in the cluster
-	 */
-	@Getter
-	private final ArrayList<ServerAddress> otherNodes;
 
 	@Getter
 	private final AbstractServerNode me;
@@ -30,13 +25,6 @@ public class ServerSocket implements Socket {
 
 	public ServerSocket(AbstractServerNode me) {
 		this.me = me;
-		this.otherNodes = me.getOtherNodes();
-	}
-
-	public Optional<ServerAddress> getNode(NodeAddress nodeAddress) {
-		int index = otherNodes.indexOf(nodeAddress);
-		return index > -1 ?  Optional.ofNullable(otherNodes.get(index)) : Optional.empty();
-
 	}
 
 	/**
@@ -51,11 +39,12 @@ public class ServerSocket implements Socket {
 	}
 
 	public void broadcast(Message message) {
-		otherNodes.stream().forEach(node -> {
+		me.getConnectedNodes().stream().forEach(node -> {
 			try {
-				sendMessage(message, node);
+				sendMessage(message, node.getAddress());
 			}
 			catch (RuntimeException e) {
+				e.printStackTrace();
 				logMessage("Failed to send message to node `" + node + "`; message: " + message + ", because: " + e,
 						LogType.ERROR);
 			}
@@ -63,16 +52,14 @@ public class ServerSocket implements Socket {
 	}
 
 	public void broadcast(Message message, NodeType type) {
-        if (message.get("request")!=null && message.get("request").equals(MessageRequest.spawnUnit)) {
-            System.out.println("In the ServerSocket " + this.getMe().getAddress().getName() + "send a broadcast message");
-        }
-		otherNodes.stream()
+		me.getConnectedNodes().stream().map(NodeState::getAddress)
 				.filter(node -> node.getType().equals(type))
 				.forEach(node -> {
 					try {
 						sendMessage(message, node);
 					}
 					catch (RuntimeException e) {
+						e.printStackTrace();
 						logMessage("Failed to send message to node `" + node + "`; message: " + message + ", because: "
 								+ e, LogType.ERROR);
 					}
@@ -80,21 +67,22 @@ public class ServerSocket implements Socket {
 	}
 
 	public void logMessage(Message logMessage) {
-		List<NodeAddress> logNodes = otherNodes
+		List<NodeState> logNodes = me.getConnectedNodes()
 				.stream()
-				.filter(node -> node.getType().equals(NodeType.LOGGER))
+				.filter(node -> node.getAddress().getType().equals(NodeType.LOGGER))
 				.collect(toList());
 		logNodes.forEach(logger -> {
 			try {
-				sendMessage(logMessage, logger);
+				sendMessage(logMessage, logger.getAddress());
 			} catch (RuntimeException e) {
-				e.printStackTrace();
 				System.out.println("Error occured while trying to log! We do not really care about logs anyway, moving on.. Reason: " + e);
 			}
 		});
 		// If there are no loggers, just output it to the screen.
-		if(logNodes.isEmpty()) {
-			System.out.println("No logger present: " + logMessage);
+		if(me.getNodeType() == NodeType.LOGGER) {
+			sendMessage(logMessage, me.getAddress());
+		} else if(logNodes.isEmpty()) {
+			System.out.println("No logger found: " + logMessage);
 		}
 	}
 

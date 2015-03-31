@@ -1,21 +1,33 @@
 package distributed.systems.network;
 
+import static java.util.stream.Collectors.toList;
+
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.sun.istack.internal.NotNull;
 import distributed.systems.core.LogType;
+import distributed.systems.core.Message;
 import distributed.systems.core.MessageFactory;
-import distributed.systems.network.messagehandlers.ServerJoinHandler;
+import distributed.systems.core.Socket;
+import distributed.systems.network.messagehandlers.ServerConnectHandler;
 import lombok.Getter;
 import org.apache.commons.lang.SerializationUtils;
 
 public abstract class AbstractServerNode extends AbstractNode {
 
 	@Getter
-	protected final ArrayList<ServerAddress> otherNodes = new ArrayList<>();
+	private Set<NodeState> connectedNodes = new HashSet<>();
+
+	@Getter
+	protected NodeState nodeState;
 
 	@Getter
 	protected final ServerSocket serverSocket;
@@ -27,20 +39,45 @@ public abstract class AbstractServerNode extends AbstractNode {
 	public AbstractServerNode(int port) throws RemoteException {
 		// Parent requirements
 		ownRegistry = new RegistryNode(port);
-		address = new ServerAddress(port, this.getNodeType());
+		NodeAddress address = new NodeAddress(port, this.getNodeType());
+		nodeState = new NodeState(address);
 		socket = LocalSocket.connectTo(address);
 		socket.register(address);
-		messageFactory = new MessageFactory(address);
+		messageFactory = new MessageFactory(nodeState);
 		serverSocket = new ServerSocket(this);
 	}
 
 	public void connect(NodeAddress server) {
-		ServerJoinHandler.connectToCluster(this, server);
+		if(connectedNodes.stream().anyMatch(s -> s.getAddress().equals(server))) {
+			serverSocket.logMessage("Node tried to connect to cluster, even though it already is connected!",
+					LogType.WARN);
+			return;
+		}
+		Socket socket = LocalSocket.connectTo(server);
+		Message response = socket.sendMessage(
+				messageFactory.createMessage(ServerConnectHandler.MESSAGE_TYPE).put("address", getAddress()), server);
+		// TODO: error handling
+
+		// Assume all is good
+		ArrayList<NodeState> otherServers = (ArrayList<NodeState>) response.get("servers");
+		NodeState providedState = (NodeState) response.get("newServer");
+		nodeState = providedState;
+		messageFactory = new MessageFactory(nodeState);
+		updateBindings();
+		otherServers.stream().forEach(this::addServer);
+		serverSocket.logMessage("Server `" + getAddress() + "` successfully connected to the cluster, other nodes found: "
+				+ connectedNodes, LogType.INFO);
 	}
 
 	public int generateUniqueId(@NotNull NodeType type) {
-		ArrayList<NodeAddress> nodes = new ArrayList<>(otherNodes);
+		ArrayList<NodeAddress> nodes = new ArrayList<>(nodeState.getConnectedNodes());//otherNodes);
 		nodes.add(getAddress());
+		Set<NodeState> potentialClients = new HashSet<>(getConnectedNodes());
+		potentialClients.add(getNodeState());
+		potentialClients.stream()
+				.filter(node -> node.getAddress().getType().equals(NodeType.SERVER))
+				.map(node -> ((ServerState) node).getClients())
+				.forEach(nodes::addAll);
 		int highestId = nodes
 				.stream()
 				.filter(node -> node.getType().equals(type))
@@ -49,14 +86,9 @@ public abstract class AbstractServerNode extends AbstractNode {
 		return highestId;
 	}
 
-	// Hacky
-	public ServerAddress getServerAddress() {
-		return (ServerAddress) address;
-	}
-
 	public void updateBindings() {
 		// Check if there is a difference
-		if (address.equals(currentBinding)) {
+		if (getAddress().equals(currentBinding)) {
 			return;
 		}
 
@@ -71,12 +103,12 @@ public abstract class AbstractServerNode extends AbstractNode {
 		}
 
 		// Add new binding
-		socket = LocalSocket.connectTo(address);
-		socket.register(address);
+		socket = LocalSocket.connectTo(getAddress());
+		socket.register(getAddress());
 
 		socket.addMessageReceivedHandler(this);
-		safeLogMessage("Successfully rebounded the binding " + currentBinding + " to " + address, LogType.DEBUG);
-		currentBinding = (NodeAddress) SerializationUtils.clone(address);
+		safeLogMessage("Successfully rebounded the binding " + currentBinding + " to " + getAddress(), LogType.DEBUG);
+		currentBinding = (NodeAddress) SerializationUtils.clone(getAddress());
 	}
 
 	public void disconnect() throws RemoteException {
@@ -85,11 +117,29 @@ public abstract class AbstractServerNode extends AbstractNode {
 		ownRegistry.disconnect();
 	}
 
+	public void addServer(NodeState node) {
+		if(!node.getAddress().equals(getNodeState().getAddress())) {
+			nodeState.getConnectedNodes().add(node.getAddress());
+			connectedNodes.remove(node);
+			connectedNodes.add(node);
+			System.out.println(node + " => " + connectedNodes + " & " + nodeState.getConnectedNodes());
+			safeLogMessage(
+					"Added node: " + node.getAddress() + " to server. nodeStateNodes: " + nodeState.getConnectedNodes()
+							+ ", connectedNodes: " + connectedNodes, LogType.DEBUG);
+		} else {
+			safeLogMessage("Attempted to at itself to connected-nodes", LogType.WARN);
+		}
+	}
+
 	public void startCluster() {
 		// TODO: say goodbye to othernodes
-		otherNodes.clear();
+		//otherNodes.clear();
 		serverSocket.logMessage("Starting new cluster, starting with id 0", LogType.DEBUG);
-		address.setId(0);
+		getAddress().setId(0);
 		updateBindings();
+	}
+
+	public NodeAddress getAddress() {
+		return nodeState.getAddress();
 	}
 }

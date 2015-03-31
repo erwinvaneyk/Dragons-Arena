@@ -36,10 +36,10 @@ public class TestSetup3 {
                 x = (int) (Math.random() * BattleField.MAP_WIDTH);
                 y = (int) (Math.random() * BattleField.MAP_HEIGHT);
                 attempt++;
-            } while (server1.getBattlefield().getUnit(x, y) != null && attempt < 10);
+            } while (server1.getServerState().getBattleField().getUnit(x, y) != null && attempt < 10);
 
             // If we didn't find an empty spot, we won't add a new dragon
-            if (server1.getBattlefield().getUnit(x, y) != null) break;
+            if (server1.getServerState().getBattleField().getUnit(x, y) != null) break;
 
             final int finalX = x;
             final int finalY = y;
@@ -67,10 +67,10 @@ public class TestSetup3 {
                 x = (int)(Math.random() * BattleField.MAP_WIDTH);
                 y = (int)(Math.random() * BattleField.MAP_HEIGHT);
                 attempt++;
-            } while (server1.getBattlefield().getUnit(x, y) != null && attempt < 10);
+            } while (server1.getServerState().getBattleField().getUnit(x, y) != null && attempt < 10);
 
             // If we didn't find an empty spot, we won't add a new player
-            if (server1.getBattlefield().getUnit(x, y) != null) break;
+            if (server1.getServerState().getBattleField().getUnit(x, y) != null) break;
 
             final int finalX = x;
             final int finalY = y;
@@ -86,8 +86,7 @@ public class TestSetup3 {
                     }
                 }
             }).start();
-            System.out.println(server1.getBattlefield().equals(server2.getBattlefield()));
-            System.out.println(server2.getServerSocket().getOtherNodes());
+            System.out.println(server1.getServerState().getBattleField().equals(server2.getServerState().getBattleField()));
             Thread.sleep(500);
         }
 

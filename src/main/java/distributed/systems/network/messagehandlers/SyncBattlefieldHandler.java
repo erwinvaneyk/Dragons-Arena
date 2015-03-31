@@ -11,8 +11,7 @@ import java.util.stream.Stream;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.das.BattleField;
-import distributed.systems.network.LocalSocket;
-import distributed.systems.network.NodeAddress;
+import distributed.systems.network.NodeType;
 import distributed.systems.network.ServerNode;
 import org.apache.commons.lang.SerializationUtils;
 
@@ -30,13 +29,14 @@ public class SyncBattlefieldHandler implements MessageHandler {
 	public static BattleField syncBattlefield(ServerNode me) {
 		Message message = me.getMessageFactory().createMessage(MESSAGE_TYPE);
 
-		List<Message> battlefields = me.getOtherNodes().stream()
-				.filter(NodeAddress::isServer)
+		List<Message> battlefields = me.getConnectedNodes().stream()
+				.filter(node -> node.getAddress().getType().equals(NodeType.SERVER))
 				.flatMap(server -> {
 					me.getServerSocket().logMessage("Requesting battlefield from `" + server + "`.", LogType.DEBUG);
 					try {
-						return Stream.of(me.getServerSocket().sendMessage(message, server));
-					} catch (RuntimeException e) {
+						return Stream.of(me.getServerSocket().sendMessage(message, server.getAddress()));
+					}
+					catch (RuntimeException e) {
 						e.printStackTrace();
 						me.getServerSocket().logMessage(
 								"Failed to send message to node `" + server + "`; message: " + message + ", because: "
@@ -58,7 +58,7 @@ public class SyncBattlefieldHandler implements MessageHandler {
 				.map(Map.Entry::getKey)
 				.get();
 		battleField.setMessagefactory(me.getMessageFactory());
-		battleField.setServerSocket(LocalSocket.connectTo(me.getAddress()));
+		battleField.setServerSocket(me.getServerSocket());
 		me.getServerSocket().logMessage(
 				"Synced battlefield, choose battlefield with hash `" + battleField.hashCode() + "`", LogType.DEBUG);
 		return battleField;
@@ -68,7 +68,7 @@ public class SyncBattlefieldHandler implements MessageHandler {
 	public Message onMessageReceived(Message message) {
 		// TODO: desyncronized battlefields fix
 		Message response = me.getMessageFactory().createMessage(MESSAGE_TYPE)
-				.put("battlefield", (Serializable) SerializationUtils.clone(me.getBattlefield()));
+				.put("battlefield", (Serializable) SerializationUtils.clone(me.getServerState().getBattleField()));
 		return response;
 	}
 

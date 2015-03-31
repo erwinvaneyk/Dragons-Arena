@@ -1,5 +1,7 @@
 package distributed.systems.network;
 
+import static java.util.stream.Collectors.toList;
+
 import java.rmi.RemoteException;
 
 import distributed.systems.core.IMessageReceivedHandler;
@@ -8,12 +10,14 @@ import distributed.systems.das.BattleField;
 import distributed.systems.das.presentation.BattleFieldViewer;
 import distributed.systems.network.messagehandlers.ServerGameActionHandler;
 import distributed.systems.network.messagehandlers.LogHandler;
-import distributed.systems.network.messagehandlers.ServerJoinHandler;
+import distributed.systems.network.messagehandlers.ServerConnectHandler;
 import distributed.systems.network.messagehandlers.SyncBattlefieldHandler;
+import distributed.systems.network.messagehandlers.SynchronizedGameActionHandler;
 import distributed.systems.network.services.HeartbeatService;
 import distributed.systems.network.services.NodeBalanceService;
 import distributed.systems.network.services.ServerHeartbeatService;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.ToString;
 
 
@@ -25,11 +29,11 @@ import lombok.ToString;
 @ToString
 public class ServerNode extends AbstractServerNode implements IMessageReceivedHandler {
 
-	@Getter
-	private BattleField battlefield;
+    private final HeartbeatService heartbeatService;
+	private final NodeBalanceService nodeBalanceService;
 
-    private HeartbeatService heartbeatService;
-	private NodeBalanceService nodeBalanceService;
+	@Getter
+	private final SynchronizedGameActionHandler synchronizedGameActionHandler;
 
 
 	public static void main(String[] args) throws RemoteException {
@@ -41,40 +45,81 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 		// Setup message-handlers
 		addMessageHandler(new LogHandler(this));
 		addMessageHandler(new SyncBattlefieldHandler(this));
-		addMessageHandler(new ServerJoinHandler(this));
+		addMessageHandler(new ServerConnectHandler(this));
+		addMessageHandler(new ServerGameActionHandler(this));
 
 		// setup services
-		heartbeatService = new ServerHeartbeatService(this, serverSocket).expectHeartbeatFrom(otherNodes);
+		heartbeatService = new ServerHeartbeatService(this, serverSocket);
 		nodeBalanceService = new NodeBalanceService(this);
+		synchronizedGameActionHandler = new SynchronizedGameActionHandler(this);
+		addMessageHandler(synchronizedGameActionHandler);
 		addMessageHandler(heartbeatService);
 		addMessageHandler(nodeBalanceService);
-		addMessageHandler(new ServerGameActionHandler(this));
-		runService(heartbeatService);
-
-		// TODO: start a dragon (if necessary)
-		serverSocket.logMessage("Server (" + address + ") is up and running", LogType.INFO);
+		serverSocket.logMessage("Server (" + getAddress() + ") is ready to join or create a cluster", LogType.INFO);
 	}
 
 	public void startCluster() {
 		super.startCluster();
 		// Setup battlefield
-		battlefield = new BattleField();
-		battlefield.setServerSocket(socket);
-		battlefield.setMessagefactory(messageFactory);
-		serverSocket.logMessage("Created the battlefield.", LogType.DEBUG);
+		nodeState = new ServerState(createBattlefield(), getAddress());
+		startServices();
+		serverSocket.logMessage("New cluster has been created", LogType.INFO);
 	}
 
 	public void connect(NodeAddress server) {
-		super.connect(server);
-		battlefield = SyncBattlefieldHandler.syncBattlefield(this);
+		try {
+			super.connect(server);
+			BattleField battlefield = SyncBattlefieldHandler.syncBattlefield(this);
+			NodeState oldState = nodeState;
+			nodeState = new ServerState(battlefield, getAddress());
+			nodeState.getConnectedNodes().addAll(oldState.getConnectedNodes());
+			startServices();
+			heartbeatService.expectHeartbeatFrom(
+					getConnectedNodes().stream().map(NodeState::getAddress).collect(toList()));
+		} catch (ClusterException e) {
+			serverSocket.logMessage("Could not connect server to cluster at " + server, LogType.ERROR);
+		}
+		serverSocket.logMessage("Connected server to the cluster of " + ownRegistry, LogType.INFO);
+	}
+
+	public void addServer(@NonNull NodeState server) {
+		super.addServer(server);
+		heartbeatService.expectHeartbeatFrom(server.getAddress());
+	}
+
+	public void addClient(@NonNull NodeAddress client) {
+		getServerState().getClients().remove(client);
+		getServerState().getClients().add(client);
+		heartbeatService.expectHeartbeatFrom(client);
+	}
+
+	public void updateOtherServerState(@NonNull ServerState that) {
+		addServer(that);
+		System.out.println("Updated connectedNodes: " + getConnectedNodes() );
+	}
+
+	private BattleField createBattlefield() {
+		BattleField battlefield = new BattleField();
+		battlefield.setServerSocket(serverSocket);
+		battlefield.setMessagefactory(messageFactory);
+		serverSocket.logMessage("Created the battlefield.", LogType.DEBUG);
+		return battlefield;
+	}
+
+	private void startServices() {
+		runService(heartbeatService);
 	}
 
 	public void launchViewer() {
-		if(battlefield != null) {
-			new BattleFieldViewer(battlefield);
+		if(getServerState() != null && getServerState().getBattleField() != null) {
+			new BattleFieldViewer(getServerState().getBattleField());
 		} else {
 			safeLogMessage("Cannot launch battlefield-viewer; no battlefield available!", LogType.ERROR);
 		}
+	}
+
+	public ServerState getServerState() {
+		return (ServerState) nodeState;
 	}
 
 	@Override

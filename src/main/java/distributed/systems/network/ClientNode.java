@@ -22,4 +22,6 @@ public interface ClientNode extends Serializable {
 	public Unit getUnit();
 
 	public Message sendMessageToServer(Message message);
+
+	public PlayerState getPlayerState();
 }

@@ -2,6 +2,7 @@ package distributed.systems.network.services;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,8 +13,6 @@ import distributed.systems.core.Message;
 import distributed.systems.core.Socket;
 import distributed.systems.network.AbstractNode;
 import distributed.systems.network.NodeAddress;
-import distributed.systems.network.ServerAddress;
-import lombok.Getter;
 
 public abstract class HeartbeatService implements SocketService {
 
@@ -22,23 +21,22 @@ public abstract class HeartbeatService implements SocketService {
 	protected static final int TIMEOUT_DURATION = 15000;
 	protected static final int CHECK_INTERVAL = 5000;
 
-	protected final List<ServerAddress> watchNodes = new ArrayList<>();
+	protected final Map<NodeAddress, Integer> watchNodes = new ConcurrentHashMap<>();
 	protected final Socket socket;
 	protected final AbstractNode me;
-	protected Map<ServerAddress, Integer> nodes = new ConcurrentHashMap<>();
 
 	public HeartbeatService(AbstractNode me, Socket socket) {
 		this.socket = socket;
 		this.me = me;
 	}
 
-	public HeartbeatService expectHeartbeatFrom(ServerAddress node) {
-		watchNodes.add(node);
+	public HeartbeatService expectHeartbeatFrom(NodeAddress node) {
+		watchNodes.put(node, TIMEOUT_DURATION / CHECK_INTERVAL);
 		return this;
 	}
 
-	public HeartbeatService expectHeartbeatFrom(List<ServerAddress> nodes) {
-		watchNodes.addAll(nodes);
+	public HeartbeatService expectHeartbeatFrom(Collection<NodeAddress> nodes) {
+		nodes.stream().forEach(this::expectHeartbeatFrom);
 		return this;
 	}
 
@@ -58,59 +56,29 @@ public abstract class HeartbeatService implements SocketService {
 
 	private void checkHeartbeats() {
 		// Count down nodes
-		nodes.entrySet().stream().forEach(node -> {
+		watchNodes.entrySet().stream().forEach(node -> {
 			if(node.getValue() < 0) {
 				removeNode(node.getKey());
 			} else {
-				nodes.put(node.getKey(), node.getValue() - 1);
+				watchNodes.put(node.getKey(), node.getValue() - 1);
 			}
 		});
 	}
 
 	// TODO: do some cleanup, moving the clients of a disconnected server to other servers
-	protected abstract void removeNode(ServerAddress address);
-	/*
-		nodes.remove(address);
-		watchNodes.remove(address);
-		socket.logMessage("Node `" + address.getName() + "` TIMED OUT, because it has not been sending any heartbeats!",
-				LogType.WARN);
+	protected abstract void removeNode(NodeAddress address);
 
-	}*/
-
-	public abstract void doHeartbeat();/* {
-		// TODO: also broadcast to clientnodes
-		Message message = messageFactory.createMessage(MESSAGE_TYPE);
-		// Fast hack to get my clients
-		if(socket instanceof ServerSocket) {
-			socket.broadcast(message, NodeAddress.NodeType.SERVER);
-			ServerSocket serversocket = (ServerSocket) socket;
-			serversocket.getMe().getServerAddress().getClients().stream().forEach(node -> {
-
-				try {
-					socket.sendMessage(message, node);
-				}
-				catch (RuntimeException e) {
-					socket.logMessage(
-							"Failed to send message to node `" + node + "`; message: " + message + ", because: "
-									+ e, LogType.ERROR);
-
-				}
-			});
-		}
-
-	}*/
-
+	public abstract void doHeartbeat();
 
 	@Override
 	public Message onMessageReceived(Message message) throws RemoteException {
 		NodeAddress origin = message.getOrigin();
-		nodes.entrySet().stream()
+		watchNodes.entrySet().stream()
 				.filter(node -> node.getKey().equals(origin))
 				.findAny()
 				.ifPresent(node -> {
 					node.setValue(TIMEOUT_DURATION / CHECK_INTERVAL);
-					socket.logMessage("Received a heartbeat from node `" + node.getKey().getName() + "` (" + nodes +").",
-
+					socket.logMessage("Received a heartbeat from node `" + node.getKey().getName() + ".",
 							LogType.DEBUG);
 				});
 		return null;

@@ -5,13 +5,13 @@ import java.rmi.RemoteException;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.core.Socket;
-import distributed.systems.network.AbstractServerNode;
 import distributed.systems.network.ClientNode;
 import distributed.systems.network.LocalSocket;
 import distributed.systems.network.NodeAddress;
 import distributed.systems.network.NodeType;
-import distributed.systems.network.ServerAddress;
+import distributed.systems.network.ServerNode;
 import distributed.systems.network.ServerSocket;
+import distributed.systems.network.ServerState;
 
 public class NodeBalanceService implements SocketService {
 
@@ -19,10 +19,10 @@ public class NodeBalanceService implements SocketService {
 
 	private static final int MAX_REDIRECTS = 4;
 
-	private final AbstractServerNode me;
+	private final ServerNode me;
 	private final ServerSocket serverSocket;
 
-	public NodeBalanceService(AbstractServerNode me) {
+	public NodeBalanceService(ServerNode me) {
 		this.me = me;
 		this.serverSocket = me.getServerSocket();
 	}
@@ -44,7 +44,7 @@ public class NodeBalanceService implements SocketService {
 		} else {
 			// Join this server
 			NodeAddress myNewAddress = (NodeAddress) response.get("address");
-			serverAddress = (ServerAddress) response.get("server");
+			serverAddress = ((NodeAddress) response.get("server"));
 			socket = LocalSocket.connectTo(serverAddress);
 			me.getAddress().setId(myNewAddress.getId());
 			me.getAddress().setPhysicalAddress(myNewAddress.getPhysicalAddress());
@@ -53,45 +53,49 @@ public class NodeBalanceService implements SocketService {
 		return serverAddress;
 	}
 
-	public NodeAddress getLeastBusyServer() {
-		ServerAddress otherServer = me.getOtherNodes().stream()
-				.filter(NodeAddress::isServer)
-				.reduce((a, b) -> a.getClients().size() < b.getClients().size() ? a : b).orElse(me.getServerAddress());
-		return otherServer.getClients().size() < me.getServerAddress().getClients().size() ? otherServer : me.getAddress();
+	public ServerState getLeastBusyServer() {
+		ServerState otherServer = me.getConnectedNodes().stream()
+				.filter(node -> node instanceof ServerState)
+				.map(node -> (ServerState) node)
+				.reduce((a, b) -> a.getClients().size() < b.getClients().size() ? a : b).orElse(me.getServerState());
+		return otherServer.getClients().size() < me.getServerState().getClients().size() ? otherServer : me.getServerState();
 	}
 
 	@Override
 	public Message onMessageReceived(Message message) throws RemoteException {
 		NodeAddress client = message.getOrigin();
 		Message response = me.getMessageFactory().createMessage(MESSAGE_TYPE);
+		ServerState fromServer = (ServerState) message.get("fromServer");
+		if(fromServer != null) me.updateOtherServerState(fromServer);
 
 		if(message.get("forwarded") == null) {
 			// Redirect client if necessary
-			NodeAddress redirect = getLeastBusyServer();
+			ServerState redirect = getLeastBusyServer();
 			int numbOfRedirects = message.get("redirected") != null ? (Integer) message.get("redirected") : 0;
-			if(!redirect.equals(me.getAddress()) && numbOfRedirects < MAX_REDIRECTS) {
+			if(!redirect.getAddress().equals(me.getAddress()) && numbOfRedirects < MAX_REDIRECTS) {
 				serverSocket.logMessage(
-						"Redirecting player `" + client + "` from server `" + me.getAddress() + "` to server `" + redirect
+						"Redirecting player `" + client + "` from server `" + me.getAddress() + "` to server `" + redirect.getAddress()
 								+ "` ",
 						LogType.INFO);
 				message.put("redirected", numbOfRedirects + 1);
-				return serverSocket.sendMessage(message, redirect);
+				message.put("fromServer", me.getServerState());
+				return serverSocket.sendMessage(message, redirect.getAddress());
 			}
 
 			client.setId(me.generateUniqueId(client.getType()));
 			client.setPhysicalAddress(me.getAddress().getPhysicalAddress());
 			me.updateBindings();
-			response.put("address", client);
-			response.put("server", me.getAddress());
-			serverSocket.getOtherNodes().add(new ServerAddress(client));
-			me.getServerAddress().getClients().add(client);
+			me.addClient(client);
 			// Propagate message
+			response.put("address", client);
+			response.put("server", me.getNodeState().getAddress());
 			serverSocket.broadcast(message.put("forwarded", true).put("server", me.getAddress()), NodeType.SERVER);
 			return response;
 		} else {
-			ServerAddress owner = (ServerAddress) message.get("server");
-			serverSocket.getOtherNodes().add(new ServerAddress(client));
-			serverSocket.getNode(owner).get().getClients().add(client);
+			// Deal with propagated message
+			ServerState owner = (ServerState) message.get("fromServer");
+			if(owner != null)
+				me.updateOtherServerState(owner);
 			return null;
 		}
 	}

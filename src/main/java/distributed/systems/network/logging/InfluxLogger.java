@@ -39,16 +39,21 @@ public class InfluxLogger implements Logger {
 		this.username = username;
 
 		// Connect to influx
-		influxDB = InfluxDBFactory.connect(databaseLocation.toString(), username, password);
+		InfluxDB temptInfluxDB = InfluxDBFactory.connect(databaseLocation.toString(), username, password);
 
 		// Create required databases if they are not present
-		List<String> databases = influxDB.describeDatabases().stream().map(Database::getName).collect(toList());
-		if(!databases.contains(DATABASE_DATA)) {
-			influxDB.createDatabase(DATABASE_DATA);
+		try {
+			List<String> databases = temptInfluxDB.describeDatabases().stream().map(Database::getName).collect(toList());
+			if (!databases.contains(DATABASE_DATA)) {
+				temptInfluxDB.createDatabase(DATABASE_DATA);
+			}
+			if (!databases.contains(DATABASE_GRAFANA)) {
+				temptInfluxDB.createDatabase(DATABASE_GRAFANA);
+			}
+		} catch(Exception e) {
+			temptInfluxDB = null;
 		}
-		if(!databases.contains(DATABASE_GRAFANA)) {
-			influxDB.createDatabase(DATABASE_GRAFANA);
-		}
+		influxDB = temptInfluxDB;
 	}
 
 	public boolean checkConnection() {
@@ -84,7 +89,7 @@ public class InfluxLogger implements Logger {
 	}
 
 	private void writeToInflux(Serie serie) {
-		if(FLAG_USE_INFLUX) {
+		if(FLAG_USE_INFLUX && influxDB != null) {
 			influxDB.write(DATABASE_DATA, TimeUnit.MILLISECONDS, serie);
 		}
 	}

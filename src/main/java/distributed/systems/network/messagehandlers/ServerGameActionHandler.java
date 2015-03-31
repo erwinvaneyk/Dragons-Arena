@@ -2,6 +2,7 @@ package distributed.systems.network.messagehandlers;
 
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
+import distributed.systems.das.MessageRequest;
 import distributed.systems.network.NodeType;
 import distributed.systems.network.ServerNode;
 
@@ -24,23 +25,30 @@ public class ServerGameActionHandler implements MessageHandler {
 
 	@Override
 	public Message onMessageReceived(Message message) throws RemoteException {
-		// TODO: task distribution
 		me.getSocket().logMessage("[" + me.getAddress() + "] received message: ("  + message + ")", LogType.DEBUG);
 
-		Message response = me.getBattlefield().onMessageReceived(message);
+		boolean isAllowed = true;
+		MessageRequest request = (MessageRequest)message.get("request");
+		if(MessageRequest.moveUnit.equals(request)) {
+			SynchronizedGameActionHandler synchronizedHandler = me.getSynchronizedGameActionHandler();
+			isAllowed = synchronizedHandler.synchronizeAction(message);
+		}
 
-        if (response!=null){
-            System.out.println("currently, "+me.getAddress().getName()+" the other nodes are ");
-            if(message.get("update").equals(true)){
-                System.out.println("I send a update message handler "+response.toString() +" "+ this.me.getOtherNodes().toString());
-                message.put("update", false);
-                me.getServerSocket().broadcast(response, NodeType.SERVER);
-            }
-            else {
-                System.out.println("I receive a update message handler "+ me.getAddress().getName());
-            }
+		if(isAllowed) {
+			Message response = me.getServerState().getBattleField().onMessageReceived(message);
+			// Notify other servers
+			if (response != null) {
+				System.out.println("currently, " + me.getAddress().getName() + " the other nodes are ");
+				if (message.get("update").equals(true)) {
+					message.put("update", false);
+					me.getServerSocket().broadcast(response, NodeType.SERVER);
+				}
+				else {
+					System.out.println("I receive a update message handler " + me.getAddress().getName());
+				}
 
-        }
-        return response;
+			}
+		}
+        return null;
 	}
 }
