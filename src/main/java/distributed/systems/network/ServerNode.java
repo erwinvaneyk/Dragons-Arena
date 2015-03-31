@@ -2,6 +2,8 @@ package distributed.systems.network;
 
 import static java.util.stream.Collectors.toList;
 
+import javax.xml.soap.Node;
+
 import java.rmi.RemoteException;
 
 import distributed.systems.core.IMessageReceivedHandler;
@@ -91,6 +93,11 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 		getServerState().getClients().remove(client);
 		getServerState().getClients().add(client);
 		heartbeatService.expectHeartbeatFrom(client);
+	}
+
+	public void removeClient(@NonNull NodeAddress client) {
+		getServerState().getClients().remove(client);
+		getServerState().getBattleField().remove(client.getName());
 	}
 
 	public void updateOtherServerState(@NonNull ServerState that) {

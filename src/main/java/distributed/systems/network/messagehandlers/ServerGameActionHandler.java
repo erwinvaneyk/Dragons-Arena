@@ -37,16 +37,9 @@ public class ServerGameActionHandler implements MessageHandler {
 		if(isAllowed) {
 			Message response = me.getServerState().getBattleField().onMessageReceived(message);
 			// Notify other servers
-			if (response != null) {
-				System.out.println("currently, " + me.getAddress().getName() + " the other nodes are ");
-				if (message.get("update").equals(true)) {
-					message.put("update", false);
-					me.getServerSocket().broadcast(response, NodeType.SERVER);
-				}
-				else {
-					System.out.println("I receive a update message handler " + me.getAddress().getName());
-				}
-
+			if (response != null && message.get("update").equals(true)) {
+				message.put("update", false);
+				me.getServerSocket().broadcast(response, NodeType.SERVER);
 			}
 		}
         return null;

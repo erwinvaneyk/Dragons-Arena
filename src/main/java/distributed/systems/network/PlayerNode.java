@@ -75,6 +75,7 @@ public class PlayerNode extends AbstractNode implements ClientNode, IMessageRece
 
 		// spawn player
 		this.player = new SimplePlayer(x,y, this);
+		System.out.println("Outputting logs to the associated server: " + playerState.getServerAddress());
 		socket.logMessage("Player (" + address + ") created and running. Assigned to server: " + serverAddress, LogType.INFO);
 		player.start();
 	}

@@ -459,6 +459,12 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
         return updatemessage;
 	}
 
+	public void remove(String id) {
+		units.stream().filter(u -> u.getUnitID().equals(id)).findAny().ifPresent(unit -> {
+			removeUnit(unit.getX(), unit.getY());
+		});
+	}
+
 
 	/**
 	 * Close down the battlefield. Unregisters
