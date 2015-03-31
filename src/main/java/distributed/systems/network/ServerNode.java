@@ -15,6 +15,7 @@ import distributed.systems.network.messagehandlers.SyncBattlefieldHandler;
 import distributed.systems.network.services.HeartbeatService;
 import distributed.systems.network.services.NodeBalanceService;
 import distributed.systems.network.services.ServerHeartbeatService;
+import lombok.NonNull;
 import lombok.ToString;
 
 
@@ -62,7 +63,9 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 		try {
 			super.connect(server);
 			BattleField battlefield = SyncBattlefieldHandler.syncBattlefield(this);
+			NodeState oldState = nodeState;
 			nodeState = new ServerState(battlefield, getAddress());
+			nodeState.getConnectedNodes().addAll(oldState.getConnectedNodes());
 			startServices();
 			heartbeatService.expectHeartbeatFrom(
 					getConnectedNodes().keySet().stream().map(NodeState::getAddress).collect(toList()));
@@ -72,19 +75,20 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 		serverSocket.logMessage("Connected server to the cluster of " + ownRegistry, LogType.INFO);
 	}
 
-	public void addServer(NodeState server) {
+	public void addServer(@NonNull NodeState server) {
 		super.addServer(server);
 		heartbeatService.expectHeartbeatFrom(server.getAddress());
 	}
 
-	public void addClient(NodeAddress client) {
+	public void addClient(@NonNull NodeAddress client) {
 		getServerState().getClients().add(client);
 		heartbeatService.expectHeartbeatFrom(client);
 	}
 
-	public void updateOtherServerState(ServerState that) {
+	public void updateOtherServerState(@NonNull ServerState that) {
 		nodeState.getConnectedNodes().add(that.getAddress());
 		getConnectedNodes().put(that, System.currentTimeMillis());
+		System.out.println("Updated connectedNodes: " + getConnectedNodes() );
 	}
 
 	private BattleField createBattlefield() {

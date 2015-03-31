@@ -27,7 +27,7 @@ public class ServerConnectHandler implements MessageHandler {
 	public Message onMessageReceived(Message message) {
 		Message response = null;
 		NodeAddress newAddress = (NodeAddress) message.get("address");
-		NodeState newServer = (ServerState) message.get("newServer");
+		NodeState newServer = (NodeState) message.get("newServer");
 		// TODO: check if address is unique
 
 		if(message.get("forwarded") == null) {
@@ -35,6 +35,7 @@ public class ServerConnectHandler implements MessageHandler {
 
 			ArrayList<NodeState> servers = new ArrayList<>(me.getConnectedNodes().keySet()); //TODO add loggers
 			servers.add(me.getNodeState());
+			System.out.println(servers);
 			response = messageFactory.createMessage(message.getMessageType())
 					.put("servers", servers);
 
@@ -59,6 +60,7 @@ public class ServerConnectHandler implements MessageHandler {
 			me.getServerSocket().broadcast(message);
 		}
 		// Add new server to list
+		System.out.println(me.getAddress() + " <- " + newServer.getAddress());
 		me.addServer(newServer);
 		return response;
 	}

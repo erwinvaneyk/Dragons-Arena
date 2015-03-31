@@ -87,7 +87,6 @@ public class TestSetup3 {
                 }
             }).start();
             System.out.println(server1.getServerState().getBattleField().equals(server2.getServerState().getBattleField()));
-            System.out.println(server2.getServerSocket().getOtherNodes());
             Thread.sleep(500);
         }
 

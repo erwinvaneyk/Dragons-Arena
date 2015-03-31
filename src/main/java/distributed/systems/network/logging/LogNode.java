@@ -63,7 +63,7 @@ public class LogNode extends AbstractServerNode {
 		} catch (ClusterException e) {
 			log(messageFactory.createLogMessage("Could not connect logger to cluster at " + server, LogType.ERROR));
 		}
-		serverSocket.logMessage("Connected server to the cluster of " + ownRegistry, LogType.INFO);
+		log(messageFactory.createLogMessage("Connected server to the cluster of " + ownRegistry, LogType.INFO));
 	}
 
 	@Override

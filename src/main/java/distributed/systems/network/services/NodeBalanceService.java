@@ -65,17 +65,20 @@ public class NodeBalanceService implements SocketService {
 	public Message onMessageReceived(Message message) throws RemoteException {
 		NodeAddress client = message.getOrigin();
 		Message response = me.getMessageFactory().createMessage(MESSAGE_TYPE);
+		ServerState fromServer = (ServerState) message.get("fromServer");
+		if(fromServer != null) me.updateOtherServerState(fromServer);
 
 		if(message.get("forwarded") == null) {
 			// Redirect client if necessary
 			ServerState redirect = getLeastBusyServer();
 			int numbOfRedirects = message.get("redirected") != null ? (Integer) message.get("redirected") : 0;
-			if(!redirect.equals(me.getAddress()) && numbOfRedirects < MAX_REDIRECTS) {
+			if(!redirect.getAddress().equals(me.getAddress()) && numbOfRedirects < MAX_REDIRECTS) {
 				serverSocket.logMessage(
-						"Redirecting player `" + client + "` from server `" + me.getAddress() + "` to server `" + redirect
+						"Redirecting player `" + client + "` from server `" + me.getAddress() + "` to server `" + redirect.getAddress()
 								+ "` ",
 						LogType.INFO);
 				message.put("redirected", numbOfRedirects + 1);
+				message.put("fromServer", me.getServerState());
 				return serverSocket.sendMessage(message, redirect.getAddress());
 			}
 

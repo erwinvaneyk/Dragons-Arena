@@ -19,26 +19,12 @@ import javax.xml.soap.Node;
  */
 public class ServerSocket implements Socket {
 
-
-	/**
-	 * Connections to other servers in the cluster
-	 */
-	@Getter
-	private final List<NodeAddress> otherNodes;
-
 	@Getter
 	private final AbstractServerNode me;
 
 
 	public ServerSocket(AbstractServerNode me) {
 		this.me = me;
-		this.otherNodes = me.getConnectedNodes().keySet().stream().map(NodeState::getAddress).collect(toList());
-	}
-
-	public Optional<NodeAddress> getNode(NodeAddress nodeAddress) {
-		int index = otherNodes.indexOf(nodeAddress);
-		return index > -1 ?  Optional.ofNullable(otherNodes.get(index)) : Optional.empty();
-
 	}
 
 	/**
@@ -53,9 +39,9 @@ public class ServerSocket implements Socket {
 	}
 
 	public void broadcast(Message message) {
-		otherNodes.stream().forEach(node -> {
+		me.getConnectedNodes().keySet().stream().forEach(node -> {
 			try {
-				sendMessage(message, node);
+				sendMessage(message, node.getAddress());
 			}
 			catch (RuntimeException e) {
 				e.printStackTrace();
@@ -69,7 +55,7 @@ public class ServerSocket implements Socket {
         if (message.get("request")!=null && message.get("request").equals(MessageRequest.spawnUnit)) {
             System.out.println("In the ServerSocket " + this.getMe().getAddress().getName() + "send a broadcast message");
         }
-		otherNodes.stream()
+		me.getConnectedNodes().keySet().stream().map(NodeState::getAddress)
 				.filter(node -> node.getType().equals(type))
 				.forEach(node -> {
 					try {
@@ -92,7 +78,6 @@ public class ServerSocket implements Socket {
 			try {
 				sendMessage(logMessage, logger.getAddress());
 			} catch (RuntimeException e) {
-				e.printStackTrace();
 				System.out.println("Error occured while trying to log! We do not really care about logs anyway, moving on.. Reason: " + e);
 			}
 		});

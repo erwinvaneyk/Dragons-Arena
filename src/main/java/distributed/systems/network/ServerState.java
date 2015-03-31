@@ -12,6 +12,7 @@ import lombok.ToString;
  */
 @Data
 @ToString(callSuper = true, exclude = {"battleField"})
+@EqualsAndHashCode(exclude = {"clients","battlefield"}, callSuper = true)
 public class ServerState extends NodeState {
 
 	private final HashSet<NodeAddress> clients;

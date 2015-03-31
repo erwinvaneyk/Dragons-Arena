@@ -65,7 +65,7 @@ public abstract class AbstractServerNode extends AbstractNode {
 	}
 
 	public int generateUniqueId(@NotNull NodeType type) {
-		ArrayList<NodeAddress> nodes = new ArrayList<>();//otherNodes);
+		ArrayList<NodeAddress> nodes = new ArrayList<>(nodeState.getConnectedNodes());//otherNodes);
 		nodes.add(getAddress());
 		int highestId = nodes
 				.stream()
@@ -109,6 +109,8 @@ public abstract class AbstractServerNode extends AbstractNode {
 	public void addServer(NodeState node) {
 		nodeState.getConnectedNodes().add(node.getAddress());
 		connectedNodes.put(node, System.currentTimeMillis());
+		safeLogMessage("Added node: " + node.getAddress() + " to server. nodeStateNodes: " + nodeState.getConnectedNodes()
+						+ ", connectedNodes: " + connectedNodes, LogType.DEBUG);
 	}
 
 	public void startCluster() {
