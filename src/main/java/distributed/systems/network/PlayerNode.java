@@ -30,8 +30,10 @@ import lombok.Getter;
 public class PlayerNode extends AbstractNode implements ClientNode, IMessageReceivedHandler {
 
 	private transient Player player;
+	@Getter
+	private NodeAddress address;
 
-	private transient List<ServerAddress> knownServers = new ArrayList<>();
+	private transient List<NodeAddress> knownServers = new ArrayList<>();
 
 	@Getter
 	private NodeAddress serverAddress;
@@ -45,14 +47,14 @@ public class PlayerNode extends AbstractNode implements ClientNode, IMessageRece
 		// Setup
 		address = new NodeAddress(-1, getNodeType());
 		serverAddress = server;
-		messageFactory = new MessageFactory(address);
+		messageFactory = new MessageFactory(new NodeState(address, NodeType.PLAYER));
 
 		// Join server
 		serverAddress = NodeBalanceService.joinServer(this, serverAddress);
 		socket = LocalSocket.connectTo(serverAddress);
 		socket.register(address);
 		socket.addMessageReceivedHandler(this);
-		knownServers.add(new ServerAddress(serverAddress));
+		knownServers.add(serverAddress);
 		heartbeatService = new ClientHeartbeatService(this, socket).expectHeartbeatFrom(knownServers);
 
 		// Add message handlers

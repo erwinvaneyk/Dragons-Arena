@@ -69,7 +69,6 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 	@Override
 	public void register(NodeAddress id) {
 		this.id = id;
-		this.messageFactory = new MessageFactory(id);
 	}
 
 	@Override

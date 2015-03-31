@@ -12,6 +12,8 @@ import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 
+import javax.xml.soap.Node;
+
 /**
  * Deals with connections and messages between servers (communication between multiple RMIRegistries)
  */
@@ -22,7 +24,7 @@ public class ServerSocket implements Socket {
 	 * Connections to other servers in the cluster
 	 */
 	@Getter
-	private final ArrayList<ServerAddress> otherNodes;
+	private final List<NodeAddress> otherNodes;
 
 	@Getter
 	private final AbstractServerNode me;
@@ -30,10 +32,10 @@ public class ServerSocket implements Socket {
 
 	public ServerSocket(AbstractServerNode me) {
 		this.me = me;
-		this.otherNodes = me.getOtherNodes();
+		this.otherNodes = me.getConnectedNodes().keySet().stream().map(NodeState::getAddress).collect(toList());
 	}
 
-	public Optional<ServerAddress> getNode(NodeAddress nodeAddress) {
+	public Optional<NodeAddress> getNode(NodeAddress nodeAddress) {
 		int index = otherNodes.indexOf(nodeAddress);
 		return index > -1 ?  Optional.ofNullable(otherNodes.get(index)) : Optional.empty();
 
@@ -82,13 +84,13 @@ public class ServerSocket implements Socket {
 	}
 
 	public void logMessage(Message logMessage) {
-		List<NodeAddress> logNodes = otherNodes
+		List<NodeState> logNodes = me.getConnectedNodes().keySet()
 				.stream()
-				.filter(node -> node.getType().equals(NodeType.LOGGER))
+				.filter(node -> node.getNodeType().equals(NodeType.LOGGER))
 				.collect(toList());
 		logNodes.forEach(logger -> {
 			try {
-				sendMessage(logMessage, logger);
+				sendMessage(logMessage, logger.getAddress());
 			} catch (RuntimeException e) {
 				e.printStackTrace();
 				System.out.println("Error occured while trying to log! We do not really care about logs anyway, moving on.. Reason: " + e);
@@ -96,7 +98,7 @@ public class ServerSocket implements Socket {
 		});
 		// If there are no loggers, just output it to the screen.
 		if(me.getNodeType() == NodeType.LOGGER) {
-			sendMessage(logMessage, me.getServerAddress());
+			sendMessage(logMessage, me.getAddress());
 		} else if(logNodes.isEmpty()) {
 			System.out.println("No logger found: " + logMessage);
 		}

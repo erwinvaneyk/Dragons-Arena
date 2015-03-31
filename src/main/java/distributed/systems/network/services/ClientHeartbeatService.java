@@ -6,7 +6,7 @@ import distributed.systems.core.ExtendedSocket;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.network.AbstractNode;
-import distributed.systems.network.ServerAddress;
+import distributed.systems.network.NodeAddress;
 
 public class ClientHeartbeatService extends HeartbeatService {
 
@@ -18,7 +18,7 @@ public class ClientHeartbeatService extends HeartbeatService {
 	}
 
 	// TODO: do some cleanup, moving the clients of a disconnected server to other servers
-	protected void removeNode(ServerAddress address) {
+	protected void removeNode(NodeAddress address) {
 		watchNodes.remove(address);
 		socket.logMessage("Node `" + address.getName() + "` TIMED OUT, because it has not been sending any heartbeats!",
 				LogType.WARN);

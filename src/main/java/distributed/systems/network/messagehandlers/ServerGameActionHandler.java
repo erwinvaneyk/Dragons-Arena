@@ -26,12 +26,11 @@ public class ServerGameActionHandler implements MessageHandler {
 	public Message onMessageReceived(Message message) throws RemoteException {
 		me.getSocket().logMessage("[" + me.getAddress() + "] received message: ("  + message + ")", LogType.DEBUG);
 
-		Message response = me.getBattlefield().onMessageReceived(message);
+		Message response = me.getServerState().getBattleField().onMessageReceived(message);
 
         if (response!=null){
             System.out.println("currently, "+me.getAddress().getName()+" the other nodes are ");
             if(message.get("update").equals(true)){
-                System.out.println("I send a update message handler "+response.toString() +" "+ this.me.getOtherNodes().toString());
                 message.put("update", false);
                 me.getServerSocket().broadcast(response, NodeType.SERVER);
             }

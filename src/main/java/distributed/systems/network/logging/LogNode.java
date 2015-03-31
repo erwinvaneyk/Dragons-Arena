@@ -1,6 +1,8 @@
 package distributed.systems.network.logging;
 
 
+import static java.util.stream.Collectors.toList;
+
 import java.rmi.RemoteException;
 import java.util.Comparator;
 import java.util.PriorityQueue;
@@ -11,8 +13,9 @@ import distributed.systems.core.Message;
 import distributed.systems.network.AbstractServerNode;
 import distributed.systems.network.ClusterException;
 import distributed.systems.network.NodeAddress;
+import distributed.systems.network.NodeState;
 import distributed.systems.network.NodeType;
-import distributed.systems.network.ServerAddress;
+import distributed.systems.network.ServerState;
 import distributed.systems.network.messagehandlers.ServerConnectHandler;
 import distributed.systems.network.services.ServerHeartbeatService;
 import lombok.Getter;
@@ -43,20 +46,20 @@ public class LogNode extends AbstractServerNode {
 		heartbeatService = new ServerHeartbeatService(this, serverSocket);
 		addMessageHandler(heartbeatService);
 		addMessageHandler(new ServerConnectHandler(this));
-		log(messageFactory.createLogMessage("Logger " + address + " is ready to connect and do some heavy logging!",
+		log(messageFactory.createLogMessage("Logger " + getAddress() + " is ready to connect and do some heavy logging!",
 				LogType.INFO));
 	}
 
-	public void addServer(ServerAddress server) {
+	public void addServer(NodeState server) {
 		super.addServer(server);
-		heartbeatService.expectHeartbeatFrom(server);
+		heartbeatService.expectHeartbeatFrom(server.getAddress());
 	}
 
 	public void connect(NodeAddress server) {
 		try {
 			super.connect(server);
 			runService(heartbeatService);
-			heartbeatService.expectHeartbeatFrom(otherNodes);
+			heartbeatService.expectHeartbeatFrom(this.getConnectedNodes().keySet().stream().map(NodeState::getAddress).collect(toList()));
 		} catch (ClusterException e) {
 			log(messageFactory.createLogMessage("Could not connect logger to cluster at " + server, LogType.ERROR));
 		}

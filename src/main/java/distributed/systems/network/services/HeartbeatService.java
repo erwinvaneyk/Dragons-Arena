@@ -2,6 +2,7 @@ package distributed.systems.network.services;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,8 +13,6 @@ import distributed.systems.core.Message;
 import distributed.systems.core.Socket;
 import distributed.systems.network.AbstractNode;
 import distributed.systems.network.NodeAddress;
-import distributed.systems.network.ServerAddress;
-import lombok.Getter;
 
 public abstract class HeartbeatService implements SocketService {
 
@@ -22,7 +21,7 @@ public abstract class HeartbeatService implements SocketService {
 	protected static final int TIMEOUT_DURATION = 15000;
 	protected static final int CHECK_INTERVAL = 5000;
 
-	protected final Map<ServerAddress, Integer> watchNodes = new ConcurrentHashMap<>();
+	protected final Map<NodeAddress, Integer> watchNodes = new ConcurrentHashMap<>();
 	protected final Socket socket;
 	protected final AbstractNode me;
 
@@ -31,12 +30,12 @@ public abstract class HeartbeatService implements SocketService {
 		this.me = me;
 	}
 
-	public HeartbeatService expectHeartbeatFrom(ServerAddress node) {
+	public HeartbeatService expectHeartbeatFrom(NodeAddress node) {
 		watchNodes.put(node, TIMEOUT_DURATION / CHECK_INTERVAL);
 		return this;
 	}
 
-	public HeartbeatService expectHeartbeatFrom(List<ServerAddress> nodes) {
+	public HeartbeatService expectHeartbeatFrom(Collection<NodeAddress> nodes) {
 		nodes.stream().forEach(this::expectHeartbeatFrom);
 		return this;
 	}
@@ -67,38 +66,9 @@ public abstract class HeartbeatService implements SocketService {
 	}
 
 	// TODO: do some cleanup, moving the clients of a disconnected server to other servers
-	protected abstract void removeNode(ServerAddress address);
-	/*
-		nodes.remove(address);
-		watchNodes.remove(address);
-		socket.logMessage("Node `" + address.getName() + "` TIMED OUT, because it has not been sending any heartbeats!",
-				LogType.WARN);
+	protected abstract void removeNode(NodeAddress address);
 
-	}*/
-
-	public abstract void doHeartbeat();/* {
-		// TODO: also broadcast to clientnodes
-		Message message = messageFactory.createMessage(MESSAGE_TYPE);
-		// Fast hack to get my clients
-		if(socket instanceof ServerSocket) {
-			socket.broadcast(message, NodeAddress.NodeType.SERVER);
-			ServerSocket serversocket = (ServerSocket) socket;
-			serversocket.getMe().getServerAddress().getClients().stream().forEach(node -> {
-
-				try {
-					socket.sendMessage(message, node);
-				}
-				catch (RuntimeException e) {
-					socket.logMessage(
-							"Failed to send message to node `" + node + "`; message: " + message + ", because: "
-									+ e, LogType.ERROR);
-
-				}
-			});
-		}
-
-	}*/
-
+	public abstract void doHeartbeat();
 
 	@Override
 	public Message onMessageReceived(Message message) throws RemoteException {

@@ -22,6 +22,7 @@ import distributed.systems.das.units.Player;
 import distributed.systems.das.units.Unit;
 import distributed.systems.das.units.Unit.UnitType;
 import distributed.systems.network.NodeAddress;
+import distributed.systems.network.ServerSocket;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 
@@ -40,22 +41,21 @@ import java.util.*;
  */
 @EqualsAndHashCode
 public class BattleField implements Serializable, IMessageReceivedHandler {
+
+	// Communicated over messages:
+	private ArrayList<Unit> units;
+	private int lastUnitID = 0;
+	private Unit[][] map;
+
 	@Setter
 	private transient MessageFactory messagefactory;
-	/* The array of units */
-	private Unit[][] map;
 	/* Primary socket of the battlefield */
 	@Setter
-	private transient ExtendedSocket serverSocket;
-	
-	/* The last id that was assigned to an unit. This variable is used to
-	 * enforce that each unit has its own unique id.
-	 */
-	private int lastUnitID = 0;
+	private transient ServerSocket serverSocket;
+
 	public final static String serverID = "server";
 	public final static int MAP_WIDTH = 25;
 	public final static int MAP_HEIGHT = 25;
-	private ArrayList<Unit> units;
     public transient LinkedList<Message> Lqueue;
     private transient Timer timer=new Timer();
 	/**
@@ -460,6 +460,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
                     }
 
                 }
+	            break;
             }
 			case getAdjacent: {
 				reply = messagefactory.createMessage();
@@ -512,7 +513,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 			unit.stopRunnerThread();
 		}
 
-		serverSocket.unRegister();
+		//serverSocket.unRegister();
 	}
 
     /*

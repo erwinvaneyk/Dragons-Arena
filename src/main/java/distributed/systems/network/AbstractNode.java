@@ -28,7 +28,7 @@ public abstract class AbstractNode extends UnicastRemoteObject implements IMessa
 
 	// Address
 	@Getter
-	protected NodeAddress address;
+	private NodeAddress address;
 
 	@Getter
 	protected ExtendedSocket socket;
@@ -58,7 +58,7 @@ public abstract class AbstractNode extends UnicastRemoteObject implements IMessa
 		} else {
 			safeLogMessage("Unable to handle received message: " + message + ". Ignoring the message!", LogType.WARN);
 		}
-		influxdbLogger.logMessageDuration(message, address, System.currentTimeMillis() - start);
+		influxdbLogger.logMessageDuration(message, getAddress(), System.currentTimeMillis() - start);
 		return response;
 	}
 

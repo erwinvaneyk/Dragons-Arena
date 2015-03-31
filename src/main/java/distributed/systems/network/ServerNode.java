@@ -1,5 +1,7 @@
 package distributed.systems.network;
 
+import static java.util.stream.Collectors.toList;
+
 import java.rmi.RemoteException;
 
 import distributed.systems.core.IMessageReceivedHandler;
@@ -13,7 +15,6 @@ import distributed.systems.network.messagehandlers.SyncBattlefieldHandler;
 import distributed.systems.network.services.HeartbeatService;
 import distributed.systems.network.services.NodeBalanceService;
 import distributed.systems.network.services.ServerHeartbeatService;
-import lombok.Getter;
 import lombok.ToString;
 
 
@@ -24,9 +25,6 @@ import lombok.ToString;
  */
 @ToString
 public class ServerNode extends AbstractServerNode implements IMessageReceivedHandler {
-
-	@Getter
-	private BattleField battlefield;
 
     private final HeartbeatService heartbeatService;
 	private final NodeBalanceService nodeBalanceService;
@@ -49,13 +47,13 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 		nodeBalanceService = new NodeBalanceService(this);
 		addMessageHandler(heartbeatService);
 		addMessageHandler(nodeBalanceService);
-		serverSocket.logMessage("Server (" + address + ") is ready to join or create a cluster", LogType.INFO);
+		serverSocket.logMessage("Server (" + getAddress() + ") is ready to join or create a cluster", LogType.INFO);
 	}
 
 	public void startCluster() {
 		super.startCluster();
 		// Setup battlefield
-		battlefield = createBattlefield();
+		nodeState = new ServerState(createBattlefield(), getAddress());
 		startServices();
 		serverSocket.logMessage("New cluster has been created", LogType.INFO);
 	}
@@ -63,23 +61,35 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 	public void connect(NodeAddress server) {
 		try {
 			super.connect(server);
-			battlefield = SyncBattlefieldHandler.syncBattlefield(this);
+			BattleField battlefield = SyncBattlefieldHandler.syncBattlefield(this);
+			nodeState = new ServerState(battlefield, getAddress());
 			startServices();
-			heartbeatService.expectHeartbeatFrom(otherNodes);
+			heartbeatService.expectHeartbeatFrom(
+					getConnectedNodes().keySet().stream().map(NodeState::getAddress).collect(toList()));
 		} catch (ClusterException e) {
 			serverSocket.logMessage("Could not connect server to cluster at " + server, LogType.ERROR);
 		}
 		serverSocket.logMessage("Connected server to the cluster of " + ownRegistry, LogType.INFO);
 	}
 
-	public void addServer(ServerAddress server) {
+	public void addServer(NodeState server) {
 		super.addServer(server);
-		heartbeatService.expectHeartbeatFrom(server);
+		heartbeatService.expectHeartbeatFrom(server.getAddress());
+	}
+
+	public void addClient(NodeAddress client) {
+		getServerState().getClients().add(client);
+		heartbeatService.expectHeartbeatFrom(client);
+	}
+
+	public void updateOtherServerState(ServerState that) {
+		nodeState.getConnectedNodes().add(that.getAddress());
+		getConnectedNodes().put(that, System.currentTimeMillis());
 	}
 
 	private BattleField createBattlefield() {
 		BattleField battlefield = new BattleField();
-		battlefield.setServerSocket(socket);
+		battlefield.setServerSocket(serverSocket);
 		battlefield.setMessagefactory(messageFactory);
 		serverSocket.logMessage("Created the battlefield.", LogType.DEBUG);
 		return battlefield;
@@ -90,11 +100,15 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 	}
 
 	public void launchViewer() {
-		if(battlefield != null) {
-			new BattleFieldViewer(battlefield);
+		if(getServerState() != null && getServerState().getBattleField() != null) {
+			new BattleFieldViewer(getServerState().getBattleField());
 		} else {
 			safeLogMessage("Cannot launch battlefield-viewer; no battlefield available!", LogType.ERROR);
 		}
+	}
+
+	public ServerState getServerState() {
+		return (ServerState) nodeState;
 	}
 
 	@Override

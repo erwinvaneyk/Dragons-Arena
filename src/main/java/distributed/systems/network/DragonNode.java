@@ -23,34 +23,31 @@ import lombok.Getter;
 
 public class DragonNode extends AbstractNode implements ClientNode, Serializable {
 
-	private List<ServerAddress> knownServers = new ArrayList<>();
+	private List<NodeAddress> knownServers = new ArrayList<>();
+	@Getter
+	private NodeAddress address;
 
 	@Getter
 	private NodeAddress serverAddress;
 	private HeartbeatService heartbeatService;
 	private Dragon dragon;
 
-
-
 	public static void main(String[] args) throws RemoteException {
 		new DragonNode(null, 1, 1);
 	}
-
-
-
 
 	public DragonNode(NodeAddress server, int x, int y) throws RemoteException {
 		// Setup
 		address = new NodeAddress(-1, NodeType.DRAGON);
 		serverAddress = server;
-		messageFactory = new MessageFactory(address);
+		messageFactory = new MessageFactory(new NodeState(address, NodeType.DRAGON));
 
 		// Join server
 		serverAddress = NodeBalanceService.joinServer(this, serverAddress);
 		socket = LocalSocket.connectTo(serverAddress);
 		socket.register(address);
 		socket.addMessageReceivedHandler(this);
-		knownServers.add(new ServerAddress(serverAddress));
+		knownServers.add(serverAddress);
 		heartbeatService = new ClientHeartbeatService(this, socket).expectHeartbeatFrom(knownServers);
 
 		// Add message handlers

@@ -2,17 +2,14 @@ package distributed.systems.network.messagehandlers;
 
 import java.util.ArrayList;
 
-import com.sun.istack.internal.NotNull;
-import distributed.systems.core.ExtendedSocket;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.core.MessageFactory;
-import distributed.systems.core.Socket;
 import distributed.systems.network.AbstractServerNode;
-import distributed.systems.network.LocalSocket;
 import distributed.systems.network.NodeAddress;
-import distributed.systems.network.ServerAddress;
+import distributed.systems.network.NodeState;
 import distributed.systems.network.ServerNode;
+import distributed.systems.network.ServerState;
 
 public class ServerConnectHandler implements MessageHandler {
 
@@ -28,30 +25,34 @@ public class ServerConnectHandler implements MessageHandler {
 
 	public Message onMessageReceived(Message message) {
 		Message response = null;
-		ServerAddress newServer = (ServerAddress) message.get("address");
+		NodeAddress newAddress = (NodeAddress) message.get("address");
+		ServerState newServer = (ServerState) message.get("newServer");
 		// TODO: check if address is unique
+
 		if(message.get("forwarded") == null) {
-			ArrayList<ServerAddress> servers = new ArrayList<>(me.getOtherNodes());
-			servers.add(me.getServerAddress());
+			ServerNode meServer = (ServerNode) me;
+
+			ArrayList<NodeState> servers = new ArrayList<>(me.getConnectedNodes().keySet()); //TODO add loggers
+			servers.add(me.getNodeState());
 			response = messageFactory.createMessage(message.getMessageType())
 					.put("servers", servers);
 
 			// Determine id for new server if necessary
-			if(newServer.getId() < 0) { // Indicates that server has no id yet
-				String oldServerId = newServer.toString();
-				newServer.setId(me.generateUniqueId(newServer.getType()));
-				response.put("address", newServer);
-				message.put("address", newServer);
+			if(newAddress.getId() < 0) { // Indicates that server has no id yet
+				String oldServerId = newAddress.toString();
+				newAddress.setId(me.generateUniqueId(newAddress.getType()));
+				newServer = new ServerState(meServer.getServerState().getBattleField(), newAddress, newAddress.getType());
+				message.put("newServer", newServer);
+				response.put("newServer", newServer);
 				me.getServerSocket().logMessage(
-						"Assigned ID to new server, renamed `" + oldServerId + "` to `" + newServer + "`, otherNodes: " + me
-								.getOtherNodes() + ".", LogType.DEBUG);
+						"Assigned ID to new server, renamed `" + oldServerId + "` to `" + newAddress + "`, other servers: " + me.getConnectedNodes().keySet() + ".", LogType.DEBUG);
 			}
 			// Propagate
 			message.put("forwarded", true);
 			me.getServerSocket().broadcast(message);
 		}
 		// Add new server to list
-		me.addServer(new ServerAddress(newServer));
+		me.addServer(newServer);
 		return response;
 	}
 
