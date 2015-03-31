@@ -149,6 +149,15 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 		});
 	}
 
+	public ArrayList<Unit> getAdjacentUnits(int x, int y) {
+		ArrayList<Unit> adjacentUnits = new ArrayList<>();
+		if(x - 1 > 0) getUnit(x - 1, y).ifPresent(adjacentUnits::add);
+		if(x + 1 < BattleField.MAP_WIDTH) getUnit(x + 1, y).ifPresent(adjacentUnits::add);
+		if(y - 1 > 0) getUnit(x, y - 1).ifPresent(adjacentUnits::add);
+		if(y + 1 < BattleField.MAP_HEIGHT) getUnit(x, y + 1).ifPresent(adjacentUnits::add);
+		return adjacentUnits;
+	}
+
 	/**
 	 * Move the specified unit a certain number of steps.
 	 * 
@@ -423,12 +432,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 				int y = (Integer)msg.get("y");
 				reply.put("id", msg.get("id"));
 				reply.put("request", MessageRequest.reply);
-				ArrayList<Unit> adjacentUnits = new ArrayList<>();
-				if(x - 1 > 0) getUnit(x - 1, y).ifPresent(adjacentUnits::add);
-				if(x + 1 < BattleField.MAP_WIDTH) getUnit(x + 1, y).ifPresent(adjacentUnits::add);
-				if(y - 1 > 0) getUnit(x, y - 1).ifPresent(adjacentUnits::add);
-				if(y + 1 < BattleField.MAP_HEIGHT) getUnit(x, y + 1).ifPresent(adjacentUnits::add);
-				reply.put("adjacentUnits", adjacentUnits);
+				reply.put("adjacentUnits", getAdjacentUnits(x, y));
 				break;
 			}
 			case getNearest: {

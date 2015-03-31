@@ -93,7 +93,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
     @Getter@Setter
     public int disconnect;
     @Getter@Setter
-    private boolean adjacent ;
+    private boolean adjacent;
 
 	/**
 	 * Create a new unit and specify the
@@ -113,7 +113,6 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		this.attackPoints = attackPoints;
 
 		// Get a new unit id
-
 		this.unitID = node.getAddress().getName();
 		this.node = node;
 		this.messageFactory = this.node.getMessageFactory();

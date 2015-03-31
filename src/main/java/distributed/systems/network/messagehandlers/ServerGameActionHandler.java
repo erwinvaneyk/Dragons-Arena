@@ -27,7 +27,13 @@ public class ServerGameActionHandler implements MessageHandler {
 		me.getSocket().logMessage("[" + me.getAddress() + "] received message: ("  + message + ")", LogType.DEBUG);
 
 		Message response = me.getServerState().getBattleField().onMessageReceived(message);
+		// TODO: check for nearby units -> SERVERS
 
+		// TODO: send synchronizedAction to the SERVERS, return boolean if allowed to do action
+
+		// TODO: if true, do action update client and other servers.
+
+		// Notify other servers
         if (response!=null){
             System.out.println("currently, "+me.getAddress().getName()+" the other nodes are ");
             if(message.get("update").equals(true)){
