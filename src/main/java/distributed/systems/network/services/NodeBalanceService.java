@@ -44,7 +44,7 @@ public class NodeBalanceService implements SocketService {
 		} else {
 			// Join this server
 			NodeAddress myNewAddress = (NodeAddress) response.get("address");
-			serverAddress = (NodeAddress) response.get("server");
+			serverAddress = ((ServerState) response.get("server")).getAddress();
 			socket = LocalSocket.connectTo(serverAddress);
 			me.getAddress().setId(myNewAddress.getId());
 			me.getAddress().setPhysicalAddress(myNewAddress.getPhysicalAddress());

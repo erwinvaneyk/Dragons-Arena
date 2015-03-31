@@ -8,6 +8,7 @@ import distributed.systems.core.MessageFactory;
 import distributed.systems.network.AbstractServerNode;
 import distributed.systems.network.NodeAddress;
 import distributed.systems.network.NodeState;
+import distributed.systems.network.NodeType;
 import distributed.systems.network.ServerNode;
 import distributed.systems.network.ServerState;
 
@@ -26,7 +27,7 @@ public class ServerConnectHandler implements MessageHandler {
 	public Message onMessageReceived(Message message) {
 		Message response = null;
 		NodeAddress newAddress = (NodeAddress) message.get("address");
-		ServerState newServer = (ServerState) message.get("newServer");
+		NodeState newServer = (ServerState) message.get("newServer");
 		// TODO: check if address is unique
 
 		if(message.get("forwarded") == null) {
@@ -41,11 +42,17 @@ public class ServerConnectHandler implements MessageHandler {
 			if(newAddress.getId() < 0) { // Indicates that server has no id yet
 				String oldServerId = newAddress.toString();
 				newAddress.setId(me.generateUniqueId(newAddress.getType()));
-				newServer = new ServerState(meServer.getServerState().getBattleField(), newAddress, newAddress.getType());
+				if(newAddress.getType().equals(NodeType.SERVER)) {
+					newServer = new ServerState(meServer.getServerState().getBattleField(), newAddress,
+							newAddress.getType());
+				} else {
+					newServer = new NodeState(newAddress, newAddress.getType());
+				}
 				message.put("newServer", newServer);
 				response.put("newServer", newServer);
 				me.getServerSocket().logMessage(
-						"Assigned ID to new server, renamed `" + oldServerId + "` to `" + newAddress + "`, other servers: " + me.getConnectedNodes().keySet() + ".", LogType.DEBUG);
+						"Assigned ID to new server, renamed `" + oldServerId + "` to `" + newAddress
+								+ "`, other servers: " + me.getConnectedNodes().keySet() + ".", LogType.DEBUG);
 			}
 			// Propagate
 			message.put("forwarded", true);
