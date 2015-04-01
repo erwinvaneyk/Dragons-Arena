@@ -134,7 +134,7 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 			sendMessage(logMessage, registryAddress);
 		} catch (Exception e) {
 			System.out.println("No registry-server present: " + logMessage);
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 	}
 

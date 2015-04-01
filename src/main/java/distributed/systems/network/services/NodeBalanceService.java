@@ -1,6 +1,9 @@
 package distributed.systems.network.services;
 
+import static java.util.stream.Collectors.toList;
+
 import java.rmi.RemoteException;
+import java.util.List;
 
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
@@ -16,7 +19,10 @@ public class NodeBalanceService implements SocketService {
 
 	public static final String CLIENT_JOIN = "CLIENT_JOIN";
 
+	public static final long BALANCE_INTERVAL = 10000;
+
 	private static final int MAX_REDIRECTS = 4;
+	public static final float INBALANCE_THRESHOLD = 0.7F; // the lowest loaded server has 0.7 load of the most loaded server
 
 	private final ServerNode me;
 
@@ -142,5 +148,38 @@ public class NodeBalanceService implements SocketService {
 	}
 
 	@Override
-	public void run() {}
+	public void run() {
+		try {
+			while(!Thread.currentThread().isInterrupted()) {
+				balanceServers();
+				Thread.sleep(BALANCE_INTERVAL);
+			}
+		} catch (InterruptedException e) {
+			me.safeLogMessage("Heartbeat service has been stopped", LogType.INFO);
+		}
+	}
+
+	private void balanceServers() {
+		List<ServerState> servers = me.getConnectedNodes()
+				.stream()
+				.filter(c -> c.getAddress().isServer())
+				.map(c -> (ServerState) c)
+				.collect(toList());
+
+		if(servers.size() < 1) {
+			me.safeLogMessage("No need for balancing in a single server cluster!", LogType.DEBUG);
+			return;
+		}
+
+		ServerState leastLoaded = servers.stream().reduce((a,b) -> b.getClients().size() > a.getClients().size() ? a : b).get();
+		float inbalance = (float) leastLoaded.getClients().size() / (float) me.getServerState().getClients().size();
+		if(inbalance < INBALANCE_THRESHOLD && me.getServerState().getClients().size() > 1) {
+			me.safeLogMessage("Balancing the cluster, because inbalance was " + inbalance, LogType.INFO);
+			NodeAddress clientToMove = me.getServerState().getClients().iterator().next();
+			me.moveClient(clientToMove, leastLoaded.getAddress());
+			balanceServers();
+		} else {
+			me.safeLogMessage("Cluster is in balance; the inbalance was " + inbalance, LogType.DEBUG);
+		}
+	}
 }
