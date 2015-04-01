@@ -56,6 +56,31 @@ public class DragonNode extends AbstractNode implements ClientNode, Serializable
 
 		// spawn dragon
 
+		this.dragon = new StationaryDragon((Integer) x,y, this);
+		socket.logMessage("Dragon (" + playerState.getAddress() + ") created and running. Assigned to server: " + playerState.getServerAddress(), LogType.INFO);
+		dragon.start();
+	}
+
+	public DragonNode(NodeAddress server) throws RemoteException {
+		// Setup
+		NodeAddress address = new NodeAddress(-1, NodeType.DRAGON);
+		playerState = new PlayerState(address, server);
+		messageFactory = new MessageFactory(new NodeState(address));
+
+		// Join server
+		joinServer(server);
+
+		// Add message handlers
+		addMessageHandler(heartbeatService);
+		addMessageHandler(new ClientGameActionHandler(this));
+
+		// TODO: get reserve servers
+
+		// Setup heartbeat service
+		runService(heartbeatService);
+
+		// spawn dragon
+
 		this.dragon = spawn();
 		socket.logMessage("Dragon (" + playerState.getAddress() + ") created and running. Assigned to server: " + playerState.getServerAddress(), LogType.INFO);
 		dragon.start();

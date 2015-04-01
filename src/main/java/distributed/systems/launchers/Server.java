@@ -1,0 +1,52 @@
+package distributed.systems.launchers;
+
+import java.rmi.RemoteException;
+
+import distributed.systems.network.Address;
+import distributed.systems.network.LocalSocket;
+import distributed.systems.network.NodeAddress;
+import distributed.systems.network.NodeType;
+import distributed.systems.network.PlayerNode;
+import distributed.systems.network.ServerNode;
+
+public class Server {
+
+	/**
+	 * arg[0] = ip of server
+	 * arg[1] = port of server
+	 */
+	public static void main(String[] args) throws RemoteException {
+		if(args.length < 1) {
+			throw new RuntimeException("Invalid format requires the arguments: <myport> <ip> <port> (connect to cluster) or <myport> (create cluster)");
+		}
+		ServerNode server1 = new ServerNode(Integer.valueOf(args[0]));
+		if(args.length == 1) {
+			System.out.println("Creating cluster on port " + args[0]);
+			server1.startCluster();
+		} else if(args.length == 2) {
+			System.out.println("Connecting to cluster on " + args[1] + ":" + args[2]);
+			server1.connect(discoverServer(args[1], Integer.valueOf(args[2])));
+		}
+
+		for(String arg : args) {
+			if(arg.equalsIgnoreCase("viewer")) {
+				System.out.println("Launching viewer");
+				server1.launchViewer();
+			}
+		}
+	}
+
+	public static NodeAddress discoverServer(String ip, int port) throws RemoteException {
+		LocalSocket socket = LocalSocket.connectTo(ip, port);
+		String[] bindings = socket.getRegistry().list();
+		String id;
+		for(String binding : bindings) {
+			NodeAddress nodeAddress = NodeAddress.fromAddress(binding);
+			if(nodeAddress.getType().equals(NodeType.SERVER)) {
+				nodeAddress.setPhysicalAddress(new Address(ip, port));
+				return nodeAddress;
+			}
+		}
+		throw new RuntimeException("No server found on the provided location: " + ip + ":" + port);
+	}
+}
