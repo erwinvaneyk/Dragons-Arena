@@ -4,6 +4,7 @@ import static java.util.stream.Collectors.toList;
 
 import javax.xml.soap.Node;
 
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 
 import distributed.systems.core.IMessageReceivedHandler;
@@ -97,6 +98,12 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 
 	public void removeClient(@NonNull NodeAddress client) {
 		getServerState().getClients().remove(client);
+		try {
+			socket.getRegistry().unbind(client.getName());
+		}
+		catch (RemoteException | NotBoundException e) {
+			e.printStackTrace();
+		}
 		getServerState().getBattleField().remove(client.getName());
 	}
 

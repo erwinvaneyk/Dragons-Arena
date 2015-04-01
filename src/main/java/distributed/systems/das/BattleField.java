@@ -14,6 +14,7 @@ import java.util.TimerTask;
 import java.util.stream.Stream;
 import distributed.systems.core.ExtendedSocket;
 import distributed.systems.core.IMessageReceivedHandler;
+import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.core.MessageFactory;
 import distributed.systems.core.exception.IDNotAssignedException;
@@ -171,6 +172,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 	{
 		int originalX = unit.getX();
 		int originalY = unit.getY();
+		Unit stub = getUnit(originalX, originalY).orElse(unit);
 
 		if (unit.getHitPoints() <= 0)
 			return false;
@@ -178,10 +180,12 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 		if (newX >= 0 && newX < BattleField.MAP_WIDTH)
 			if (newY >= 0 && newY < BattleField.MAP_HEIGHT)
 				if (map[newX][newY] == null) {
-					if (putUnit(unit, newX, newY)) {
+					if (putUnit(stub, newX, newY)) {
 						map[originalX][originalY] = null;
-                        map[newX][newY].setAdjacent(adjacent(newX,newY));
-                        System.out.println(unit.getUnitID()+" move from "+"<"+originalX+","+originalY+">"+" to "+"<"+newX+","+newY+">");
+                        map[newX][newY].setAdjacent(adjacent(newX, newY));
+                        serverSocket.logMessage(
+		                        stub.getUnitID() + " moved from <" + originalX + "," + originalY + ">" + " to " + "<"
+				                        + newX + "," + newY + ">", LogType.INFO);
 						return true;
 					}
 				}

@@ -31,7 +31,7 @@ public abstract class AbstractNode extends UnicastRemoteObject implements IMessa
 	private NodeAddress address;
 
 	@Getter
-	protected ExtendedSocket socket;
+	protected LocalSocket socket;
 
 	@Getter
 	protected transient MessageFactory messageFactory;
