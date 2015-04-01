@@ -22,6 +22,7 @@ public enum MessageRequest {
 	getNearest,
     getAdjacent,
 	getFreeLocation,
-	update
+    update,
+    workloaddamage
 
 }

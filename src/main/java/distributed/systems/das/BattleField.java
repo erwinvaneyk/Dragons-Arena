@@ -1,34 +1,26 @@
 package distributed.systems.das;
 
 
-import static java.util.stream.Collectors.toList;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.stream.Stream;
-import distributed.systems.core.ExtendedSocket;
 import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.core.MessageFactory;
 import distributed.systems.core.exception.IDNotAssignedException;
-import distributed.systems.das.units.Dragon;
-import distributed.systems.das.units.Player;
 import distributed.systems.das.units.Unit;
 import distributed.systems.das.units.Unit.UnitType;
 import distributed.systems.network.NodeAddress;
 import distributed.systems.network.ServerSocket;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Timer;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * The actual battlefield where the fighting takes place.
@@ -44,6 +36,7 @@ import java.util.*;
 public class BattleField implements Serializable, IMessageReceivedHandler {
 
 	// Communicated over messages:
+    @Getter
 	private ArrayList<Unit> units;
 	private int lastUnitID = 0;
 	private Unit[][] map;
@@ -318,7 +311,11 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
                 int oy = (Integer)msg.get("oy");
 
                 synchronized (map){
-                    map[ox][oy].setAdjacent(adjacent(ox,oy));
+                    if(this.getUnit(ox, oy).isPresent()){
+                        map[ox][oy].setAdjacent(adjacent(ox,oy));
+                        reply.put("adjacent",map[ox][oy].isAdjacent());
+                    }
+                    else reply.put("adjacent",false);
                 }
                 reply.put("request",MessageRequest.reply);
                 reply.put("id", msg.get("id"));
@@ -352,11 +349,15 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
                 int oy = (Integer)msg.get("oy");
 				Optional<Unit> optUnit = this.getUnit(x, y);
                 synchronized (map){
-                    map[ox][oy].setAdjacent(adjacent(ox,oy));
+                    if(this.getUnit(ox, oy).isPresent()){
+                        map[ox][oy].setAdjacent(adjacent(ox,oy));
+                        reply.put("adjacent",map[ox][oy].isAdjacent());
+                    }
+                    else reply.put("adjacent",false);
                 }
                 reply.put("request",MessageRequest.reply);
                 reply.put("id", msg.get("id"));
-                reply.put("adjacent",map[ox][oy].isAdjacent());
+
 				optUnit.ifPresent(unit -> {
                     unit.adjustHitPoints( (Integer)msg.get("healed") );
                     notification.put("request",MessageRequest.notification);
@@ -369,7 +370,11 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
                 updatemessage.put("type", MessageRequest.healDamage);
                 updatemessage.put("x", x);
                 updatemessage.put("y", y);
-                updatemessage.put("hp", this.getUnit(x,y).get().getHitPoints());
+                if(this.getUnit(x,y).isPresent()){
+                    updatemessage.put("hp", this.getUnit(x,y).get().getHitPoints());
+                }
+                else updatemessage.put("hp",null);
+
 				/* Copy the id of the message so that the unit knows 
 				 * what message the battlefield responded to. 
 				 */
@@ -476,6 +481,19 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 				reply.put("unit", getNearest(unit, x, y).orElse(null));
 				break;
 			}
+            case workloaddamage:{
+                int x = (Integer)msg.get("tx");
+                int y = (Integer)msg.get("ty");
+                Optional<Unit> optUnit = this.getUnit(x, y);
+                System.out.println("in the battle field, deal huge damage to <"+x+","+y+">");
+                optUnit.ifPresent(unit -> {
+                    currenthp[0] = unit.adjustHitPoints(-(Integer) msg.get("damage"));
+                    notification.put("request", MessageRequest.notification);
+                    notification.put("damage", msg.get("damage"));
+                    notification.put("from", origin);
+                    serverSocket.sendMessage(notification, unit.getPlayerState().getAddress());
+                });
+            }
 		}
 
 		try {

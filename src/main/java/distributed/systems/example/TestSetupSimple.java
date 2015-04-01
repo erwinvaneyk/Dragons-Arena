@@ -1,17 +1,8 @@
 package distributed.systems.example;
 
-import java.rmi.RemoteException;
-
-import distributed.systems.core.Socket;
-import distributed.systems.network.Address;
 import distributed.systems.network.DragonNode;
-import distributed.systems.network.LocalSocket;
-import distributed.systems.network.NodeAddress;
-import distributed.systems.network.NodeType;
 import distributed.systems.network.PlayerNode;
 import distributed.systems.network.ServerNode;
-import distributed.systems.network.logging.LogNode;
-import distributed.systems.network.logging.Logger;
 
 import java.rmi.RemoteException;
 
@@ -27,24 +18,9 @@ public class TestSetupSimple {
 		ServerNode server2 = new ServerNode(2346);
 		server2.connect(server1.getAddress());
 		/*ServerNode server3 = new ServerNode(2347);
-		server3.connect(server1.getAddress());
-		ServerNode server4 = new ServerNode(2348);
-		server4.connect(server3.getAddress());
-		System.out.println("Server 1: " + server2.getNodeState() + " -> " + server2.getConnectedNodes());
-		System.out.println("Server 2: " + server3.getNodeState() + " -> " + server3.getConnectedNodes());
-		System.out.println("Server 3: " + server4.getNodeState() + " -> " + server4.getConnectedNodes());*/
-		//Players
-		PlayerNode player1 = new PlayerNode(server1.getAddress());
-		//PlayerNode player2 = new PlayerNode(server1.getAddress());
-		//PlayerNode player3 = new PlayerNode(server1.getAddress());
-		//PlayerNode player4 = new PlayerNode(server1.getAddress());
-		//new PlayerNode(server1.getAddress(),1,1);
-		//new PlayerNode(server1.getAddress(),2,1);
-		//DragonNode dragonNode = new DragonNode(server1.getAddress());
-		//System.out.println("Server 0: " + server1.getNodeState() + " -> " + server1.getConnectedNodes());
-		server1.launchViewer();
-        server2.launchViewer();
+        server3.launchViewer();
+        //server2.launchViewer();
 		System.out.println("ALL GOOD!!!!");
-		server1.moveClient(player1.getAddress(), server2.getAddress());
+		server1.moveClient(player1.getAddress(), server2.getAddress());*/
 	}
 }

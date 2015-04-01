@@ -6,13 +6,9 @@ import distributed.systems.core.Socket;
 import distributed.systems.das.MessageRequest;
 import lombok.Getter;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
-
-import javax.xml.soap.Node;
 
 /**
  * Deals with connections and messages between servers (communication between multiple RMIRegistries)
@@ -52,18 +48,20 @@ public class ServerSocket implements Socket {
 	}
 
 	public void broadcast(Message message, NodeType type) {
-		me.getConnectedNodes().stream().map(NodeState::getAddress)
-				.filter(node -> node.getType().equals(type))
-				.forEach(node -> {
-					try {
-						sendMessage(message, node);
-					}
-					catch (RuntimeException e) {
-						e.printStackTrace();
-						logMessage("Failed to send message to node `" + node + "`; message: " + message + ", because: "
-								+ e, LogType.ERROR);
-					}
-				});
+        System.out.println("check the hashset size() "+me.getConnectedNodes().size());
+            me.getConnectedNodes().stream().map(NodeState::getAddress)
+                    .filter(node -> node.getType().equals(type))
+                    .forEach(node -> {
+                        try {
+                            sendMessage(message, node);
+                        } catch (RuntimeException e) {
+                            e.printStackTrace();
+                            logMessage("Failed to send message to node `" + node + "`; message: " + message + ", because: "
+                                    + e, LogType.ERROR);
+                        }
+                    });
+
+
 	}
 
 	public void logMessage(Message logMessage) {
