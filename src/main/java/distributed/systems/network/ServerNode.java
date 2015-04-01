@@ -2,12 +2,16 @@ package distributed.systems.network;
 
 import static java.util.stream.Collectors.toList;
 
+import javax.xml.soap.Node;
+
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 
 import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.LogType;
 import distributed.systems.das.BattleField;
 import distributed.systems.das.presentation.BattleFieldViewer;
+import distributed.systems.network.messagehandlers.ClientHandler;
 import distributed.systems.network.messagehandlers.ServerGameActionHandler;
 import distributed.systems.network.messagehandlers.LogHandler;
 import distributed.systems.network.messagehandlers.ServerConnectHandler;
@@ -16,6 +20,7 @@ import distributed.systems.network.messagehandlers.SynchronizedGameActionHandler
 import distributed.systems.network.services.HeartbeatService;
 import distributed.systems.network.services.NodeBalanceService;
 import distributed.systems.network.services.ServerHeartbeatService;
+import distributed.systems.network.services.SyncServerState;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
@@ -34,6 +39,7 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 
 	@Getter
 	private final SynchronizedGameActionHandler synchronizedGameActionHandler;
+	private final SyncServerState syncServerState;
 
 
 	public static void main(String[] args) throws RemoteException {
@@ -47,6 +53,8 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 		addMessageHandler(new SyncBattlefieldHandler(this));
 		addMessageHandler(new ServerConnectHandler(this));
 		addMessageHandler(new ServerGameActionHandler(this));
+		addMessageHandler(new ClientHandler(this));
+		syncServerState = new SyncServerState(this);
 
 		// setup services
 		heartbeatService = new ServerHeartbeatService(this, serverSocket);
@@ -55,6 +63,9 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 		addMessageHandler(synchronizedGameActionHandler);
 		addMessageHandler(heartbeatService);
 		addMessageHandler(nodeBalanceService);
+		addMessageHandler(syncServerState);
+		runService(syncServerState);
+		runService(nodeBalanceService);
 		serverSocket.logMessage("Server (" + getAddress() + ") is ready to join or create a cluster", LogType.INFO);
 	}
 
@@ -93,9 +104,29 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 		heartbeatService.expectHeartbeatFrom(client);
 	}
 
+	public void removeClient(@NonNull NodeAddress client) {
+		getServerState().getClients().remove(client);
+		getConnectedNodes().stream()
+				.filter(c -> c.getAddress().getType().equals(NodeType.SERVER))
+				.forEach(c -> ((ServerState) c).getClients().remove(client));
+		try {
+			socket.getRegistry().unbind(client.getName());
+		}
+		catch (RemoteException | NotBoundException e) {
+			//e.printStackTrace();
+		}
+		heartbeatService.remove(client);
+		getServerState().getBattleField().remove(client.getName());
+	}
+
+	public void moveClient(NodeAddress client, NodeAddress newServer) {
+		getServerState().getClients().remove(client);
+		nodeBalanceService.moveClientToServer(client, newServer);
+	}
+
 	public void updateOtherServerState(@NonNull ServerState that) {
 		addServer(that);
-		System.out.println("Updated connectedNodes: " + getConnectedNodes() );
+		safeLogMessage("Updated connectedNodes: " + getConnectedNodes(),LogType.DEBUG);
 	}
 
 	private BattleField createBattlefield() {

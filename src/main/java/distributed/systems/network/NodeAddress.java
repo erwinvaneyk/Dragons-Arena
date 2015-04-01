@@ -9,8 +9,6 @@ import lombok.Data;
 @AllArgsConstructor
 public class NodeAddress implements Serializable {
 
-	public static final int DEFAULT_PORT = 1234;
-
 	public static final String SEPARATOR = "-";
 
 	private NodeType type;
@@ -27,6 +25,12 @@ public class NodeAddress implements Serializable {
 	public NodeAddress(int port, NodeType type) {
 		physicalAddress = Address.getMyAddress(port);
 		this.type = type;
+	}
+
+	public NodeAddress(NodeAddress nodeAddress) {
+		physicalAddress = nodeAddress.physicalAddress;
+		type = nodeAddress.type;
+		id = nodeAddress.id;
 	}
 
 	public static NodeAddress fromAddress(String address) {

@@ -3,6 +3,7 @@ package distributed.systems.network;
 import distributed.systems.core.*;
 import distributed.systems.core.exception.AlreadyAssignedIDException;
 import distributed.systems.das.MessageRequest;
+import lombok.Getter;
 import lombok.ToString;
 
 import java.io.Serializable;
@@ -28,6 +29,7 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 
 	private NodeAddress id;
 
+	@Getter
 	private final Registry registry;
 
 	private final NodeAddress registryAddress;
@@ -132,7 +134,7 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 			sendMessage(logMessage, registryAddress);
 		} catch (Exception e) {
 			System.out.println("No registry-server present: " + logMessage);
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 	}
 

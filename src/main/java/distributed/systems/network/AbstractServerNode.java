@@ -122,7 +122,6 @@ public abstract class AbstractServerNode extends AbstractNode {
 			nodeState.getConnectedNodes().add(node.getAddress());
 			connectedNodes.remove(node);
 			connectedNodes.add(node);
-			System.out.println(node + " => " + connectedNodes + " & " + nodeState.getConnectedNodes());
 			safeLogMessage(
 					"Added node: " + node.getAddress() + " to server. nodeStateNodes: " + nodeState.getConnectedNodes()
 							+ ", connectedNodes: " + connectedNodes, LogType.DEBUG);

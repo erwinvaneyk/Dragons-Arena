@@ -14,6 +14,7 @@ import java.util.TimerTask;
 import java.util.stream.Stream;
 import distributed.systems.core.ExtendedSocket;
 import distributed.systems.core.IMessageReceivedHandler;
+import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.core.MessageFactory;
 import distributed.systems.core.exception.IDNotAssignedException;
@@ -171,6 +172,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 	{
 		int originalX = unit.getX();
 		int originalY = unit.getY();
+		Unit stub = getUnit(originalX, originalY).orElse(unit);
 
 		if (unit.getHitPoints() <= 0)
 			return false;
@@ -178,10 +180,12 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 		if (newX >= 0 && newX < BattleField.MAP_WIDTH)
 			if (newY >= 0 && newY < BattleField.MAP_HEIGHT)
 				if (map[newX][newY] == null) {
-					if (putUnit(unit, newX, newY)) {
+					if (putUnit(stub, newX, newY)) {
 						map[originalX][originalY] = null;
-                        map[newX][newY].setAdjacent(adjacent(newX,newY));
-                        System.out.println(unit.getUnitID()+" move from "+"<"+originalX+","+originalY+">"+" to "+"<"+newX+","+newY+">");
+                        map[newX][newY].setAdjacent(adjacent(newX, newY));
+                        serverSocket.logMessage(
+		                        stub.getUnitID() + " moved from <" + originalX + "," + originalY + ">" + " to " + "<"
+				                        + newX + "," + newY + ">", LogType.INFO);
 						return true;
 					}
 				}
@@ -202,6 +206,11 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 			map[x][y] = null;
 			units.remove(unit);
 		});
+	}
+
+	public synchronized void addUnit(Unit unit) {
+		units.add(unit);
+		putUnit(unit, unit.getX(), unit.getY());
 	}
 
 	/**
@@ -260,6 +269,27 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 				// Get the unit at the specific location
 				reply.put("unit", getUnit(x, y).orElse(null));
 
+				break;
+			}
+			case getFreeLocation:
+			{
+				reply = messagefactory.createMessage();
+				reply.put("request",MessageRequest.reply);
+				if(msg.get("id") != null) reply.put("id", msg.get("id"));
+
+				if(MAP_HEIGHT * MAP_WIDTH <= units.size()) {
+					reply.put("success", false);
+					break;
+				}
+				reply.put("success", true);
+				int x,y;
+				do {
+					x = (int) (Math.random() * BattleField.MAP_WIDTH);
+					y = (int) (Math.random() * BattleField.MAP_HEIGHT);
+				} while (getUnit(x, y).isPresent());
+				reply.put("x", x);
+				reply.put("y", y);
+				System.out.println(x + " & " + y);
 				break;
 			}
 			case getType:
@@ -410,7 +440,8 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
                         int ty = (Integer)msg.get("ty");
                         int ox = (Integer)msg.get("ox");
                         int oy = (Integer)msg.get("oy");
-	                    this.getUnit(ox, oy).ifPresent(unit -> {
+	                    Optional<Unit> optUnit = this.getUnit(ox, oy);
+	                    optUnit.ifPresent(unit -> {
 		                    this.moveUnit(unit, tx, ty);
 	                    });
                         break;
@@ -457,6 +488,13 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 			idnae.printStackTrace();
 		}
         return updatemessage;
+	}
+
+	public void remove(String id) {
+		units.stream().filter(u -> u.getUnitID().equals(id)).findAny().ifPresent(unit -> {
+			removeUnit(unit.getX(), unit.getY());
+			unit.disconnect();
+		});
 	}
 
 

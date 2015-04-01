@@ -2,7 +2,9 @@ package distributed.systems.network;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,7 +33,7 @@ public abstract class AbstractNode extends UnicastRemoteObject implements IMessa
 	private NodeAddress address;
 
 	@Getter
-	protected ExtendedSocket socket;
+	protected LocalSocket socket;
 
 	@Getter
 	protected transient MessageFactory messageFactory;
@@ -41,6 +43,7 @@ public abstract class AbstractNode extends UnicastRemoteObject implements IMessa
 
 	public void addMessageHandler(MessageHandler messageHandler) {
 		this.messageHandlers.put(messageHandler.getMessageType(), messageHandler);
+		System.out.println("Added messagehandler for " + messageHandler.getMessageType() + " -> accepted messageTypes: " + getAcceptableMessageTypes());
 	}
 
 	public void runService(SocketService socketService) {
@@ -56,7 +59,7 @@ public abstract class AbstractNode extends UnicastRemoteObject implements IMessa
 		if(messageHandler != null) {
 			response = messageHandler.onMessageReceived(message);
 		} else {
-			safeLogMessage("Unable to handle received message: " + message + ". Ignoring the message!", LogType.WARN);
+			safeLogMessage("Unable to handle received message: " + message + " (accepted messageTypes: "+ getAcceptableMessageTypes() +"). Ignoring the message!", LogType.WARN);
 		}
 		influxdbLogger.logMessageDuration(message, getAddress(), System.currentTimeMillis() - start);
 		return response;
@@ -77,6 +80,10 @@ public abstract class AbstractNode extends UnicastRemoteObject implements IMessa
 			} catch(RuntimeException e) {}
 		}
 		System.out.println("No socket present: " + message);
+	}
+
+	public Collection<String> getAcceptableMessageTypes() {
+		return messageHandlers.keySet();
 	}
 
 	public abstract NodeType getNodeType();

@@ -26,7 +26,7 @@ public class ServerClusterTest {
 
 		// Stub message
 		Message message = mock(Message.class);
-		when(message.getMessageType()).thenReturn(PingPongHandler.MESSAGE_TYPE);
+		when(message.getMessageType()).thenReturn(PingPongHandler.CLIENT_JOIN);
 		Socket socket = LocalSocket.connectTo(server1.getAddress());
 		Message response = socket.sendMessage(message, server1.getAddress());
 		assertEquals(PingPongHandler.RESPONSE_TYPE, response.getMessageType());
@@ -54,7 +54,7 @@ public class ServerClusterTest {
 
 		// Stub message
 		Message message = mock(Message.class);
-		when(message.getMessageType()).thenReturn(PingPongHandler.MESSAGE_TYPE);
+		when(message.getMessageType()).thenReturn(PingPongHandler.CLIENT_JOIN);
 		Socket socket = LocalSocket.connectTo(server1.getAddress());
 		Message response = socket.sendMessage(message, server1.getAddress());
 		assertEquals(PingPongHandler.RESPONSE_TYPE, response.getMessageType());

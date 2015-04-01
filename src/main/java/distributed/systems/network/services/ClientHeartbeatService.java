@@ -22,7 +22,6 @@ public class ClientHeartbeatService extends HeartbeatService {
 		watchNodes.remove(address);
 		socket.logMessage("Node `" + address.getName() + "` TIMED OUT, because it has not been sending any heartbeats!",
 				LogType.WARN);
-
 	}
 
 	public void doHeartbeat() {
