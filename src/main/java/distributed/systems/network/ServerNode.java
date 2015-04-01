@@ -11,6 +11,7 @@ import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.LogType;
 import distributed.systems.das.BattleField;
 import distributed.systems.das.presentation.BattleFieldViewer;
+import distributed.systems.network.messagehandlers.ClientHandler;
 import distributed.systems.network.messagehandlers.ServerGameActionHandler;
 import distributed.systems.network.messagehandlers.LogHandler;
 import distributed.systems.network.messagehandlers.ServerConnectHandler;
@@ -50,6 +51,7 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 		addMessageHandler(new SyncBattlefieldHandler(this));
 		addMessageHandler(new ServerConnectHandler(this));
 		addMessageHandler(new ServerGameActionHandler(this));
+		addMessageHandler(new ClientHandler(this));
 
 		// setup services
 		heartbeatService = new ServerHeartbeatService(this, serverSocket);
@@ -98,13 +100,21 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 
 	public void removeClient(@NonNull NodeAddress client) {
 		getServerState().getClients().remove(client);
+		getConnectedNodes().stream()
+				.filter(c -> c.getAddress().getType().equals(NodeType.SERVER))
+				.forEach(c -> ((ServerState) c).getClients().remove(client));
 		try {
 			socket.getRegistry().unbind(client.getName());
 		}
 		catch (RemoteException | NotBoundException e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
+		heartbeatService.remove(client);
 		getServerState().getBattleField().remove(client.getName());
+	}
+
+	public void moveClient(NodeAddress client, NodeAddress newServer) {
+		nodeBalanceService.moveClientToServer(client, newServer);
 	}
 
 	public void updateOtherServerState(@NonNull ServerState that) {

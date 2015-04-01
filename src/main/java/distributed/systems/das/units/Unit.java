@@ -57,6 +57,7 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 	protected int attackPoints;
 
 	// Identifier of the unit
+	@Setter
 	private String unitID;
 	
 	// Map messages from their ids

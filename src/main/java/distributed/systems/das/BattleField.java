@@ -208,6 +208,11 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 		});
 	}
 
+	public synchronized void addUnit(Unit unit) {
+		units.add(unit);
+		putUnit(unit, unit.getX(), unit.getY());
+	}
+
 	/**
 	 * Returns a new unique unit ID.
 	 * @return int: a new unique unit ID.
@@ -435,7 +440,8 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
                         int ty = (Integer)msg.get("ty");
                         int ox = (Integer)msg.get("ox");
                         int oy = (Integer)msg.get("oy");
-	                    this.getUnit(ox, oy).ifPresent(unit -> {
+	                    Optional<Unit> optUnit = this.getUnit(ox, oy);
+	                    optUnit.ifPresent(unit -> {
 		                    this.moveUnit(unit, tx, ty);
 	                    });
                         break;

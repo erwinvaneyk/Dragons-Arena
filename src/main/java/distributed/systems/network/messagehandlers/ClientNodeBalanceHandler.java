@@ -13,7 +13,7 @@ public class ClientNodeBalanceHandler implements MessageHandler {
 
 	@Override
 	public String getMessageType() {
-		return NodeBalanceService.CLIENT_MOVE;
+		return NodeBalanceService.CLIENT_JOIN;
 	}
 
 	public ClientNodeBalanceHandler(ClientNode me) {
@@ -22,9 +22,11 @@ public class ClientNodeBalanceHandler implements MessageHandler {
 
 	@Override
 	public Message onMessageReceived(Message message) throws RemoteException {
+		System.out.println("t");
 		NodeAddress newServer = (NodeAddress) message.get("newServer");
 		me.joinServer(newServer);
-		return me.getMessageFactory().createMessage(NodeBalanceService.CLIENT_MOVE)
+		return me.getMessageFactory().createMessage(NodeBalanceService.CLIENT_JOIN)
+				.put("action", "move")
 				.put("success", true);
 	}
 }

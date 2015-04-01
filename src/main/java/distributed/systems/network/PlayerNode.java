@@ -15,6 +15,7 @@ import distributed.systems.das.units.Unit;
 import distributed.systems.das.units.impl.RandomPlayer;
 import distributed.systems.das.units.impl.SimplePlayer;
 import distributed.systems.network.messagehandlers.ClientGameActionHandler;
+import distributed.systems.network.messagehandlers.ClientNodeBalanceHandler;
 import distributed.systems.network.services.ClientHeartbeatService;
 import distributed.systems.network.services.HeartbeatService;
 import distributed.systems.network.services.NodeBalanceService;
@@ -37,6 +38,7 @@ public class PlayerNode extends AbstractNode implements ClientNode, IMessageRece
 
 	private transient List<NodeAddress> knownServers = new ArrayList<>();
 
+	@Getter
 	private transient HeartbeatService heartbeatService;
 
 	public static void main(String[] args) throws RemoteException {
@@ -62,6 +64,7 @@ public class PlayerNode extends AbstractNode implements ClientNode, IMessageRece
 		// Add message handlers
 		addMessageHandler(heartbeatService);
 		clientGameActionHandler = new ClientGameActionHandler(this);
+		addMessageHandler(new ClientNodeBalanceHandler(this));
 		addMessageHandler(clientGameActionHandler);
 
 		// TODO: get reserve servers
@@ -85,14 +88,12 @@ public class PlayerNode extends AbstractNode implements ClientNode, IMessageRece
 		joinServer(server);
 
 		// Add message handlers
-		addMessageHandler(heartbeatService);
 		clientGameActionHandler = new ClientGameActionHandler(this);
+		addMessageHandler(new ClientNodeBalanceHandler(this));
 		addMessageHandler(clientGameActionHandler);
 
 		// TODO: get reserve servers
 
-		// Setup heartbeat service
-		runService(heartbeatService);
 		player = spawn();
 
 		System.out.println("Outputting logs to the associated server: " + playerState.getServerAddress());
@@ -124,6 +125,9 @@ public class PlayerNode extends AbstractNode implements ClientNode, IMessageRece
 		socket.register(playerState.getAddress());
 		socket.addMessageReceivedHandler(this);
 		heartbeatService = new ClientHeartbeatService(this, socket).expectHeartbeatFrom(serverAddress);
+		addMessageHandler(heartbeatService);
+		// Setup heartbeat service
+		runService(heartbeatService);
 		socket.logMessage("Dragon (" + playerState.getAddress() + ") joined server: " + playerState.getServerAddress(), LogType.INFO);
 	}
 

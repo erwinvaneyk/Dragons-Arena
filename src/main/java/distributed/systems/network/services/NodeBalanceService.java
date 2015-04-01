@@ -16,8 +16,6 @@ public class NodeBalanceService implements SocketService {
 
 	public static final String CLIENT_JOIN = "CLIENT_JOIN";
 
-	public static final String CLIENT_MOVE = "CLIENT_MOVE";
-
 	private static final int MAX_REDIRECTS = 4;
 
 	private final ServerNode me;
@@ -27,19 +25,20 @@ public class NodeBalanceService implements SocketService {
 	}
 
 	public boolean moveClientToServer(NodeAddress client, NodeAddress newServer) {
-		Message moveMessage = me.getMessageFactory().createMessage(CLIENT_MOVE)
+		NodeAddress oldClient = new NodeAddress(client);
+		Message moveMessage = me.getMessageFactory().createMessage(CLIENT_JOIN)
+				.put("action", "move")
 				.put("newServer", newServer)
 				.put("client", client);
 		Message response = me.getServerSocket().sendMessage(moveMessage, newServer);
-		if(response.get("success") != null) {
-			me.removeClient(client);
+		System.out.println("Balance response:" + response);
+		if(response != null && response.get("success") != null) {
+			//me.removeClient(oldClient);
 			return true;
+		} else {
+			me.safeLogMessage("Failed to move client to other server: " + response, LogType.ERROR);
 		}
 		return false;
-	}
-
-	public void rebalance() {
-		// TODO rebalance session
 	}
 
 	public static NodeAddress joinServer(ClientNode me, NodeAddress serverAddress) {
@@ -74,23 +73,24 @@ public class NodeBalanceService implements SocketService {
 
 	@Override
 	public Message onMessageReceived(Message message) throws RemoteException {
-		switch (message.getMessageType()) {
-			case CLIENT_JOIN:
-				return onClientJoin(message);
-			case CLIENT_MOVE:
-				return onClientMove(message);
+		if(message.get("action") != null) {
+			return onClientMove(message);
+		} else {
+			return onClientJoin(message);
 		}
-		return null;
 	}
 
 	// Received by the server receiving the client
 	private Message onClientMove(Message message) {
 		NodeAddress client = (NodeAddress) message.get("client");
-		Message toClient = me.getMessageFactory().createMessage(CLIENT_MOVE)
+		Message toClient = me.getMessageFactory().createMessage(CLIENT_JOIN)
+				.put("action", "move")
 				.put("newServer", me.getAddress());
 		Message response = me.getServerSocket().sendMessage(toClient, client);
-		if(response.get("success") != null) {
+		if(response != null && response.get("success") != null) {
 			me.addClient(client);
+		} else {
+			me.safeLogMessage("Failed to move client to other server: " + response, LogType.ERROR);
 		}
 		return response;
 	}

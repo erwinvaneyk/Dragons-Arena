@@ -16,6 +16,7 @@ import distributed.systems.das.units.Unit;
 import distributed.systems.das.units.impl.SimplePlayer;
 import distributed.systems.das.units.impl.StationaryDragon;
 import distributed.systems.network.messagehandlers.ClientGameActionHandler;
+import distributed.systems.network.messagehandlers.ClientNodeBalanceHandler;
 import distributed.systems.network.services.ClientHeartbeatService;
 import distributed.systems.network.services.HeartbeatService;
 import distributed.systems.network.services.NodeBalanceService;
@@ -30,6 +31,7 @@ public class DragonNode extends AbstractNode implements ClientNode, Serializable
 	private final ClientGameActionHandler clientGameActionHandler;
 	private List<NodeAddress> knownServers = new ArrayList<>();
 
+	@Getter
 	private HeartbeatService heartbeatService;
 	private Dragon dragon;
 
@@ -76,6 +78,7 @@ public class DragonNode extends AbstractNode implements ClientNode, Serializable
 		addMessageHandler(heartbeatService);
 		clientGameActionHandler = new ClientGameActionHandler(this);
 		addMessageHandler(clientGameActionHandler);
+		addMessageHandler(new ClientNodeBalanceHandler(this));
 
 		// TODO: get reserve servers
 

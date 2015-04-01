@@ -7,6 +7,7 @@ import distributed.systems.network.NodeAddress;
 import distributed.systems.network.NodeType;
 import distributed.systems.network.ServerNode;
 import distributed.systems.network.ServerSocket;
+import distributed.systems.network.messagehandlers.ClientHandler;
 
 public class ServerHeartbeatService extends HeartbeatService {
 
@@ -20,9 +21,11 @@ public class ServerHeartbeatService extends HeartbeatService {
 	// TODO: do some cleanup, moving the clients of a disconnected server to other servers
 	protected void removeNode(NodeAddress address) {
 		watchNodes.remove(address);
-		if(me.getNodeType().equals(NodeType.SERVER)) {
+		if(me.getNodeType().equals(NodeType.SERVER) && (address.getType().equals(NodeType.DRAGON) || address.getType().equals(NodeType.PLAYER))) {
 			serversocket.logMessage("Removing client from the battlefield!", LogType.DEBUG);
 			((ServerNode) me).removeClient(address);
+			Message serverMessage = me.getMessageFactory().createMessage(ClientHandler.MESSAGE_TYPE).put("subject", "remove").put("client", address);
+			serversocket.broadcast(serverMessage, NodeType.SERVER);
 		}
 		serversocket.logMessage("Node `" + address.getName() + "` TIMED OUT, because it has not been sending any heartbeats!",
 				LogType.WARN);

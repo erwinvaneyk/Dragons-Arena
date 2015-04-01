@@ -87,4 +87,7 @@ public abstract class HeartbeatService implements SocketService {
 		return MESSAGE_TYPE;
 	}
 
+	public void remove(NodeAddress client) {
+		watchNodes.remove(client);
+	}
 }

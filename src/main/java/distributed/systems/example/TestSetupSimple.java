@@ -35,16 +35,16 @@ public class TestSetupSimple {
 		System.out.println("Server 3: " + server4.getNodeState() + " -> " + server4.getConnectedNodes());*/
 		//Players
 		PlayerNode player1 = new PlayerNode(server1.getAddress());
-		PlayerNode player2 = new PlayerNode(server1.getAddress());
+		//PlayerNode player2 = new PlayerNode(server1.getAddress());
 		//PlayerNode player3 = new PlayerNode(server1.getAddress());
 		//PlayerNode player4 = new PlayerNode(server1.getAddress());
 		//new PlayerNode(server1.getAddress(),1,1);
 		//new PlayerNode(server1.getAddress(),2,1);
-		DragonNode dragonNode = new DragonNode(server1.getAddress());
+		//DragonNode dragonNode = new DragonNode(server1.getAddress());
 		//System.out.println("Server 0: " + server1.getNodeState() + " -> " + server1.getConnectedNodes());
-
 		server1.launchViewer();
-        //server2.launchViewer();
+        server2.launchViewer();
 		System.out.println("ALL GOOD!!!!");
+		server1.moveClient(player1.getAddress(), server2.getAddress());
 	}
 }

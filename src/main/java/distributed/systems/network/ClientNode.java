@@ -7,6 +7,7 @@ import distributed.systems.core.ExtendedSocket;
 import distributed.systems.core.Message;
 import distributed.systems.core.MessageFactory;
 import distributed.systems.das.units.Unit;
+import distributed.systems.network.services.HeartbeatService;
 
 
 public interface ClientNode extends Serializable {
@@ -26,4 +27,6 @@ public interface ClientNode extends Serializable {
 	public PlayerState getPlayerState();
 
 	public void joinServer(NodeAddress server);
+
+	public HeartbeatService getHeartbeatService();
 }

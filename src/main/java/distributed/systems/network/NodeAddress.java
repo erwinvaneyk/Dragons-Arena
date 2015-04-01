@@ -27,6 +27,12 @@ public class NodeAddress implements Serializable {
 		this.type = type;
 	}
 
+	public NodeAddress(NodeAddress nodeAddress) {
+		physicalAddress = nodeAddress.physicalAddress;
+		type = nodeAddress.type;
+		id = nodeAddress.id;
+	}
+
 	public static NodeAddress fromAddress(String address) {
 		String[] parts = address.split(SEPARATOR, 2);
 		NodeType nodeType = NodeType.valueOf(parts[0]);
