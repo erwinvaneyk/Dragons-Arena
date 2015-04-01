@@ -21,6 +21,7 @@ public enum MessageRequest {
 	release,
 	getNearest,
     getAdjacent,
-    update
+	getFreeLocation,
+	update
 
 }

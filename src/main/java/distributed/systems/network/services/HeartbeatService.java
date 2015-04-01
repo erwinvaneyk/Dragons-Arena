@@ -78,8 +78,7 @@ public abstract class HeartbeatService implements SocketService {
 				.findAny()
 				.ifPresent(node -> {
 					node.setValue(TIMEOUT_DURATION / CHECK_INTERVAL);
-					socket.logMessage("Received a heartbeat from node `" + node.getKey().getName() + ".",
-							LogType.DEBUG);
+					//socket.logMessage("Received a heartbeat from node `" + node.getKey().getName() + ".", LogType.DEBUG);
 				});
 		return null;
 	}

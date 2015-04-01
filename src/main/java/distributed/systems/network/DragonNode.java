@@ -9,8 +9,11 @@ import java.util.List;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.core.MessageFactory;
+import distributed.systems.das.MessageRequest;
 import distributed.systems.das.units.Dragon;
+import distributed.systems.das.units.Player;
 import distributed.systems.das.units.Unit;
+import distributed.systems.das.units.impl.SimplePlayer;
 import distributed.systems.das.units.impl.StationaryDragon;
 import distributed.systems.network.messagehandlers.ClientGameActionHandler;
 import distributed.systems.network.services.ClientHeartbeatService;
@@ -40,13 +43,7 @@ public class DragonNode extends AbstractNode implements ClientNode, Serializable
 		messageFactory = new MessageFactory(new NodeState(address));
 
 		// Join server
-		NodeAddress serverAddress = NodeBalanceService.joinServer(this, server);
-		playerState.setServerAddress(serverAddress);
-		socket = LocalSocket.connectTo(serverAddress);
-		socket.register(address);
-		socket.addMessageReceivedHandler(this);
-		knownServers.add(serverAddress);
-		heartbeatService = new ClientHeartbeatService(this, socket).expectHeartbeatFrom(knownServers);
+		joinServer(server);
 
 		// Add message handlers
 		addMessageHandler(heartbeatService);
@@ -59,9 +56,33 @@ public class DragonNode extends AbstractNode implements ClientNode, Serializable
 
 		// spawn dragon
 
-		this.dragon = new StationaryDragon(x,y, this);
-		socket.logMessage("Dragon (" + address + ") created and running. Assigned to server: " + serverAddress, LogType.INFO);
+		this.dragon = spawn();
+		socket.logMessage("Dragon (" + playerState.getAddress() + ") created and running. Assigned to server: " + playerState.getServerAddress(), LogType.INFO);
 		dragon.start();
+	}
+
+
+	public StationaryDragon spawn() {
+		Message message = messageFactory.createMessage().put("request", MessageRequest.getFreeLocation);
+		Message response = socket.sendMessage(message, playerState.getServerAddress());
+		boolean hasFreeSpot = (Boolean) response.get("success");
+		if(!hasFreeSpot) {
+			throw new ClusterException("Player " + playerState.getAddress() + " cannot join server; server is full");
+		}
+		// spawn player
+		return new StationaryDragon((Integer) response.get("x"),(Integer) response.get("y"), this);
+	}
+
+	public void joinServer(NodeAddress server) {
+		// Join server
+		NodeAddress serverAddress = NodeBalanceService.joinServer(this, server);
+		playerState.setServerAddress(serverAddress);
+		socket = LocalSocket.connectTo(serverAddress);
+		socket.register(playerState.getAddress());
+		socket.addMessageReceivedHandler(this);
+		knownServers.add(serverAddress);
+		heartbeatService = new ClientHeartbeatService(this, socket).expectHeartbeatFrom(knownServers);
+		socket.logMessage("Dragon (" + playerState.getAddress() + ") joined server: " + playerState.getServerAddress(), LogType.INFO);
 	}
 
 	@Override

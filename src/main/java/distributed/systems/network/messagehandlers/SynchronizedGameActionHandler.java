@@ -71,9 +71,7 @@ public class SynchronizedGameActionHandler implements MessageHandler {
 		boolean isAllowed = (approvalMap.get(id) != null
 				&& approvalMap.get(id) >= nearByUnits.size()
 				&& (System.currentTimeMillis() - timestamp < TIMEOUT_MILLISECONDS));
-		me.safeLogMessage("Synchronization for move was: " + isAllowed, LogType.DEBUG);
-		me.safeLogMessage("timestamp: " + (System.currentTimeMillis() - timestamp < TIMEOUT_MILLISECONDS), LogType.DEBUG);
-		me.safeLogMessage("units: " + approvalMap.get(id) + " < " + nearByUnits, LogType.DEBUG);
+		me.safeLogMessage("Synchronization for move to (" + id.tx + ", " + id.ty + ") was: " + isAllowed, LogType.DEBUG);
 		approvalMap.remove(id);
 		return isAllowed;
 	}
@@ -88,12 +86,18 @@ public class SynchronizedGameActionHandler implements MessageHandler {
 		Boolean isGoAhead = (Boolean) message.get("goAhead");
 		Claim claim = (Claim) message.get("id");
 		if(isGoAhead != null) {
-			if(isGoAhead) {
-				me.safeLogMessage("Approved by " + message.getOrigin().getName(), LogType.DEBUG);
-				approvalMap.put(claim, approvalMap.get(claim) + 1);
-			} else {
-				me.safeLogMessage("Received a no-go from " + message.getOrigin().getName(), LogType.WARN);
-				approvalMap.remove(claim);
+			synchronized (approvalMap) {
+				if (isGoAhead) {
+					Integer approvalCount = approvalMap.get(claim);
+					me.safeLogMessage("Approved by " + message.getOrigin().getName(), LogType.DEBUG);
+					if (approvalCount != null) {
+						approvalMap.put(claim, approvalCount + 1);
+					}
+				}
+				else {
+					me.safeLogMessage("Received a no-go from " + message.getOrigin().getName(), LogType.WARN);
+					approvalMap.remove(claim);
+				}
 			}
 		} else {
 			Message response = me.getMessageFactory().createMessage(MESSAGE_TYPE).put("id", claim);

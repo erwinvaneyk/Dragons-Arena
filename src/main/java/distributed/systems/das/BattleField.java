@@ -262,6 +262,27 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 
 				break;
 			}
+			case getFreeLocation:
+			{
+				reply = messagefactory.createMessage();
+				reply.put("request",MessageRequest.reply);
+				if(msg.get("id") != null) reply.put("id", msg.get("id"));
+
+				if(MAP_HEIGHT * MAP_WIDTH <= units.size()) {
+					reply.put("success", false);
+					break;
+				}
+				reply.put("success", true);
+				int x,y;
+				do {
+					x = (int) (Math.random() * BattleField.MAP_WIDTH);
+					y = (int) (Math.random() * BattleField.MAP_HEIGHT);
+				} while (getUnit(x, y).isPresent());
+				reply.put("x", x);
+				reply.put("y", y);
+				System.out.println(x + " & " + y);
+				break;
+			}
 			case getType:
 			{
 				reply = messagefactory.createMessage();
@@ -462,6 +483,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 	public void remove(String id) {
 		units.stream().filter(u -> u.getUnitID().equals(id)).findAny().ifPresent(unit -> {
 			removeUnit(unit.getX(), unit.getY());
+			unit.disconnect();
 		});
 	}
 

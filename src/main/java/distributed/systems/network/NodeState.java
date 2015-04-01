@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.HashSet;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 @ToString
@@ -12,8 +13,8 @@ public class NodeState implements Serializable {
 	@Getter
 	private final HashSet<NodeAddress> connectedNodes;
 
-	@Getter
-	private final NodeAddress address;
+	@Getter @Setter
+	private NodeAddress address;
 
 	public NodeState(NodeAddress address) {
 		this.connectedNodes = new HashSet<>();

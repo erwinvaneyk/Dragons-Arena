@@ -9,6 +9,7 @@ import distributed.systems.core.IMessageReceivedHandler;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.core.MessageFactory;
+import distributed.systems.das.MessageRequest;
 import distributed.systems.das.units.Player;
 import distributed.systems.das.units.Unit;
 import distributed.systems.das.units.impl.RandomPlayer;
@@ -29,6 +30,7 @@ import lombok.Getter;
 
 public class PlayerNode extends AbstractNode implements ClientNode, IMessageReceivedHandler {
 
+	private final ClientGameActionHandler clientGameActionHandler;
 	private transient Player player;
 
 	private final PlayerState playerState;
@@ -55,18 +57,12 @@ public class PlayerNode extends AbstractNode implements ClientNode, IMessageRece
 		playerState = new PlayerState(address, server);
 		messageFactory = new MessageFactory(playerState);
 
-		// Join server
-		NodeAddress serverAddress = NodeBalanceService.joinServer(this, server);
-		playerState.setServerAddress(serverAddress);
-		socket = LocalSocket.connectTo(serverAddress);
-		socket.register(address);
-		socket.addMessageReceivedHandler(this);
-		knownServers.add(serverAddress);
-		heartbeatService = new ClientHeartbeatService(this, socket).expectHeartbeatFrom(knownServers);
+		joinServer(server);
 
 		// Add message handlers
 		addMessageHandler(heartbeatService);
-		addMessageHandler(new ClientGameActionHandler(this));
+		clientGameActionHandler = new ClientGameActionHandler(this);
+		addMessageHandler(clientGameActionHandler);
 
 		// TODO: get reserve servers
 
@@ -76,8 +72,59 @@ public class PlayerNode extends AbstractNode implements ClientNode, IMessageRece
 		// spawn player
 		this.player = new SimplePlayer(x,y, this);
 		System.out.println("Outputting logs to the associated server: " + playerState.getServerAddress());
-		socket.logMessage("Player (" + address + ") created and running. Assigned to server: " + serverAddress, LogType.INFO);
+		socket.logMessage("Player (" + address + ") created and running. Assigned to server: " + playerState.getServerAddress(), LogType.INFO);
 		player.start();
+	}
+
+	public PlayerNode(NodeAddress server) throws RemoteException {
+		// Setup
+		NodeAddress address = new NodeAddress(-1, getNodeType());
+		playerState = new PlayerState(address, server);
+		messageFactory = new MessageFactory(playerState);
+
+		joinServer(server);
+
+		// Add message handlers
+		addMessageHandler(heartbeatService);
+		clientGameActionHandler = new ClientGameActionHandler(this);
+		addMessageHandler(clientGameActionHandler);
+
+		// TODO: get reserve servers
+
+		// Setup heartbeat service
+		runService(heartbeatService);
+		player = spawn();
+
+		System.out.println("Outputting logs to the associated server: " + playerState.getServerAddress());
+		socket.logMessage("Player (" + address + ") created and running. Assigned to server: " + playerState.getServerAddress(), LogType.INFO);
+		player.start();
+	}
+
+	public Player spawn() {
+		int id = clientGameActionHandler.nextId();
+		Message message = messageFactory.createMessage().put("request", MessageRequest.getFreeLocation).put("id", id);
+		socket.sendMessage(message, playerState.getServerAddress());
+		Message response = clientGameActionHandler.waitAndGetMessage(id);
+		boolean hasFreeSpot = (Boolean) response.get("success");
+		if(!hasFreeSpot) {
+			throw new ClusterException("Player " + playerState.getAddress() + " cannot join server; server is full");
+		}
+		int x = (Integer) response.get("x");
+		int y = (Integer) response.get("y");
+		safeLogMessage("Found spot: (" + x + ", " + y + ")",LogType.DEBUG);
+		// spawn player
+		return new SimplePlayer(x,y, this);
+	}
+
+	public void joinServer(NodeAddress server) {
+		// Join server
+		NodeAddress serverAddress = NodeBalanceService.joinServer(this, server);
+		playerState.setServerAddress(serverAddress);
+		socket = LocalSocket.connectTo(serverAddress);
+		socket.register(playerState.getAddress());
+		socket.addMessageReceivedHandler(this);
+		heartbeatService = new ClientHeartbeatService(this, socket).expectHeartbeatFrom(serverAddress);
+		socket.logMessage("Dragon (" + playerState.getAddress() + ") joined server: " + playerState.getServerAddress(), LogType.INFO);
 	}
 
 	@Override
