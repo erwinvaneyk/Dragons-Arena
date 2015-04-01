@@ -21,12 +21,17 @@ import distributed.systems.network.ClientNode;
  */
 public class SimplePlayer extends RandomPlayer {
 
+	private int lastY;
+	private int lastX;
+
 	public SimplePlayer(int maxHealth, int attackPoints, ClientNode node) throws AlreadyAssignedIDException {
 		super(maxHealth, attackPoints, node);
 	}
 
 	@Override
 	protected void doAction() {
+		checkLocation();
+
 		// Get nearby hurt players
 		List<Unit> adjacentUnit = getAdjacentUnits();
 		List<Unit> adjacentHurtPlayers = adjacentUnit.stream()
@@ -65,7 +70,6 @@ public class SimplePlayer extends RandomPlayer {
 		}
 	}
 
-
 	// Very dumb path-finding, try to move in a straight line to the target
 	private boolean moveTowards(int x, int y, List<Unit> adjacentUnits) {
 		int newX = (int) Math.signum(x - this.x);
@@ -90,4 +94,13 @@ public class SimplePlayer extends RandomPlayer {
 		return adjacentUnits.stream()
 				.noneMatch(unit -> unit.getX() == x && unit.getY() == y);
 	}
+
+	private void checkLocation() {
+		if(getX() == lastX && getY() == lastY) {
+			this.doRandomMove();
+		}
+		lastX = getX();
+		lastY = getY();
+	}
+
 }

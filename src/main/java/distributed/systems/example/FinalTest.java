@@ -32,5 +32,7 @@ public class FinalTest {
 			new DragonNode(server1.getAddress());
 		}
 
+		server1.launchViewer();
+
 	}
 }
