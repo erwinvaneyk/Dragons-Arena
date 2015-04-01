@@ -27,6 +27,7 @@ import lombok.Getter;
 public class DragonNode extends AbstractNode implements ClientNode, Serializable {
 
 	private final PlayerState playerState;
+	private final ClientGameActionHandler clientGameActionHandler;
 	private List<NodeAddress> knownServers = new ArrayList<>();
 
 	private HeartbeatService heartbeatService;
@@ -47,7 +48,8 @@ public class DragonNode extends AbstractNode implements ClientNode, Serializable
 
 		// Add message handlers
 		addMessageHandler(heartbeatService);
-		addMessageHandler(new ClientGameActionHandler(this));
+		clientGameActionHandler = new ClientGameActionHandler(this);
+		addMessageHandler(clientGameActionHandler);
 
 		// TODO: get reserve servers
 
@@ -72,7 +74,8 @@ public class DragonNode extends AbstractNode implements ClientNode, Serializable
 
 		// Add message handlers
 		addMessageHandler(heartbeatService);
-		addMessageHandler(new ClientGameActionHandler(this));
+		clientGameActionHandler = new ClientGameActionHandler(this);
+		addMessageHandler(clientGameActionHandler);
 
 		// TODO: get reserve servers
 
@@ -88,8 +91,10 @@ public class DragonNode extends AbstractNode implements ClientNode, Serializable
 
 
 	public StationaryDragon spawn() {
-		Message message = messageFactory.createMessage().put("request", MessageRequest.getFreeLocation);
-		Message response = socket.sendMessage(message, playerState.getServerAddress());
+		int id = clientGameActionHandler.nextId();
+		Message message = messageFactory.createMessage().put("request", MessageRequest.getFreeLocation).put("id", id);
+		socket.sendMessage(message, playerState.getServerAddress());
+		Message response = clientGameActionHandler.waitAndGetMessage(id);
 		boolean hasFreeSpot = (Boolean) response.get("success");
 		if(!hasFreeSpot) {
 			throw new ClusterException("Player " + playerState.getAddress() + " cannot join server; server is full");
