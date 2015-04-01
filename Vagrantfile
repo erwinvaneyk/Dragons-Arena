@@ -24,9 +24,7 @@ Vagrant.configure(2) do |config|
 
   # Define machines
   config.vm.define "publicnode" do |publicnode|
-     publicnode.vm.network "forwarded_port", guest: 80, host: 8040
-     publicnode.vm.network "forwarded_port", guest: 8083, host: 8083
-     publicnode.vm.network "forwarded_port", guest: 8086, host: 8086
+     publicnode.vm.network "forwarded_port", guest: 2345, host: 2345
   end
   config.vm.define "node2", autostart: false
   config.vm.define "node3", autostart: false

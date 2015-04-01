@@ -23,7 +23,7 @@ public class Server {
 		if(args.length == 1) {
 			System.out.println("Creating cluster on port " + args[0]);
 			server1.startCluster();
-		} else if(args.length == 2) {
+		} else {
 			System.out.println("Connecting to cluster on " + args[1] + ":" + args[2]);
 			server1.connect(discoverServer(args[1], Integer.valueOf(args[2])));
 		}
@@ -39,7 +39,6 @@ public class Server {
 	public static NodeAddress discoverServer(String ip, int port) throws RemoteException {
 		LocalSocket socket = LocalSocket.connectTo(ip, port);
 		String[] bindings = socket.getRegistry().list();
-		String id;
 		for(String binding : bindings) {
 			NodeAddress nodeAddress = NodeAddress.fromAddress(binding);
 			if(nodeAddress.getType().equals(NodeType.SERVER)) {

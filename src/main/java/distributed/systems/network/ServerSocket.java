@@ -65,6 +65,7 @@ public class ServerSocket implements Socket {
 	}
 
 	public void logMessage(Message logMessage) {
+		if(logMessage == null) return;
 		List<NodeState> logNodes = me.getConnectedNodes()
 				.stream()
 				.filter(node -> node.getAddress().getType().equals(NodeType.LOGGER))
@@ -73,6 +74,8 @@ public class ServerSocket implements Socket {
 			try {
 				sendMessage(logMessage, logger.getAddress());
 			} catch (RuntimeException e) {
+				System.out.println(logMessage);
+				e.printStackTrace();
 				System.out.println("Error occured while trying to log! We do not really care about logs anyway, moving on.. Reason: " + e);
 			}
 		});

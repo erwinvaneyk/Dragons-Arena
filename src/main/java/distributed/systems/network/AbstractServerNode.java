@@ -1,12 +1,12 @@
 package distributed.systems.network;
 
-import com.sun.istack.internal.NotNull;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.core.MessageFactory;
 import distributed.systems.core.Socket;
 import distributed.systems.network.messagehandlers.ServerConnectHandler;
 import lombok.Getter;
+import lombok.NonNull;
 import org.apache.commons.lang.SerializationUtils;
 
 import java.rmi.NotBoundException;
@@ -66,7 +66,7 @@ public abstract class AbstractServerNode extends AbstractNode {
 				+ connectedNodes, LogType.INFO);
 	}
 
-	public int generateUniqueId(@NotNull NodeType type) {
+	public int generateUniqueId(@NonNull NodeType type) {
 		ArrayList<NodeAddress> nodes = new ArrayList<>(nodeState.getConnectedNodes());//otherNodes);
 		nodes.add(getAddress());
 		Set<NodeState> potentialClients = new HashSet<>(getConnectedNodes());

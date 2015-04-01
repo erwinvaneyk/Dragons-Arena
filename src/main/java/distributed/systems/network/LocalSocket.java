@@ -108,7 +108,7 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 			} catch (RemoteException e) {
 				errorMessage += " on unknown registry.";
 			}
-			throw new ClusterException(errorMessage + " with message: \"" + message + "\"");
+			//throw new ClusterException(errorMessage + " with message: \"" + message + "\"");
 		} else {
 			try {
 				return handler.get().onMessageReceived(message);
@@ -116,6 +116,7 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 				throw new RuntimeException("Failed to send message: `" + message + "` to " + destination, e);
 			}
 		}
+		return null;
 	}
 
 	@Override
