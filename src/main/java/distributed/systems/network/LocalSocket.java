@@ -115,7 +115,7 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 			try {
 				return handler.get().onMessageReceived(message);
 			} catch (RemoteException e) {
-				throw new RuntimeException("Failed to send message: `" + message + "` to " + destination, e);
+				throw new ClusterException("Failed to send message: `" + message + "` to " + destination, e);
 			}
 		}
 	}

@@ -27,10 +27,10 @@ Vagrant.configure(2) do |config|
      #publicnode.vm.network :private_network, ip: "192.168.0.0"
     publicnode.vm.network "private_network", ip: "192.168.50.4"
   end
-  config.vm.define "node2" do |node2|
+  #config.vm.define "node2" do |node2|
       #node2.vm.network "private_network", ip: "192.168.50.5"
   #      publicnode.vm.network "forwarded_port", guest: 4442, host: 4442
-  end
+  #end
   #config.vm.define "node3", autostart: do |publicnode|
   #    publicnode.vm.network "forwarded_port", guest: 4443, host: 4443
   #end
