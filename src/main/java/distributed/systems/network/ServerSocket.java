@@ -37,7 +37,7 @@ public class ServerSocket implements Socket {
 				sendMessage(message, node.getAddress());
 			}
 			catch (RuntimeException | ConnectionException e) {
-				e.printStackTrace();
+				//e.printStackTrace();
 				logMessage("Failed to send message to node `" + node + "`; message: " + message + ", because: " + e,
 						LogType.ERROR);
 			}

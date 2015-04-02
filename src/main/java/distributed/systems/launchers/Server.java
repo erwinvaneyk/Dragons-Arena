@@ -22,12 +22,19 @@ public class Server {
 		if(args.length < 1) {
 			throw new RuntimeException("Invalid format requires the arguments: <myport> <ip> <port> (connect to cluster) or <myport> (create cluster)");
 		}
-		ServerNode server1 = new ServerNode(Integer.valueOf(args[0]));
+		ServerNode server1;
 		if(args.length == 1) {
 			System.out.println("Creating cluster on port " + args[0]);
+			server1 = new ServerNode(Integer.valueOf(args[0]));
 			server1.startCluster();
+		} else if(args.length == 2) {
+			System.out.println("Creating cluster on port " + args[1] + " with ip " + args[0]);
+			server1 = new ServerNode(Integer.valueOf(args[1]));
+			server1.startCluster();
+			server1.getAddress().setPhysicalAddress(new Address(args[0], Integer.valueOf(args[1])));
 		} else {
 			System.out.println("Connecting to cluster on " + args[1] + ":" + args[2]);
+			server1 = new ServerNode(Integer.valueOf(args[0]));
 			server1.connect(discoverServer(args[1], Integer.valueOf(args[2])));
 		}
 
