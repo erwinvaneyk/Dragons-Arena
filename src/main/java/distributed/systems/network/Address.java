@@ -26,7 +26,13 @@ public class Address implements Serializable {
 	}
 
 	public static Address getMyAddress(int port) {
-		return new Address("localhost", port);
+		try {
+			return new Address(InetAddress.getLocalHost().getHostAddress(), port);
+		}
+		catch (UnknownHostException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	public String toString() {
