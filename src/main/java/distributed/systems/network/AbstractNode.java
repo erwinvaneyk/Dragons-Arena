@@ -47,11 +47,13 @@ public abstract class AbstractNode extends UnicastRemoteObject implements IMessa
 	}
 
 	public void runService(SocketService socketService) {
+		addMessageHandler(socketService);
 		services.submit(socketService);
 	}
 
 	@Override
 	public Message onMessageReceived(Message message) throws RemoteException {
+		System.out.println("received: " + message);
 		long start = System.currentTimeMillis();
 		message.setReceivedTimestamp();
 		Message response = null;
@@ -67,9 +69,14 @@ public abstract class AbstractNode extends UnicastRemoteObject implements IMessa
 
 	public void disconnect() throws RemoteException {
 		// Remove old binding
-		socket = LocalSocket.connectTo(address);
-		socket.unRegister();
-		UnicastRemoteObject.unexportObject(this, true);
+		try {
+			UnicastRemoteObject.unexportObject(this, true);
+			socket = LocalSocket.connectTo(address);
+			socket.unRegister();
+		}
+		catch (ConnectionException e) {
+			System.out.println("Trying to unbind from non-existent registry");
+		}
 	}
 
 	public void safeLogMessage(String message, LogType type) {

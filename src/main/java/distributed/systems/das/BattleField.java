@@ -8,6 +8,7 @@ import distributed.systems.core.MessageFactory;
 import distributed.systems.core.exception.IDNotAssignedException;
 import distributed.systems.das.units.Unit;
 import distributed.systems.das.units.Unit.UnitType;
+import distributed.systems.network.ConnectionException;
 import distributed.systems.network.NodeAddress;
 import distributed.systems.network.ServerSocket;
 import lombok.EqualsAndHashCode;
@@ -326,15 +327,15 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
                     notification.put("request", MessageRequest.notification);
                     notification.put("damage", msg.get("damage"));
                     notification.put("from", origin);
-					serverSocket.sendMessage(notification, unit.getPlayerState().getAddress());
-                });
+					sendNotification(notification, unit.getPlayerState().getAddress());
+				});
                 updatemessage = messagefactory.createMessage();
                 updatemessage.put("request", MessageRequest.update);
                 updatemessage.put("type", MessageRequest.dealDamage);
                 updatemessage.put("x", msg.get("x"));
                 updatemessage.put("y", msg.get("y"));
                 updatemessage.put("hp", currenthp[0]);
-				/* Copy the id of the message so that the unit knows 
+				/* Copy the id of the message so that the unit knows
 				 * what message the battlefield responded to. 
 				 */
 
@@ -363,7 +364,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
                     notification.put("request",MessageRequest.notification);
                     notification.put("heal",unit.getHitPoints());
                     notification.put("from", origin);
-					serverSocket.sendMessage(notification, unit.getPlayerState().getAddress());
+					sendNotification(notification, unit.getPlayerState().getAddress());
 				});
                 updatemessage = messagefactory.createMessage();
                 updatemessage.put("request", MessageRequest.update);
@@ -491,7 +492,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
                     notification.put("request", MessageRequest.notification);
                     notification.put("damage", msg.get("damage"));
                     notification.put("from", origin);
-                    serverSocket.sendMessage(notification, unit.getPlayerState().getAddress());
+	                sendNotification(notification, unit.getPlayerState().getAddress());
                 });
             }
 		}
@@ -505,7 +506,10 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 			// Could happen if the target already logged out
 			idnae.printStackTrace();
 		}
-        return updatemessage;
+		catch (ConnectionException e) {
+			serverSocket.logMessage("Could not reply to message: " + notification + " to " + origin, LogType.DEBUG);
+		}
+		return updatemessage;
 	}
 
 	public void remove(String id) {
@@ -513,6 +517,14 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 			removeUnit(unit.getX(), unit.getY());
 			unit.disconnect();
 		});
+	}
+
+	private void sendNotification(Message notification, NodeAddress to) {
+		try {
+			serverSocket.sendMessage(notification, to);
+		} catch (ConnectionException e) {
+			serverSocket.logMessage("Could not send notification: " + notification + " to " + to, LogType.DEBUG);
+		}
 	}
 
 

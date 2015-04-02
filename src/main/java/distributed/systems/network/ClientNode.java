@@ -26,7 +26,8 @@ public interface ClientNode extends Serializable {
 
 	public PlayerState getPlayerState();
 
-	public void joinServer(NodeAddress server);
+	public void joinServer(NodeAddress server) throws ConnectionException;
 
 	public HeartbeatService getHeartbeatService();
 }
+

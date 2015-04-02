@@ -3,6 +3,7 @@ package distributed.systems.example;
 import java.rmi.RemoteException;
 
 import distributed.systems.das.units.Dragon;
+import distributed.systems.network.ConnectionException;
 import distributed.systems.network.DragonNode;
 import distributed.systems.network.PlayerNode;
 import distributed.systems.network.ServerNode;
@@ -11,7 +12,7 @@ import distributed.systems.network.logging.Logger;
 
 public class FinalTest {
 
-	public static void main(String[] args) throws RemoteException {
+	public static void main(String[] args) throws RemoteException, ConnectionException {
 		// Servers
 		ServerNode server1 = new ServerNode(2345);
 		ServerNode server2 = new ServerNode(2346);

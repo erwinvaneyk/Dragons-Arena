@@ -64,12 +64,10 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 		addMessageHandler(heartbeatService);
 		addMessageHandler(nodeBalanceService);
 		addMessageHandler(syncServerState);
-		runService(syncServerState);
-		runService(nodeBalanceService);
 		serverSocket.logMessage("Server (" + getAddress() + ") is ready to join or create a cluster", LogType.INFO);
 	}
 
-	public void startCluster() {
+	public void startCluster() throws ConnectionException {
 		super.startCluster();
 		// Setup battlefield
 		nodeState = new ServerState(createBattlefield(), getAddress());
@@ -77,7 +75,7 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 		serverSocket.logMessage("New cluster has been created", LogType.INFO);
 	}
 
-	public void connect(NodeAddress server) {
+	public void connect(NodeAddress server) throws ConnectionException {
 		try {
 			super.connect(server);
 			BattleField battlefield = SyncBattlefieldHandler.syncBattlefield(this);
@@ -126,7 +124,7 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 
 	public void updateOtherServerState(@NonNull ServerState that) {
 		addServer(that);
-		safeLogMessage("Updated connectedNodes: " + getConnectedNodes(),LogType.DEBUG);
+		safeLogMessage("Updated connectedNodes: " + getConnectedNodes(), LogType.DEBUG);
 	}
 
 	private BattleField createBattlefield() {
@@ -139,6 +137,8 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 
 	private void startServices() {
 		runService(heartbeatService);
+		runService(syncServerState);
+		runService(nodeBalanceService);
 	}
 
 	public void launchViewer() {

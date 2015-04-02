@@ -38,33 +38,35 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 	/**
 	 * Creates a socket connected to the default server, ip 127.0.0.1 and port 1234
 	 */
-	public static LocalSocket connectToDefault() {
+	public static LocalSocket connectToDefault() throws ConnectionException {
 		return connectTo("127.0.0.1", RegistryNode.PORT);
 	}
 
-	public static LocalSocket connectTo(String ip, int port) {
+	public static LocalSocket connectTo(String ip, int port) throws ConnectionException {
 		return new LocalSocket(ip, port);
 	}
 
-	public static LocalSocket connectTo(NodeAddress address) {
+	public static LocalSocket connectTo(NodeAddress address) throws ConnectionException {
 		return new LocalSocket(address);
 	}
 
-	protected LocalSocket(String ip, int port) {
+	protected LocalSocket(String ip, int port) throws ConnectionException {
 		try {
 			registry = LocateRegistry.getRegistry(ip, port);
 			registryAddress = new NodeAddress(ip, port);
+			registry.list(); // check if connection okay
 		} catch (RemoteException e) {
-			throw new RuntimeException("Could not connect LocalSocket to registry!", e);
+			throw new ConnectionException("Could not connect LocalSocket to registry at: " + ip + ":" + port + "!", e);
 		}
 	}
 
-	protected LocalSocket(NodeAddress address) {
+	protected LocalSocket(NodeAddress address) throws ConnectionException {
 		try {
 			registry = LocateRegistry.getRegistry(address.getPhysicalAddress().getIp(), address.getPhysicalAddress().getPort());
 			registryAddress = address;
+			registry.list(); // check if connection okay
 		} catch (RemoteException e) {
-			throw new RuntimeException("Could not connect LocalSocket to registry!", e);
+			throw new ConnectionException("Could not connect LocalSocket to registry at: " + address + "!", e);
 		}
 	}
 
@@ -108,7 +110,7 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 			} catch (RemoteException e) {
 				errorMessage += " on unknown registry.";
 			}
-			//throw new ClusterException(errorMessage + " with message: \"" + message + "\"");
+			throw new ClusterException(errorMessage + " with message: \"" + message + "\"");
 		} else {
 			try {
 				return handler.get().onMessageReceived(message);
@@ -116,7 +118,6 @@ public class LocalSocket implements ExtendedSocket,Serializable {
 				throw new RuntimeException("Failed to send message: `" + message + "` to " + destination, e);
 			}
 		}
-		return null;
 	}
 
 	@Override

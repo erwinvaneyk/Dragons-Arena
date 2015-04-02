@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.das.units.Unit;
+import distributed.systems.network.ConnectionException;
 import distributed.systems.network.NodeAddress;
 import distributed.systems.network.ServerNode;
 
@@ -57,19 +58,27 @@ public class SynchronizedGameActionHandler implements MessageHandler {
 
 		Message request = me.getMessageFactory().createMessage(MESSAGE_TYPE)
 				.put("id",id);
-		nearByUnits.forEach(address -> me.getServerSocket().sendMessage(request, address));
+		long approvalCount = nearByUnits.stream().filter(address -> {
+			try {
+				me.getServerSocket().sendMessage(request, address);
+				return true;
+			} catch (ConnectionException e) {
+				me.safeLogMessage("Could not send synchronize-message to " + address + ". Assuming that it has disconnected", LogType.WARN);
+				return false;
+			}
+		}).count();
 
 		// Wait for the reply
 		long timestamp = request.getTimestamp().getTime();
 		while(approvalMap.get(id) != null
-				&& approvalMap.get(id) < nearByUnits.size()
+				&& approvalMap.get(id) < approvalCount
 				&& (System.currentTimeMillis() - timestamp < TIMEOUT_MILLISECONDS)) {
 			try {
 				Thread.sleep(50);
 			} catch (InterruptedException e) {}
 		}
 		boolean isAllowed = (approvalMap.get(id) != null
-				&& approvalMap.get(id) >= nearByUnits.size()
+				&& approvalMap.get(id) >= approvalCount
 				&& (System.currentTimeMillis() - timestamp < TIMEOUT_MILLISECONDS));
 		me.safeLogMessage("Synchronization for move to (" + id.tx + ", " + id.ty + ") was: " + isAllowed, LogType.DEBUG);
 		approvalMap.remove(id);
@@ -113,7 +122,13 @@ public class SynchronizedGameActionHandler implements MessageHandler {
 			} else {
 				response.put("goAhead", false);
 			}
-			me.getServerSocket().sendMessage(response, message.getOrigin());
+			try {
+				me.getServerSocket().sendMessage(response, message.getOrigin());
+			}
+			catch (ConnectionException e) {
+				me.safeLogMessage("Could not reply to synchronize-message to "
+						+ message.getOrigin() + ". Assuming that it has disconnected", LogType.WARN);
+			}
 		}
 		return null;
 	}

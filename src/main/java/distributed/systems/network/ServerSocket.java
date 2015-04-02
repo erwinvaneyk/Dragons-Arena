@@ -26,10 +26,7 @@ public class ServerSocket implements Socket {
 	/**
 	 * Currently only for servers
 	 */
-	public Message sendMessage(Message message, NodeAddress destination) {
-        if (message.get("request")!=null && message.get("request").equals(MessageRequest.spawnUnit)){
-            System.out.println("IN Server Socket "+this.me.getAddress()+" send a spawn message to "+destination.getName());
-        }
+	public Message sendMessage(Message message, NodeAddress destination) throws ConnectionException {
 		Socket socket = LocalSocket.connectTo(destination);
 		return socket.sendMessage(message, destination);
 	}
@@ -39,7 +36,7 @@ public class ServerSocket implements Socket {
 			try {
 				sendMessage(message, node.getAddress());
 			}
-			catch (RuntimeException e) {
+			catch (RuntimeException | ConnectionException e) {
 				e.printStackTrace();
 				logMessage("Failed to send message to node `" + node + "`; message: " + message + ", because: " + e,
 						LogType.ERROR);
@@ -48,20 +45,16 @@ public class ServerSocket implements Socket {
 	}
 
 	public void broadcast(Message message, NodeType type) {
-        System.out.println("check the hashset size() "+me.getConnectedNodes().size());
-            me.getConnectedNodes().stream().map(NodeState::getAddress)
-                    .filter(node -> node.getType().equals(type))
-                    .forEach(node -> {
-                        try {
-                            sendMessage(message, node);
-                        } catch (RuntimeException e) {
-                            e.printStackTrace();
-                            logMessage("Failed to send message to node `" + node + "`; message: " + message + ", because: "
-                                    + e, LogType.ERROR);
-                        }
-                    });
-
-
+        me.getConnectedNodes().stream().map(NodeState::getAddress)
+                .filter(node -> node.getType().equals(type))
+                .forEach(node -> {
+                    try {
+                        sendMessage(message, node);
+                    } catch (RuntimeException | ConnectionException e) {
+                        logMessage("Failed to send message to node `" + node + "`; message: " + message + ", because: "
+                                + e, LogType.ERROR);
+                    }
+                });
 	}
 
 	public void logMessage(Message logMessage) {
@@ -73,7 +66,7 @@ public class ServerSocket implements Socket {
 		logNodes.forEach(logger -> {
 			try {
 				sendMessage(logMessage, logger.getAddress());
-			} catch (RuntimeException e) {
+			} catch (RuntimeException | ConnectionException e) {
 				System.out.println(logMessage);
 				e.printStackTrace();
 				System.out.println("Error occured while trying to log! We do not really care about logs anyway, moving on.. Reason: " + e);
@@ -81,7 +74,11 @@ public class ServerSocket implements Socket {
 		});
 		// If there are no loggers, just output it to the screen.
 		if(me.getNodeType() == NodeType.LOGGER) {
-			sendMessage(logMessage, me.getAddress());
+			try {
+				sendMessage(logMessage, me.getAddress());
+			} catch (ConnectionException e) {
+				System.out.println("No connection to own registry: " + logMessage);
+			}
 		} else if(logNodes.isEmpty()) {
 			System.out.println("No logger found: " + logMessage);
 		}

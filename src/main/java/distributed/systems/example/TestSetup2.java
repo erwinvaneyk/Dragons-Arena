@@ -1,19 +1,16 @@
 package distributed.systems.example;
 
-/**
- * Created by mashenjun on 22-3-15.
- */
-
+import distributed.systems.network.ConnectionException;
 import distributed.systems.network.DragonNode;
 import distributed.systems.network.PlayerNode;
 import distributed.systems.network.ServerNode;
 import lombok.extern.slf4j.Slf4j;
 
 import java.rmi.RemoteException;
-@Slf4j
 
+@Slf4j
 public class TestSetup2 {
-    public static void main(String[] args) throws RemoteException, InterruptedException {
+    public static void main(String[] args) throws RemoteException, InterruptedException, ConnectionException {
         // Server setup
         ServerNode server1 = new ServerNode(1234);
 	    server1.startCluster();

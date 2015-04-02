@@ -18,7 +18,7 @@ public abstract class HeartbeatService implements SocketService {
 
 	public static final String MESSAGE_TYPE = "HEARTBEAT";
 
-	protected static final int TIMEOUT_DURATION = 15000;
+	protected static final int TIMEOUT_DURATION = 10000;
 	protected static final int CHECK_INTERVAL = 5000;
 
 	protected final Map<NodeAddress, Integer> watchNodes = new ConcurrentHashMap<>();

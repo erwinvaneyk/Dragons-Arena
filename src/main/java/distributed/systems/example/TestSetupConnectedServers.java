@@ -2,13 +2,14 @@ package distributed.systems.example;
 
 import java.rmi.RemoteException;
 
+import distributed.systems.network.ConnectionException;
 import distributed.systems.network.ServerNode;
 import distributed.systems.network.logging.LogNode;
 import distributed.systems.network.logging.Logger;
 
 public class TestSetupConnectedServers {
 
-	public static void main(String[] args) throws RemoteException {
+	public static void main(String[] args) throws RemoteException, ConnectionException {
 		LogNode logger = new LogNode(2351, Logger.getDefault());
 		LogNode logger2 = new LogNode(2352, Logger.getDefault());
 		ServerNode server1 = new ServerNode(2345);

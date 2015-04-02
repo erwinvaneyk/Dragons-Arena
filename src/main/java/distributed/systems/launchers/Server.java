@@ -3,6 +3,7 @@ package distributed.systems.launchers;
 import java.rmi.RemoteException;
 
 import distributed.systems.network.Address;
+import distributed.systems.network.ConnectionException;
 import distributed.systems.network.LocalSocket;
 import distributed.systems.network.NodeAddress;
 import distributed.systems.network.NodeType;
@@ -15,7 +16,7 @@ public class Server {
 	 * arg[0] = ip of server
 	 * arg[1] = port of server
 	 */
-	public static void main(String[] args) throws RemoteException {
+	public static void main(String[] args) throws RemoteException, ConnectionException {
 		if(args.length < 1) {
 			throw new RuntimeException("Invalid format requires the arguments: <myport> <ip> <port> (connect to cluster) or <myport> (create cluster)");
 		}
@@ -36,7 +37,7 @@ public class Server {
 		}
 	}
 
-	public static NodeAddress discoverServer(String ip, int port) throws RemoteException {
+	public static NodeAddress discoverServer(String ip, int port) throws RemoteException, ConnectionException {
 		LocalSocket socket = LocalSocket.connectTo(ip, port);
 		String[] bindings = socket.getRegistry().list();
 		for(String binding : bindings) {

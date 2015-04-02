@@ -18,7 +18,7 @@ public class TestSetup3 {
     public static final int TIME_BETWEEN_PLAYER_LOGIN = 5000;
     public static int playerCount;
 
-    public static void main(String[] args) throws RemoteException, InterruptedException {
+    public static void main(String[] args) throws RemoteException, InterruptedException, ConnectionException {
         // Server setup
         ServerNode server1 = new ServerNode(1234);
 	    server1.startCluster();
@@ -47,10 +47,8 @@ public class TestSetup3 {
             new Thread(() -> {
                 try {
                     new DragonNode(server1.getAddress(), finalX, finalY);
-                } catch (AlreadyAssignedIDException e) {
+                } catch (AlreadyAssignedIDException | ConnectionException | RemoteException e) {
                     // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (RemoteException e) {
                     e.printStackTrace();
                 }
             }).start();
@@ -74,16 +72,12 @@ public class TestSetup3 {
 
             final int finalX = x;
             final int finalY = y;
-            new Thread(new Runnable() {
-                public void run() {
-                    try {
-                        new PlayerNode(server1.getAddress(),finalX,finalY);
-                    } catch (AlreadyAssignedIDException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
-                    }
+            new Thread(() -> {
+                try {
+                    new PlayerNode(server1.getAddress(),finalX,finalY);
+                } catch (AlreadyAssignedIDException | ConnectionException | RemoteException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
                 }
             }).start();
             System.out.println(server1.getServerState().getBattleField().equals(server2.getServerState().getBattleField()));

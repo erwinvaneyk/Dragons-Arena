@@ -3,6 +3,7 @@ package distributed.systems.example;
 import java.rmi.RemoteException;
 
 import distributed.systems.das.BattleField;
+import distributed.systems.network.ConnectionException;
 import distributed.systems.network.DragonNode;
 import distributed.systems.network.PlayerNode;
 import distributed.systems.network.RegistryNode;
@@ -19,7 +20,7 @@ public class TestSetup {
     public static final int TIME_BETWEEN_PLAYER_LOGIN = 5000;
     public static int playerCount;
 
-	public static void main(String[] args) throws RemoteException {
+	public static void main(String[] args) throws RemoteException, ConnectionException {
 		new Thread(new RegistryNode(RegistryNode.PORT)).start();
 		ServerNode server = new ServerNode(RegistryNode.PORT);
 		server.startCluster();

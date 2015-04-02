@@ -9,6 +9,7 @@ import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.core.Socket;
 import distributed.systems.network.ClientNode;
+import distributed.systems.network.ConnectionException;
 import distributed.systems.network.LocalSocket;
 import distributed.systems.network.NodeAddress;
 import distributed.systems.network.NodeType;
@@ -36,21 +37,26 @@ public class NodeBalanceService implements SocketService {
 				.put("action", "move")
 				.put("newServer", newServer)
 				.put("client", client);
-		Message response = me.getServerSocket().sendMessage(moveMessage, newServer);
-		System.out.println("Balance response:" + response);
-		if(response != null && response.get("success") != null) {
-			//me.removeClient(oldClient);
-			return true;
-		} else {
-			me.safeLogMessage("Failed to move client to other server: " + response, LogType.ERROR);
+		try {
+			Message response = me.getServerSocket().sendMessage(moveMessage, newServer);
+			if(response != null && response.get("success") != null) {
+				//me.removeClient(oldClient);
+				return true;
+			} else {
+				throw new ConnectionException("Response from other server was not success");
+			}
+		}
+		catch (ConnectionException e) {
+			me.safeLogMessage("Failed to move client to other server: " + client + " -> " + newServer, LogType.ERROR);
 		}
 		return false;
 	}
 
-	public static NodeAddress joinServer(ClientNode me, NodeAddress serverAddress) {
+	public static NodeAddress joinServer(ClientNode me, NodeAddress serverAddress) throws ConnectionException {
 		// Connect to cluster (initially before being rebalanced)
 		Socket socket = LocalSocket.connectTo(serverAddress);
 		// Acknowledge
+		System.out.println(socket);
 		Message response = socket.sendMessage(me.getMessageFactory().createMessage(CLIENT_JOIN), serverAddress);
 		if(response.get("redirect") != null) {
 			NodeAddress redirectedAddress = (NodeAddress) response.get("redirect");
@@ -92,13 +98,19 @@ public class NodeBalanceService implements SocketService {
 		Message toClient = me.getMessageFactory().createMessage(CLIENT_JOIN)
 				.put("action", "move")
 				.put("newServer", me.getAddress());
-		Message response = me.getServerSocket().sendMessage(toClient, client);
-		if(response != null && response.get("success") != null) {
-			me.addClient(client);
-		} else {
-			me.safeLogMessage("Failed to move client to other server: " + response, LogType.ERROR);
+		try {
+			Message response = me.getServerSocket().sendMessage(toClient, client);
+			if(response != null && response.get("success") != null) {
+				me.addClient(client);
+			} else {
+				throw new ConnectionException("Failed to move client " + client + " to this server: " + response);
+			}
+			return response;
 		}
-		return response;
+		catch (ConnectionException e) {
+			me.safeLogMessage("Failed to move client " + client + " to this server " + me.getAddress(), LogType.ERROR);
+			return null;
+		}
 	}
 
 	private Message onClientJoin(Message message) {
@@ -120,26 +132,36 @@ public class NodeBalanceService implements SocketService {
 							LogType.INFO);
 					message.put("redirected", numbOfRedirects + 1);
 					message.put("fromServer", me.getServerState());
-					return me.getServerSocket().sendMessage(message, redirect.getAddress());
+					try {
+						return me.getServerSocket().sendMessage(message, redirect.getAddress());
+					}
+					catch (ConnectionException e) {
+						me.safeLogMessage("Failed to redirect to " + redirect.getAddress() + ", sticking to " + me.getAddress(), LogType.WARN);
+					}
 				}
 			}
 			client.setId(me.generateUniqueId(client.getType()));
 			client.setPhysicalAddress(me.getAddress().getPhysicalAddress());
-			me.updateBindings();
-			me.addClient(client);
-			// Propagate message
-			response.put("address", client);
-			response.put("server", me.getNodeState().getAddress());
-			me.getServerSocket().broadcast(message.put("forwarded", true).put("server", me.getAddress()),
-					NodeType.SERVER);
-			return response;
+			try {
+				me.updateBindings();
+				me.addClient(client);
+				// Propagate message
+				response.put("address", client);
+				response.put("server", me.getNodeState().getAddress());
+				me.getServerSocket().broadcast(message.put("forwarded", true).put("server", me.getAddress()),
+						NodeType.SERVER);
+				return response;
+			}
+			catch (ConnectionException e) {
+				me.safeLogMessage("While adding a client, failed to update bindings of " + me.getAddress(), LogType.WARN);
+			}
 		} else {
 			// Deal with propagated message
 			ServerState owner = (ServerState) message.get("fromServer");
 			if(owner != null)
 				me.updateOtherServerState(owner);
-			return null;
 		}
+		return null;
 	}
 
 	@Override
@@ -172,7 +194,7 @@ public class NodeBalanceService implements SocketService {
 		}
 
 		ServerState leastLoaded = servers.stream().reduce((a,b) -> b.getClients().size() > a.getClients().size() ? a : b).get();
-		float inbalance = (float) leastLoaded.getClients().size() / (float) me.getServerState().getClients().size();
+		float inbalance = (float) me.getServerState().getClients().size() != 0 ? (float) leastLoaded.getClients().size() / (float) me.getServerState().getClients().size() : 1;
 		if(inbalance < INBALANCE_THRESHOLD && me.getServerState().getClients().size() > 1) {
 			me.safeLogMessage("Balancing the cluster, because inbalance was " + inbalance, LogType.INFO);
 			NodeAddress clientToMove = me.getServerState().getClients().iterator().next();

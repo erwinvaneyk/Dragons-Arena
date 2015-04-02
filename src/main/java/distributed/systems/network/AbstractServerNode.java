@@ -38,13 +38,18 @@ public abstract class AbstractServerNode extends AbstractNode {
 		ownRegistry = new RegistryNode(port);
 		NodeAddress address = new NodeAddress(port, this.getNodeType());
 		nodeState = new NodeState(address);
-		socket = LocalSocket.connectTo(address);
-		socket.register(address);
+		try {
+			socket = LocalSocket.connectTo(address);
+			socket.register(address);
+		}
+		catch (ConnectionException e) {
+			throw new RuntimeException("Failed to connect to own registry #fail", e);
+		}
 		messageFactory = new MessageFactory(nodeState);
 		serverSocket = new ServerSocket(this);
 	}
 
-	public void connect(NodeAddress server) {
+	public void connect(NodeAddress server) throws ConnectionException {
 		if(connectedNodes.stream().anyMatch(s -> s.getAddress().equals(server))) {
 			serverSocket.logMessage("Node tried to connect to cluster, even though it already is connected!",
 					LogType.WARN);
@@ -83,7 +88,7 @@ public abstract class AbstractServerNode extends AbstractNode {
 		return highestId;
 	}
 
-	public void updateBindings() {
+	public void updateBindings() throws ConnectionException {
 		// Check if there is a difference
 		if (getAddress().equals(currentBinding)) {
 			return;
@@ -127,7 +132,7 @@ public abstract class AbstractServerNode extends AbstractNode {
 		}
 	}
 
-	public void startCluster() {
+	public void startCluster() throws ConnectionException {
 		// TODO: say goodbye to othernodes
 		//otherNodes.clear();
 		serverSocket.logMessage("Starting new cluster, starting with id 0", LogType.DEBUG);

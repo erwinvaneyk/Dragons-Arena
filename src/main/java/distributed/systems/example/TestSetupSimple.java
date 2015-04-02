@@ -1,5 +1,6 @@
 package distributed.systems.example;
 
+import distributed.systems.network.ConnectionException;
 import distributed.systems.network.DragonNode;
 import distributed.systems.network.PlayerNode;
 import distributed.systems.network.ServerNode;
@@ -8,7 +9,7 @@ import java.rmi.RemoteException;
 
 public class TestSetupSimple {
 
-	public static void main(String[] args) throws RemoteException {
+	public static void main(String[] args) throws RemoteException, ConnectionException {
 		//LogNode logger = new LogNode(2347, Logger.getDefault());
 		ServerNode server1 = new ServerNode(3345);
 		//logger.connect(server1.getAddress());

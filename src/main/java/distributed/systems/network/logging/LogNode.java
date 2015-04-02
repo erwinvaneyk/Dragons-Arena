@@ -12,6 +12,7 @@ import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.network.AbstractServerNode;
 import distributed.systems.network.ClusterException;
+import distributed.systems.network.ConnectionException;
 import distributed.systems.network.NodeAddress;
 import distributed.systems.network.NodeState;
 import distributed.systems.network.NodeType;
@@ -57,7 +58,7 @@ public class LogNode extends AbstractServerNode {
 		heartbeatService.expectHeartbeatFrom(server.getAddress());
 	}
 
-	public void connect(NodeAddress server) {
+	public void connect(NodeAddress server) throws ConnectionException {
 		try {
 			super.connect(server);
 			runService(heartbeatService);
