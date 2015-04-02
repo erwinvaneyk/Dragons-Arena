@@ -43,6 +43,10 @@ public class NodeAddress implements Serializable {
 		return type.equals(NodeType.SERVER);
 	}
 
+	public boolean isClient() {
+		return type.equals(NodeType.DRAGON) || type.equals(NodeType.PLAYER);
+	}
+
 	@Override
 	public String toString() {
 		return physicalAddress + "/" + type + ((id != -1) ? SEPARATOR + id : "");

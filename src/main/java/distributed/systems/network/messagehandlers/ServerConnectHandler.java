@@ -29,7 +29,7 @@ public class ServerConnectHandler implements MessageHandler {
 		NodeAddress newAddress = (NodeAddress) message.get("address");
 		NodeState newServer = (NodeState) message.get("newServer");
 		// TODO: check if address is unique
-
+		System.out.println(message);
 		if(message.get("forwarded") == null) {
 			ServerNode meServer = (ServerNode) me;
 

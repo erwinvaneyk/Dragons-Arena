@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.das.BattleField;
+import distributed.systems.network.ConnectionException;
 import distributed.systems.network.NodeType;
 import distributed.systems.network.ServerNode;
 import org.apache.commons.lang.SerializationUtils;
@@ -36,7 +37,7 @@ public class SyncBattlefieldHandler implements MessageHandler {
 					try {
 						return Stream.of(me.getServerSocket().sendMessage(message, server.getAddress()));
 					}
-					catch (RuntimeException e) {
+					catch (RuntimeException | ConnectionException e) {
 						e.printStackTrace();
 						me.getServerSocket().logMessage(
 								"Failed to send message to node `" + server + "`; message: " + message + ", because: "

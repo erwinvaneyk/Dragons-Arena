@@ -11,6 +11,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<powermock.version>1.6.2</powermock.version>
+		<project.prefix>IN4391</project.prefix>
 	</properties>
 
 	<dependencies>
@@ -84,13 +85,13 @@
 				</configuration>
 			</plugin>
 			<!-- Create executable jar -->
-			<plugin>
+			<!--<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
 					<finalName>IN4391-server</finalName>
 					<archive>
 						<manifest>
-							<mainClass>distributed.systems.network.RegistryNode</mainClass>
+							<mainClass>distributed.systems.launchers.Server</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
@@ -101,6 +102,50 @@
 				<executions>
 					<execution>
 						<id>make-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>-->
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.4</version>
+				<executions>
+					<execution>
+						<id>build-player</id>
+						<configuration>
+							<appendAssemblyId>false</appendAssemblyId>
+							<archive>
+								<manifest>
+									<mainClass>distributed.systems.launchers.Player</mainClass>
+								</manifest>
+							</archive>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+							<finalName>${project.prefix}-player</finalName>
+						</configuration>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>build-server</id>
+						<configuration>
+							<appendAssemblyId>false</appendAssemblyId>
+							<archive>
+								<manifest>
+									<mainClass>distributed.systems.launchers.Server</mainClass>
+								</manifest>
+							</archive>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+							<finalName>${project.prefix}-server</finalName>
+						</configuration>
 						<phase>package</phase>
 						<goals>
 							<goal>single</goal>

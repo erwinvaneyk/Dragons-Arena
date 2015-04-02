@@ -12,6 +12,7 @@ import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.network.AbstractServerNode;
 import distributed.systems.network.ClusterException;
+import distributed.systems.network.ConnectionException;
 import distributed.systems.network.NodeAddress;
 import distributed.systems.network.NodeState;
 import distributed.systems.network.NodeType;
@@ -40,7 +41,9 @@ public class LogNode extends AbstractServerNode {
 		orderingQueue = new PriorityQueue<>(10, new Comparator<Message>() {
 			@Override
 			public int compare(Message o1, Message o2) {
-				return (int) (o2.getTimestamp().getTime() - o1.getTimestamp().getTime());
+				long o1Timestamp = o1 != null && o1.getTimestamp() != null ? o1.getTimestamp().getTime() : System.currentTimeMillis() - 10000;
+				long o2Timestamp = o2 != null && o2.getTimestamp() != null ? o2.getTimestamp().getTime() : System.currentTimeMillis() - 10000;
+				return (int) (o2Timestamp - o1Timestamp);
 			}
 		});
 		heartbeatService = new ServerHeartbeatService(this, serverSocket);
@@ -55,7 +58,7 @@ public class LogNode extends AbstractServerNode {
 		heartbeatService.expectHeartbeatFrom(server.getAddress());
 	}
 
-	public void connect(NodeAddress server) {
+	public void connect(NodeAddress server) throws ConnectionException {
 		try {
 			super.connect(server);
 			runService(heartbeatService);
@@ -68,6 +71,7 @@ public class LogNode extends AbstractServerNode {
 
 	@Override
 	public Message onMessageReceived(Message message) throws RemoteException {
+		if(message == null) return null;
 		if(!message.getMessageType().equals(LogMessage.MESSAGE_TYPE)) {
 			return super.onMessageReceived(message);
 		} else {

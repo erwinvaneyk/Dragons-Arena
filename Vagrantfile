@@ -24,11 +24,15 @@ Vagrant.configure(2) do |config|
 
   # Define machines
   config.vm.define "publicnode" do |publicnode|
-     publicnode.vm.network "forwarded_port", guest: 80, host: 8040
-     publicnode.vm.network "forwarded_port", guest: 8083, host: 8083
-     publicnode.vm.network "forwarded_port", guest: 8086, host: 8086
+     #publicnode.vm.network :private_network, ip: "192.168.0.0"
+    publicnode.vm.network "private_network", ip: "192.168.50.4"
   end
-  config.vm.define "node2", autostart: false
-  config.vm.define "node3", autostart: false
+  #config.vm.define "node2", autostart: do |publicnode|
+  #      publicnode.vm.network "forwarded_port", guest: 4442, host: 4442
+  #end
+  #config.vm.define "node3", autostart: do |publicnode|
+  #    publicnode.vm.network "forwarded_port", guest: 4443, host: 4443
+  #end
 
 end
+# http://stackoverflow.com/questions/16244601/vagrant-reverse-port-forwarding

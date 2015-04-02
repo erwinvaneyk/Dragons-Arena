@@ -4,6 +4,7 @@ import java.rmi.RemoteException;
 
 import distributed.systems.core.Message;
 import distributed.systems.network.ClientNode;
+import distributed.systems.network.ConnectionException;
 import distributed.systems.network.NodeAddress;
 import distributed.systems.network.services.NodeBalanceService;
 
@@ -22,9 +23,13 @@ public class ClientNodeBalanceHandler implements MessageHandler {
 
 	@Override
 	public Message onMessageReceived(Message message) throws RemoteException {
-		System.out.println("t");
 		NodeAddress newServer = (NodeAddress) message.get("newServer");
-		me.joinServer(newServer);
+		try {
+			me.joinServer(newServer);
+		}
+		catch (ConnectionException e) {
+			return null;
+		}
 		return me.getMessageFactory().createMessage(NodeBalanceService.CLIENT_JOIN)
 				.put("action", "move")
 				.put("success", true);

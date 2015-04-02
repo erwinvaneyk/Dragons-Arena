@@ -16,10 +16,12 @@ import distributed.systems.das.units.impl.RandomPlayer;
 import distributed.systems.das.units.impl.SimplePlayer;
 import distributed.systems.network.messagehandlers.ClientGameActionHandler;
 import distributed.systems.network.messagehandlers.ClientNodeBalanceHandler;
+import distributed.systems.network.messagehandlers.ClientServerSyncHandler;
 import distributed.systems.network.services.ClientHeartbeatService;
 import distributed.systems.network.services.HeartbeatService;
 import distributed.systems.network.services.NodeBalanceService;
 import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Requirements for a player/dragon/unit:
@@ -29,19 +31,17 @@ import lombok.Getter;
  * - Socket
  */
 
-public class PlayerNode extends AbstractNode implements ClientNode, IMessageReceivedHandler {
+public class PlayerNode extends AbstractClientNode {
 
 	private final ClientGameActionHandler clientGameActionHandler;
 	private transient Player player;
 
 	private final PlayerState playerState;
 
-	private transient List<NodeAddress> knownServers = new ArrayList<>();
-
 	@Getter
 	private transient HeartbeatService heartbeatService;
 
-	public static void main(String[] args) throws RemoteException {
+	public static void main(String[] args) throws RemoteException, ConnectionException {
 		new PlayerNode(null, 1, 1);
 	}
 
@@ -53,7 +53,7 @@ public class PlayerNode extends AbstractNode implements ClientNode, IMessageRece
 		return playerState.getAddress();
 	}
 
-	public PlayerNode(NodeAddress server, int x, int y) throws RemoteException {
+	public PlayerNode(NodeAddress server, int x, int y) throws RemoteException, ConnectionException {
 		// Setup
 		NodeAddress address = new NodeAddress(-1, getNodeType());
 		playerState = new PlayerState(address, server);
@@ -66,6 +66,7 @@ public class PlayerNode extends AbstractNode implements ClientNode, IMessageRece
 		clientGameActionHandler = new ClientGameActionHandler(this);
 		addMessageHandler(new ClientNodeBalanceHandler(this));
 		addMessageHandler(clientGameActionHandler);
+		addMessageHandler(new ClientServerSyncHandler(this));
 
 		// TODO: get reserve servers
 
@@ -79,7 +80,7 @@ public class PlayerNode extends AbstractNode implements ClientNode, IMessageRece
 		player.start();
 	}
 
-	public PlayerNode(NodeAddress server) throws RemoteException {
+	public PlayerNode(NodeAddress server) throws RemoteException, ConnectionException {
 		// Setup
 		NodeAddress address = new NodeAddress(-1, getNodeType());
 		playerState = new PlayerState(address, server);
@@ -91,6 +92,7 @@ public class PlayerNode extends AbstractNode implements ClientNode, IMessageRece
 		clientGameActionHandler = new ClientGameActionHandler(this);
 		addMessageHandler(new ClientNodeBalanceHandler(this));
 		addMessageHandler(clientGameActionHandler);
+		addMessageHandler(new ClientServerSyncHandler(this));
 
 		// TODO: get reserve servers
 
@@ -117,7 +119,7 @@ public class PlayerNode extends AbstractNode implements ClientNode, IMessageRece
 		return new SimplePlayer(x,y, this);
 	}
 
-	public void joinServer(NodeAddress server) {
+	public void joinServer(NodeAddress server) throws ConnectionException {
 		// Join server
 		NodeAddress serverAddress = NodeBalanceService.joinServer(this, server);
 		playerState.setServerAddress(serverAddress);
@@ -135,11 +137,6 @@ public class PlayerNode extends AbstractNode implements ClientNode, IMessageRece
 	public Unit getUnit() {
 		return player;
 
-	}
-
-	@Override
-	public Message sendMessageToServer(Message message) {
-		return socket.sendMessage(message, this.getServerAddress());
 	}
 
 	@Override

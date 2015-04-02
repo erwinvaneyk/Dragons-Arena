@@ -1,8 +1,10 @@
 package distributed.systems.launchers;
 
+import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
 
 import distributed.systems.network.Address;
+import distributed.systems.network.ConnectionException;
 import distributed.systems.network.LocalSocket;
 import distributed.systems.network.NodeAddress;
 import distributed.systems.network.NodeType;
@@ -15,7 +17,8 @@ public class Server {
 	 * arg[0] = ip of server
 	 * arg[1] = port of server
 	 */
-	public static void main(String[] args) throws RemoteException {
+	public static void main(String[] args) throws RemoteException, ConnectionException {
+		securitySetup();
 		if(args.length < 1) {
 			throw new RuntimeException("Invalid format requires the arguments: <myport> <ip> <port> (connect to cluster) or <myport> (create cluster)");
 		}
@@ -23,7 +26,7 @@ public class Server {
 		if(args.length == 1) {
 			System.out.println("Creating cluster on port " + args[0]);
 			server1.startCluster();
-		} else if(args.length == 2) {
+		} else {
 			System.out.println("Connecting to cluster on " + args[1] + ":" + args[2]);
 			server1.connect(discoverServer(args[1], Integer.valueOf(args[2])));
 		}
@@ -36,10 +39,9 @@ public class Server {
 		}
 	}
 
-	public static NodeAddress discoverServer(String ip, int port) throws RemoteException {
+	public static NodeAddress discoverServer(String ip, int port) throws RemoteException, ConnectionException {
 		LocalSocket socket = LocalSocket.connectTo(ip, port);
 		String[] bindings = socket.getRegistry().list();
-		String id;
 		for(String binding : bindings) {
 			NodeAddress nodeAddress = NodeAddress.fromAddress(binding);
 			if(nodeAddress.getType().equals(NodeType.SERVER)) {
@@ -48,5 +50,13 @@ public class Server {
 			}
 		}
 		throw new RuntimeException("No server found on the provided location: " + ip + ":" + port);
+	}
+
+	public static void securitySetup() {
+		System.setProperty("java.security.policy","file:./my.policy");
+		// Create and install a security manager
+		if (System.getSecurityManager() == null) {
+			System.setSecurityManager(new RMISecurityManager());
+		}
 	}
 }

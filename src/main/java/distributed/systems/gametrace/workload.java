@@ -5,12 +5,14 @@ import distributed.systems.core.MessageFactory;
 import distributed.systems.das.BattleField;
 import distributed.systems.das.GameState;
 import distributed.systems.das.MessageRequest;
+import distributed.systems.network.ConnectionException;
 import distributed.systems.network.DragonNode;
 import distributed.systems.network.PlayerNode;
 import distributed.systems.network.ServerNode;
 
 import java.rmi.RemoteException;
 import java.util.*;
+import java.util.concurrent.SynchronousQueue;
 
 /**
  * Created by mashenjun on 31-3-15.
@@ -26,7 +28,7 @@ public class workload {
     public static Date timestamp;
     public static ArrayList Serverlist = new ArrayList<ServerNode>();
 
-    public static void main(String[] args) throws RemoteException {
+    public static void main(String[] args) throws RemoteException, ConnectionException {
 
         Timer timer = new Timer();
 
@@ -103,7 +105,12 @@ public class workload {
             public void run(){
                 int randtemp = randInt(0,4);
                 if (dectincrease(getinterval(timestamp,new Date()))){
-                    increaseUnit((ServerNode) Serverlist.get(randtemp));
+	                try {
+		                increaseUnit((ServerNode) Serverlist.get(randtemp));
+	                }
+	                catch (ConnectionException e) {
+		                System.out.println("Failed to increase units, reason: " + e);
+	                }
                 }
                 else {
                     decrease((ServerNode) Serverlist.get(randtemp));
@@ -122,7 +129,7 @@ public class workload {
         return randomNum;
     }
 
-    public static void increaseUnit(ServerNode server){
+    public static void increaseUnit(ServerNode server) throws ConnectionException {
         int x, y, attempt = 0;
         do {
             x = (int) (Math.random() * BattleField.MAP_WIDTH);
@@ -133,7 +140,7 @@ public class workload {
         // If we didn't find an empty spot, we won't add a new dragon
         if (server.getServerState().getBattleField().getUnit(x, y).isPresent()) return ;
         try {
-            if(propertygenerate()==true) {
+            if(propertygenerate()) {
                 System.out.println("add a player in the thread ");
                 new PlayerNode(server.getAddress(), x, y);
             }

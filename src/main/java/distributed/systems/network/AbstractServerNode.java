@@ -1,12 +1,12 @@
 package distributed.systems.network;
 
-import com.sun.istack.internal.NotNull;
 import distributed.systems.core.LogType;
 import distributed.systems.core.Message;
 import distributed.systems.core.MessageFactory;
 import distributed.systems.core.Socket;
 import distributed.systems.network.messagehandlers.ServerConnectHandler;
 import lombok.Getter;
+import lombok.NonNull;
 import org.apache.commons.lang.SerializationUtils;
 
 import java.rmi.NotBoundException;
@@ -38,13 +38,18 @@ public abstract class AbstractServerNode extends AbstractNode {
 		ownRegistry = new RegistryNode(port);
 		NodeAddress address = new NodeAddress(port, this.getNodeType());
 		nodeState = new NodeState(address);
-		socket = LocalSocket.connectTo(address);
-		socket.register(address);
+		try {
+			socket = LocalSocket.connectTo(address);
+			socket.register(address);
+		}
+		catch (ConnectionException e) {
+			throw new RuntimeException("Failed to connect to own registry #fail", e);
+		}
 		messageFactory = new MessageFactory(nodeState);
 		serverSocket = new ServerSocket(this);
 	}
 
-	public void connect(NodeAddress server) {
+	public void connect(NodeAddress server) throws ConnectionException {
 		if(connectedNodes.stream().anyMatch(s -> s.getAddress().equals(server))) {
 			serverSocket.logMessage("Node tried to connect to cluster, even though it already is connected!",
 					LogType.WARN);
@@ -66,7 +71,7 @@ public abstract class AbstractServerNode extends AbstractNode {
 				+ connectedNodes, LogType.INFO);
 	}
 
-	public int generateUniqueId(@NotNull NodeType type) {
+	public int generateUniqueId(@NonNull NodeType type) {
 		ArrayList<NodeAddress> nodes = new ArrayList<>(nodeState.getConnectedNodes());//otherNodes);
 		nodes.add(getAddress());
 		Set<NodeState> potentialClients = new HashSet<>(getConnectedNodes());
@@ -83,7 +88,7 @@ public abstract class AbstractServerNode extends AbstractNode {
 		return highestId;
 	}
 
-	public void updateBindings() {
+	public void updateBindings() throws ConnectionException {
 		// Check if there is a difference
 		if (getAddress().equals(currentBinding)) {
 			return;
@@ -127,7 +132,7 @@ public abstract class AbstractServerNode extends AbstractNode {
 		}
 	}
 
-	public void startCluster() {
+	public void startCluster() throws ConnectionException {
 		// TODO: say goodbye to othernodes
 		//otherNodes.clear();
 		serverSocket.logMessage("Starting new cluster, starting with id 0", LogType.DEBUG);

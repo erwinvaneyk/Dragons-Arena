@@ -46,5 +46,7 @@ public class SyncServerState implements SocketService {
 		Message message = me.getMessageFactory().createMessage(MESSAGE_TYPE)
 				.put("serverstate", me.getServerState());
 		me.getServerSocket().broadcast(message, NodeType.SERVER);
+		me.getServerState().getClients().stream()
+				.forEach(client -> me.getSocket().sendMessage(message, client));
 	}
 }

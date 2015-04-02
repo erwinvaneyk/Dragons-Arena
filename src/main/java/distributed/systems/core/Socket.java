@@ -1,11 +1,12 @@
 package distributed.systems.core;
 
+import distributed.systems.network.ConnectionException;
 import distributed.systems.network.NodeAddress;
 import distributed.systems.network.NodeType;
 
 public interface Socket {
 
-	public Message sendMessage(Message message, NodeAddress destination);
+	public Message sendMessage(Message message, NodeAddress destination) throws ConnectionException;
 
 	public void logMessage(Message logMessage);
 
