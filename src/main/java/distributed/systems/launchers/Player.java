@@ -16,6 +16,7 @@ public class Player {
 		if(args.length < 2) {
 			throw new RuntimeException("Invalid format requires the arguments: <ip> <port>");
 		}
+		Server.securitySetup();
 		NodeAddress nodeAddress = Server.discoverServer(args[0], Integer.valueOf(args[1]));
 		new PlayerNode(nodeAddress);
 	}

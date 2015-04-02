@@ -1,5 +1,6 @@
 package distributed.systems.launchers;
 
+import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
 
 import distributed.systems.network.Address;
@@ -17,6 +18,7 @@ public class Server {
 	 * arg[1] = port of server
 	 */
 	public static void main(String[] args) throws RemoteException, ConnectionException {
+		securitySetup();
 		if(args.length < 1) {
 			throw new RuntimeException("Invalid format requires the arguments: <myport> <ip> <port> (connect to cluster) or <myport> (create cluster)");
 		}
@@ -48,5 +50,13 @@ public class Server {
 			}
 		}
 		throw new RuntimeException("No server found on the provided location: " + ip + ":" + port);
+	}
+
+	public static void securitySetup() {
+		System.setProperty("java.security.policy","file:./my.policy");
+		// Create and install a security manager
+		if (System.getSecurityManager() == null) {
+			System.setSecurityManager(new RMISecurityManager());
+		}
 	}
 }

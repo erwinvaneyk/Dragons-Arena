@@ -17,7 +17,7 @@ import org.influxdb.dto.Serie;
 
 public class InfluxLogger implements Logger {
 
-	public static boolean FLAG_USE_INFLUX = true;
+	public static boolean FLAG_USE_INFLUX = false;
 
 	private static final String DATABASE_DATA = "data";
 	private static final String DATABASE_GRAFANA = "grafana";
@@ -28,10 +28,17 @@ public class InfluxLogger implements Logger {
 	private static InfluxLogger performanceLogging;
 
 	public static InfluxLogger getInstance() {
-		if(performanceLogging == null) {
+		if(performanceLogging == null && FLAG_USE_INFLUX) {
 			performanceLogging = new InfluxLogger(new Address("localhost", 8086), "root", "root");
+		} else {
+			performanceLogging = new InfluxLogger();
 		}
 		return performanceLogging;
+	}
+	public InfluxLogger() {
+		this.influxDB = null;
+		databaseLocation = null;
+		username = null;
 	}
 
 	public InfluxLogger(Address databaseLocation, String username, String password) {
@@ -57,7 +64,7 @@ public class InfluxLogger implements Logger {
 	}
 
 	public boolean checkConnection() {
-		return (influxDB.ping().getStatus().equalsIgnoreCase("ok"));
+		return (influxDB != null && influxDB.ping().getStatus().equalsIgnoreCase("ok"));
 	}
 
 	public void logMessageDuration(Message message, NodeAddress messageHandler, long duration) {

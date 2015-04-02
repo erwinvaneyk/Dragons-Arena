@@ -19,6 +19,7 @@ public class Logger {
 		if(args.length < 2) {
 			throw new RuntimeException("Invalid format requires the arguments: <myport> <ip> <port> (connect to cluster)");
 		}
+		Server.securitySetup();
 		ServerNode server1 = new ServerNode(Integer.valueOf(args[0]));
 		System.out.println("Connecting logger to cluster on " + args[1] + ":" + args[2]);
 		server1.connect(Server.discoverServer(args[1], Integer.valueOf(args[2])));

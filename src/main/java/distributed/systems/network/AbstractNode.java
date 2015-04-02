@@ -63,9 +63,9 @@ public abstract class AbstractNode extends UnicastRemoteObject implements IMessa
 		} else {
 			safeLogMessage("Unable to handle received message: " + message + " (accepted messageTypes: "+ getAcceptableMessageTypes() +"). Ignoring the message!", LogType.WARN);
 		}
-		influxdbLogger.logMessageDuration(message, getAddress(), System.currentTimeMillis() - start);
 		return response;
 	}
+	//influxdbLogger.logMessageDuration(message,	getAddress(),System.currentTimeMillis() - start);
 
 	public void disconnect() throws RemoteException {
 		// Remove old binding
