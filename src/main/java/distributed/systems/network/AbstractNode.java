@@ -53,7 +53,6 @@ public abstract class AbstractNode extends UnicastRemoteObject implements IMessa
 
 	@Override
 	public Message onMessageReceived(Message message) throws RemoteException {
-		System.out.println("received: " + message);
 		long start = System.currentTimeMillis();
 		message.setReceivedTimestamp();
 		Message response = null;
