@@ -1,8 +1,7 @@
-package distributed.systems.example;
+package distributed.systems.manualTests;
 
 import java.rmi.RemoteException;
 
-import distributed.systems.das.units.Dragon;
 import distributed.systems.network.ConnectionException;
 import distributed.systems.network.DragonNode;
 import distributed.systems.network.PlayerNode;
