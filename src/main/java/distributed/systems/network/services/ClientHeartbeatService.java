@@ -10,6 +10,7 @@ import distributed.systems.network.AbstractNode;
 import distributed.systems.network.ConnectionException;
 import distributed.systems.network.NodeAddress;
 import distributed.systems.network.NodeType;
+import distributed.systems.network.logging.InfluxLogger;
 
 public class ClientHeartbeatService extends HeartbeatService {
 
@@ -30,6 +31,7 @@ public class ClientHeartbeatService extends HeartbeatService {
 		}
 		socket.logMessage("Node `" + address.getName() + "` TIMED OUT, because it has not been sending any heartbeats!",
 				LogType.WARN);
+		InfluxLogger.getInstance().logTimeOut(me.getAddress(), address);
 	}
 
 	public void doHeartbeat() {

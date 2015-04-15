@@ -133,15 +133,17 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 	}
 
 	public Optional<Unit> getNearest(UnitType type, int originX, int originY) {
-		List<Unit> dragons = units.stream().filter(t -> type == null || t.getType() == type).collect(toList());
-		if(dragons.size() == 1) {
-			return Optional.of(dragons.get(0));
+		synchronized (units) {
+			List<Unit> dragons = units.stream().filter(t -> type == null || t.getType() == type).collect(toList());
+			if (dragons.size() == 1) {
+				return Optional.of(dragons.get(0));
+			}
+			return dragons.stream().reduce((a, b) -> {
+				int valueA = Math.abs(originX - a.getX()) + Math.abs(originY - a.getY());
+				int valueB = Math.abs(originX - b.getX()) + Math.abs(originY - b.getY());
+				return valueA - valueB > 0 ? b : a;
+			});
 		}
-		return dragons.stream().reduce((a, b) -> {
-			int valueA = Math.abs(originX - a.getX()) + Math.abs(originY - a.getY());
-			int valueB = Math.abs(originX - b.getX()) + Math.abs(originY - b.getY());
-			return valueA - valueB > 0 ? b : a;
-		});
 	}
 
 	public ArrayList<Unit> getAdjacentUnits(int x, int y) {
@@ -176,7 +178,7 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 				if (map[newX][newY] == null) {
 					if (putUnit(stub, newX, newY)) {
 						map[originalX][originalY] = null;
-                        map[newX][newY].setAdjacent(adjacent(newX, newY));
+                        if(map[newX][newY] != null) map[newX][newY].setAdjacent(adjacent(newX, newY));
                         serverSocket.logMessage(
 		                        stub.getUnitID() + " moved from <" + originalX + "," + originalY + ">" + " to " + "<"
 				                        + newX + "," + newY + ">", LogType.INFO);
@@ -283,7 +285,6 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
 				} while (getUnit(x, y).isPresent());
 				reply.put("x", x);
 				reply.put("y", y);
-				System.out.println(x + " & " + y);
 				break;
 			}
 			case getType:
@@ -320,7 +321,6 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
                 }
                 reply.put("request",MessageRequest.reply);
                 reply.put("id", msg.get("id"));
-                reply.put("adjacent",map[ox][oy].isAdjacent());
 				Optional<Unit> optUnit = this.getUnit(x, y);
 				optUnit.ifPresent(unit -> {
                     currenthp[0] = unit.adjustHitPoints(-(Integer) msg.get("damage"));
@@ -453,7 +453,6 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
                         break;
                     }
                     case removeUnit:{
-                        System.out.println("In Battle Field ,I got a removeUnit Update message ");
                         int x = (Integer)msg.get("x");
                         int y = (Integer)msg.get("y");
                         this.removeUnit(x, y);
@@ -486,7 +485,6 @@ public class BattleField implements Serializable, IMessageReceivedHandler {
                 int x = (Integer)msg.get("tx");
                 int y = (Integer)msg.get("ty");
                 Optional<Unit> optUnit = this.getUnit(x, y);
-                System.out.println("in the battle field, deal huge damage to <"+x+","+y+">");
                 optUnit.ifPresent(unit -> {
                     currenthp[0] = unit.adjustHitPoints(-(Integer) msg.get("damage"));
                     notification.put("request", MessageRequest.notification);

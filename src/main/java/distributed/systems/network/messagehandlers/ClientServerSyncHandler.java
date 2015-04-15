@@ -24,7 +24,6 @@ public class ClientServerSyncHandler implements MessageHandler {
 	public Message onMessageReceived(Message message) throws RemoteException {
 		ServerState serverState = (ServerState) message.get("serverstate");
 		me.setBackupServers(serverState.getConnectedNodes());
-		System.out.println("backup: " + me.getBackupServers());
 		return null;
 	}
 }
