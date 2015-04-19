@@ -23,6 +23,5 @@ public class CleanRunner extends BlockJUnit4ClassRunner {
 				initialized = true;
 			}
 		}
-
 	}
 }

@@ -1,5 +1,6 @@
 package distributed.systems.network.logging;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import distributed.systems.core.LogMessage;
@@ -13,8 +14,7 @@ public class InfluxLoggerTest {
 	@Test
 	public void testInfluxDb() {
 		InfluxLogger influx = InfluxLogger.getInstance();
-		assertTrue(influx.checkConnection());
-		influx.log(new LogMessage("test",LogType.DEBUG));
+		assertEquals(influx.checkConnection(), InfluxLogger.FLAG_USE_INFLUX);
 	}
 
 }

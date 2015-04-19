@@ -10,6 +10,8 @@ import distributed.systems.core.Message;
 import distributed.systems.das.units.Unit;
 import distributed.systems.network.Address;
 import distributed.systems.network.NodeAddress;
+import distributed.systems.network.ServerNode;
+import distributed.systems.network.ServerState;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.Database;
@@ -17,7 +19,7 @@ import org.influxdb.dto.Serie;
 
 public class InfluxLogger implements Logger {
 
-	public static boolean FLAG_USE_INFLUX = false;
+	public static boolean FLAG_USE_INFLUX = true;
 
 	private static final String DATABASE_DATA = "data";
 	private static final String DATABASE_GRAFANA = "grafana";
@@ -28,13 +30,12 @@ public class InfluxLogger implements Logger {
 	private static InfluxLogger performanceLogging;
 
 	public static InfluxLogger getInstance() {
-		if(performanceLogging == null && FLAG_USE_INFLUX) {
+		if(performanceLogging == null) {
 			performanceLogging = new InfluxLogger(new Address("localhost", 8086), "root", "root");
-		} else {
-			performanceLogging = new InfluxLogger();
 		}
 		return performanceLogging;
 	}
+
 	public InfluxLogger() {
 		this.influxDB = null;
 		databaseLocation = null;
@@ -58,6 +59,7 @@ public class InfluxLogger implements Logger {
 				temptInfluxDB.createDatabase(DATABASE_GRAFANA);
 			}
 		} catch(Exception e) {
+			e.printStackTrace();
 			temptInfluxDB = null;
 		}
 		influxDB = temptInfluxDB;
@@ -68,6 +70,7 @@ public class InfluxLogger implements Logger {
 	}
 
 	public void logMessageDuration(Message message, NodeAddress messageHandler, long duration) {
+		if(message.getMessageType().equals(LogMessage.MESSAGE_TYPE)) return;
 		String origin = message.getOrigin() != null ? message.getOrigin().getName() : "";
 		Serie serie = new Serie.Builder("messagePerformance")
 				.columns("duration", "messagetype", "messagehandler", "origin", "time","receivedtime")
@@ -91,6 +94,22 @@ public class InfluxLogger implements Logger {
 		Serie serie = new Serie.Builder("unitRoundDuration")
 				.columns("duration", "unit", "server", "time")
 				.values(duration, unit.getUnitID(), server.getName(), System.currentTimeMillis())
+				.build();
+		writeToInflux(serie);
+	}
+
+	public void logServerStatistics(ServerState server) {
+		Serie serie = new Serie.Builder("serverStatus")
+				.columns("server", "clients")
+				.values(server.getAddress().getName(), server.getClients().size())
+				.build();
+		writeToInflux(serie);
+	}
+
+	public void logTimeOut(NodeAddress me, NodeAddress timedOut) {
+		Serie serie = new Serie.Builder("timeOuts")
+				.columns("notifier","target")
+				.values(me.getName(), timedOut.getName())
 				.build();
 		writeToInflux(serie);
 	}

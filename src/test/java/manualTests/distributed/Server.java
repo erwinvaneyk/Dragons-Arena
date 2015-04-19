@@ -1,4 +1,4 @@
-package distributed.systems.example.distributed;
+package manualTests.distributed;
 
 import java.rmi.RemoteException;
 

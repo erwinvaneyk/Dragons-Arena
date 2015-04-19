@@ -1,15 +1,12 @@
-package distributed.systems.example;
+package manualTests;
 
 import java.rmi.RemoteException;
 
-import distributed.systems.das.BattleField;
 import distributed.systems.network.ConnectionException;
 import distributed.systems.network.DragonNode;
 import distributed.systems.network.PlayerNode;
 import distributed.systems.network.RegistryNode;
 import distributed.systems.network.ServerNode;
-import distributed.systems.network.logging.LogNode;
-import distributed.systems.network.logging.Logger;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

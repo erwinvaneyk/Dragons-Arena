@@ -1,4 +1,4 @@
-package distributed.systems.example;
+package manualTests;
 
 import distributed.systems.network.ConnectionException;
 import distributed.systems.network.DragonNode;

@@ -32,7 +32,6 @@ public class ClientGameActionHandler implements MessageHandler {
 	public Message onMessageReceived(Message message) throws RemoteException {
 		me.getSocket().logMessage("[" + me.getAddress() + "] received message: (" + message + ")", LogType.DEBUG);
 		if(me.getUnit() == null) {
-			System.out.println("id:" + (Integer) message.get("id"));
 			messageList.put((Integer) message.get("id"), message);
 		} else {
 			return me.getUnit().onMessageReceived(message);
@@ -43,7 +42,6 @@ public class ClientGameActionHandler implements MessageHandler {
 	public Message waitAndGetMessage(int id) {
 		// Wait for the reply
 		while(!messageList.containsKey(id)) {
-			System.out.println("wait:" + id);
 			try {
 				Thread.sleep(50);
 			} catch (InterruptedException e) {}

@@ -20,6 +20,7 @@ import distributed.systems.network.messagehandlers.SynchronizedGameActionHandler
 import distributed.systems.network.services.HeartbeatService;
 import distributed.systems.network.services.NodeBalanceService;
 import distributed.systems.network.services.ServerHeartbeatService;
+import distributed.systems.network.services.ServerStatisticsService;
 import distributed.systems.network.services.SyncServerState;
 import lombok.Getter;
 import lombok.NonNull;
@@ -139,6 +140,7 @@ public class ServerNode extends AbstractServerNode implements IMessageReceivedHa
 		runService(heartbeatService);
 		runService(syncServerState);
 		runService(nodeBalanceService);
+		runService(new ServerStatisticsService(this));
 	}
 
 	public void launchViewer() {

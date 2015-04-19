@@ -56,7 +56,6 @@ public class NodeBalanceService implements SocketService {
 		// Connect to cluster (initially before being rebalanced)
 		Socket socket = LocalSocket.connectTo(serverAddress);
 		// Acknowledge
-		System.out.println(socket);
 		Message response = socket.sendMessage(me.getMessageFactory().createMessage(CLIENT_JOIN), serverAddress);
 		if(response.get("redirect") != null) {
 			NodeAddress redirectedAddress = (NodeAddress) response.get("redirect");

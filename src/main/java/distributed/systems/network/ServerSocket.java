@@ -67,7 +67,6 @@ public class ServerSocket implements Socket {
 			try {
 				sendMessage(logMessage, logger.getAddress());
 			} catch (RuntimeException | ConnectionException e) {
-				System.out.println(logMessage);
 				e.printStackTrace();
 				System.out.println("Error occured while trying to log! We do not really care about logs anyway, moving on.. Reason: " + e);
 			}

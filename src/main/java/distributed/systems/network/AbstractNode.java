@@ -53,7 +53,6 @@ public abstract class AbstractNode extends UnicastRemoteObject implements IMessa
 
 	@Override
 	public Message onMessageReceived(Message message) throws RemoteException {
-		System.out.println("received: " + message);
 		long start = System.currentTimeMillis();
 		message.setReceivedTimestamp();
 		Message response = null;
@@ -63,9 +62,9 @@ public abstract class AbstractNode extends UnicastRemoteObject implements IMessa
 		} else {
 			safeLogMessage("Unable to handle received message: " + message + " (accepted messageTypes: "+ getAcceptableMessageTypes() +"). Ignoring the message!", LogType.WARN);
 		}
+		influxdbLogger.logMessageDuration(message,	getAddress(),System.currentTimeMillis() - start);
 		return response;
 	}
-	//influxdbLogger.logMessageDuration(message,	getAddress(),System.currentTimeMillis() - start);
 
 	public void disconnect() throws RemoteException {
 		// Remove old binding

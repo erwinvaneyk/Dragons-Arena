@@ -126,7 +126,6 @@ public abstract class Unit implements Serializable, IMessageReceivedHandler {
 		if (hitPoints <= 0)
 			return 0;
 
-		System.out.println("Health: " + hitPoints + " + " + modifier);
 		hitPoints = Math.min(hitPoints + modifier, maxHitPoints);
 
 		if (hitPoints <= 0){

@@ -13,6 +13,7 @@ import distributed.systems.network.NodeAddress;
 import distributed.systems.network.NodeType;
 import distributed.systems.network.ServerNode;
 import distributed.systems.network.ServerSocket;
+import distributed.systems.network.logging.InfluxLogger;
 import distributed.systems.network.messagehandlers.ClientHandler;
 
 public class ServerHeartbeatService extends HeartbeatService {
@@ -46,7 +47,7 @@ public class ServerHeartbeatService extends HeartbeatService {
 				.ifPresent(node -> abstractServerNode.getConnectedNodes().remove(node));
 		serversocket.logMessage("Node `" + address.getName() + "` TIMED OUT, because it has not been sending any heartbeats!",
 				LogType.WARN);
-
+		InfluxLogger.getInstance().logTimeOut(me.getAddress(), address);
 	}
 
 	public void doHeartbeat() {

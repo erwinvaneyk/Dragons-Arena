@@ -36,7 +36,6 @@ public class SynchronizedGameActionHandler implements MessageHandler {
 	 * Ask permission to move
 	 */
 	public boolean synchronizeAction(Message message) {
-		System.out.println(message);
 		int tx = (Integer)message.get("x");
 		int ty = (Integer)message.get("y");
 		int ox = (Integer)message.get("ox");

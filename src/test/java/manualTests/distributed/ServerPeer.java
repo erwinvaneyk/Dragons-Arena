@@ -1,8 +1,7 @@
-package distributed.systems.example.distributed;
+package manualTests.distributed;
 
 import java.rmi.RemoteException;
 
-import distributed.systems.launchers.*;
 import distributed.systems.network.ConnectionException;
 import distributed.systems.network.NodeAddress;
 import distributed.systems.network.ServerNode;

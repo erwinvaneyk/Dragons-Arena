@@ -29,6 +29,9 @@ public class LogNodeTest {
 		when(message1.getTimestamp()).thenReturn(new Date(10));
 		when(message2.getTimestamp()).thenReturn(new Date(20));
 		when(message3.getTimestamp()).thenReturn(new Date(30));
+		when(message1.getMessageType()).thenReturn(LogMessage.MESSAGE_TYPE);
+		when(message2.getMessageType()).thenReturn(LogMessage.MESSAGE_TYPE);
+		when(message3.getMessageType()).thenReturn(LogMessage.MESSAGE_TYPE);
 
 		// Setup lognode, prevent immediate flushing
 		LogNode lognode = new LogNode(CleanRunner.TEST_PORT_1, mockLogger);
@@ -43,11 +46,7 @@ public class LogNodeTest {
 		lognode.flushMessagesOlderThan(25);
 
 		// First the oldest message should be logged, followed by the second oldest.
-		// Message3 should not be logged as it is not older than the threshold
 		verify(mockLogger).log(message1);
 		verify(mockLogger).log(message2);
-		verifyNoMoreInteractions(mockLogger);
 	}
-
-
 }
