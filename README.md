@@ -1,15 +1,6 @@
 # IN4391
 Distributed Systems - game
 
-### TODO
-- [x] Split up the code of the Core into Client and Server (replace/remove threads)
-- [x] Implement distributed logging
-- ~~[ ] Implement two message-queues (IncomingQueue and CurrentQueue)*~~
-- [ ] Implement synchronization (1-phase, use timestamp checks)
-- [ ] Implement functionality for server to take tasks from the queue and send result to client
-- [ ] Implement message buffering in both server and client
-- [ ] Implement functionality for disconnecting/reconnecting clients and servers
-
 ### Implementation details
 ##### Queues:
 - Only have 1 message of a player at any time
